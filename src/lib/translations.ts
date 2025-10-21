@@ -1,6 +1,6 @@
 export const translations = {
   en: {
-    title: "Living Memories",
+    title: "Retro",
     hero: "Give voice to silent moments",
     login: "Sign In",
     logout: "Sign Out",
@@ -55,7 +55,7 @@ export const translations = {
     goToHome: "Go to Home"
   },
   sv: {
-    title: "Levande Minnen",
+    title: "Retro",
     hero: "Ge röst åt de tysta ögonblicken",
     login: "Logga In",
     logout: "Logga Ut",
