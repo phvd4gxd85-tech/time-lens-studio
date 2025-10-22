@@ -28,23 +28,47 @@ const Home = () => {
     }
 
     setLoading(packageType);
+    console.log('Starting payment for package:', packageType);
+    
     try {
       const priceId = PRICE_IDS[packageType];
+      console.log('Using price ID:', priceId);
       
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { priceId, packageType }
       });
 
-      if (error) throw error;
+      console.log('Payment response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('Opening Stripe checkout:', data.url);
+        const newWindow = window.open(data.url, '_blank');
+        
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+          toast({
+            title: "Popup blockerad",
+            description: "Tillåt popup-fönster för att fortsätta till betalning.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Öppnar Stripe Checkout",
+            description: "Slutför betalningen i det nya fönstret.",
+          });
+        }
+      } else {
+        throw new Error('Ingen checkout URL mottagen');
       }
     } catch (error) {
       console.error('Payment error:', error);
       toast({
-        title: "Fel",
-        description: "Kunde inte starta betalning. Försök igen.",
+        title: "Fel vid betalning",
+        description: error instanceof Error ? error.message : "Kunde inte starta betalning. Försök igen.",
         variant: "destructive",
       });
     } finally {
@@ -112,7 +136,7 @@ const Home = () => {
           />
         </div>
         <div className="text-center mt-8 text-muted-foreground text-sm font-futura">
-          {t.conversion}
+          1 video = 1 token  •  2 bilder = 1 token
         </div>
       </div>
 
