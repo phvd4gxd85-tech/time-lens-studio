@@ -15,18 +15,11 @@ const Home = () => {
 
   const PRICE_IDS = {
     trial: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
+    starter: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
     pro: "price_1SKbTIQt7FLZjS8hIee7YD54",
   };
 
   const handlePurchase = async (packageType: 'trial' | 'pro' | 'starter') => {
-    if (packageType === 'starter') {
-      toast({
-        title: "Kommer snart",
-        description: "12 Retro paketet är inte tillgängligt än. Kontakta support för mer info.",
-      });
-      return;
-    }
-
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
