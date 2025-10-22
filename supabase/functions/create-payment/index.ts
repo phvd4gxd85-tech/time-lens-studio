@@ -53,9 +53,7 @@ serve(async (req) => {
       }
     }
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : userEmail,
+    const sessionParams: any = {
       line_items: [
         {
           price: priceId,
@@ -68,7 +66,16 @@ serve(async (req) => {
       metadata: {
         package_type: packageType,
       },
-    });
+    };
+
+    // Only set one of customer or customer_email
+    if (customerId) {
+      sessionParams.customer = customerId;
+    } else if (userEmail) {
+      sessionParams.customer_email = userEmail;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     console.log("Payment session created:", session.id);
 

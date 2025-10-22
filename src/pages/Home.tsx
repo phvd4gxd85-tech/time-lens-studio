@@ -71,14 +71,14 @@ const Home = () => {
         <h2 className="text-5xl text-center text-foreground mb-20 tracking-[0.2em] uppercase font-futura font-light">
           {t.pricingTitle}
         </h2>
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <PricingCard 
             title={t.trial} 
             price="2" 
             tokens="2" 
             desc={t.trialDesc} 
             videos="2" 
-            images="8" 
+            images="4" 
             isOneTime={true}
             oneTimeText={t.oneTimeOffer}
             buyText={loading === 'trial' ? 'Laddar...' : t.buyNow}
@@ -92,7 +92,7 @@ const Home = () => {
             tokens="12" 
             desc={t.starterDesc} 
             videos="12" 
-            images="48"
+            images="24"
             buyText={loading === 'starter' ? 'Laddar...' : t.buyNow}
             videosText={t.videos}
             imagesText={t.images}
@@ -104,7 +104,7 @@ const Home = () => {
             tokens="25" 
             desc={t.proDesc} 
             videos="25" 
-            images="100"
+            images="50"
             buyText={loading === 'pro' ? 'Laddar...' : t.buyNow}
             videosText={t.videos}
             imagesText={t.images}
