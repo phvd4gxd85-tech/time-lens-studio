@@ -39,21 +39,8 @@ const Home = () => {
       }
 
       if (data?.url) {
-        console.log('Opening Stripe checkout:', data.url);
-        const newWindow = window.open(data.url, '_blank');
-        
-        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-          toast({
-            title: "Popup blockerad",
-            description: "Tillåt popup-fönster för att fortsätta till betalning.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Öppnar Stripe Checkout",
-            description: "Slutför betalningen i det nya fönstret.",
-          });
-        }
+        console.log('Redirecting to Stripe checkout:', data.url);
+        window.location.href = data.url;
       } else {
         throw new Error('Ingen checkout URL mottagen');
       }
