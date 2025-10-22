@@ -1,7 +1,7 @@
 export const translations = {
   en: {
-    title: "Retro",
-    hero: "Give voice to silent moments",
+    title: "Vintage AI",
+    hero: "",
     login: "Sign In",
     logout: "Sign Out",
     tokens: "Tokens",
@@ -55,8 +55,8 @@ export const translations = {
     goToHome: "Go to Home"
   },
   sv: {
-    title: "Retro",
-    hero: "Ge röst åt de tysta ögonblicken",
+    title: "Vintage AI",
+    hero: "",
     login: "Logga In",
     logout: "Logga Ut",
     tokens: "Tokens",

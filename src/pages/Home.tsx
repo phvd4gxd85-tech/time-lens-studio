@@ -79,9 +79,6 @@ const Home = () => {
           {t.title}
         </h1>
         <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent mx-auto"></div>
-        <p className="text-xl text-muted-foreground italic max-w-2xl mx-auto font-serif">
-          {t.hero}
-        </p>
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
