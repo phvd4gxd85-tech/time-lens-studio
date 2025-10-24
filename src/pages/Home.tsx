@@ -462,7 +462,7 @@ const Home = () => {
                 name: "Upptäck", 
                 subtitle: "Testa tjänsten",
                 price: "$5", 
-                videos: 5,
+                videos: 3,
                 color: "from-amber-700 to-amber-900",
                 borderColor: "border-amber-600",
                 packageType: "discover" as const
@@ -471,7 +471,7 @@ const Home = () => {
                 name: "Klassisk", 
                 subtitle: "Bäst för de flesta",
                 price: "$18", 
-                videos: 20,
+                videos: 12,
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
                 popular: true,
@@ -481,7 +481,7 @@ const Home = () => {
                 name: "Premiär", 
                 subtitle: "Maximal kreativitet",
                 price: "$40", 
-                videos: 50,
+                videos: 25,
                 color: "from-gray-800 to-gray-900",
                 borderColor: "border-gray-600",
                 packageType: "premier" as const
