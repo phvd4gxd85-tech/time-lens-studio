@@ -1,25 +1,22 @@
-import { Film } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { PricingCard } from '@/components/PricingCard';
-import { GoldCorner } from '@/components/GoldCorner';
-import { useNavigate } from 'react-router-dom';
+import { Upload, Film, Sparkles, Video, Lightbulb, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 
 const Home = () => {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [prompt, setPrompt] = useState('');
 
   const PRICE_IDS = {
-    trial: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
-    starter: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
-    pro: "price_1SKbTIQt7FLZjS8hIee7YD54",
+    discover: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
+    classic: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
+    premier: "price_1SKbTIQt7FLZjS8hIee7YD54",
   };
 
-  const handlePurchase = async (packageType: 'trial' | 'pro' | 'starter') => {
+  const handlePurchase = async (packageType: 'discover' | 'classic' | 'premier') => {
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
@@ -56,95 +53,493 @@ const Home = () => {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setUploadedImage(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => setIsGenerating(false), 3000);
+  };
+
+  const examplePrompt = "Wayne Gretzky åker framåt mot kameran, Edmonton Oilers tröja, tar skottet mot mål, is sprayas upp när han bromsar, arenaljus reflekterar i isen, 80-talets kornig VHS-känsla, slow motion, publiken suddig i bakgrunden";
+
   return (
-    <div className="space-y-32">
-      <div className="text-center space-y-12 py-32 px-4">
-        <div className="inline-block">
-          <Film size={64} className="text-accent mx-auto mb-8" strokeWidth={1} />
-        </div>
-        <h1 className="text-7xl text-foreground tracking-wider font-futura font-light">
-          {t.title}
-        </h1>
-        <div className="w-32 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent mx-auto"></div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
+      {/* Art Deco Corner Ornaments */}
+      <div className="fixed top-0 left-0 w-32 h-32 pointer-events-none z-50">
+        <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
+          <path d="M0,0 L60,0 L55,5 L5,5 L5,55 L0,60 Z" fill="#D4AF37"/>
+          <path d="M0,0 L50,0 L45,5 L10,5 L10,45 L5,50 L0,50 Z" fill="#B8860B"/>
+          <path d="M0,0 L40,0 L35,5 L15,5 L15,35 L10,40 L0,40 Z" fill="#DAA520"/>
+        </svg>
+      </div>
+      <div className="fixed top-0 right-0 w-32 h-32 pointer-events-none z-50">
+        <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
+          <path d="M100,0 L40,0 L45,5 L95,5 L95,55 L100,60 Z" fill="#D4AF37"/>
+          <path d="M100,0 L50,0 L55,5 L90,5 L90,45 L95,50 L100,50 Z" fill="#B8860B"/>
+          <path d="M100,0 L60,0 L65,5 L85,5 L85,35 L90,40 L100,40 Z" fill="#DAA520"/>
+        </svg>
+      </div>
+      <div className="fixed bottom-0 left-0 w-32 h-32 pointer-events-none z-50">
+        <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
+          <path d="M0,100 L60,100 L55,95 L5,95 L5,45 L0,40 Z" fill="#D4AF37"/>
+          <path d="M0,100 L50,100 L45,95 L10,95 L10,55 L5,50 L0,50 Z" fill="#B8860B"/>
+          <path d="M0,100 L40,100 L35,95 L15,95 L15,65 L10,60 L0,60 Z" fill="#DAA520"/>
+        </svg>
+      </div>
+      <div className="fixed bottom-0 right-0 w-32 h-32 pointer-events-none z-50">
+        <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
+          <path d="M100,100 L40,100 L45,95 L95,95 L95,45 L100,40 Z" fill="#D4AF37"/>
+          <path d="M100,100 L50,100 L55,95 L90,95 L90,55 L95,50 L100,50 Z" fill="#B8860B"/>
+          <path d="M100,100 L60,100 L65,95 L85,95 L85,65 L90,60 L100,60 Z" fill="#DAA520"/>
+        </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-5xl text-center text-foreground mb-20 tracking-[0.2em] uppercase font-futura font-light">
-          {t.pricingTitle}
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <PricingCard 
-            title={t.trial} 
-            price="2" 
-            tokens="2" 
-            desc={t.trialDesc} 
-            videos="2" 
-            images="4" 
-            isOneTime={true}
-            oneTimeText={t.oneTimeOffer}
-            buyText={loading === 'trial' ? 'Laddar...' : t.buyNow}
-            videosText={t.videos}
-            imagesText={t.images}
-            onBuy={() => handlePurchase('trial')}
-          />
-          <PricingCard 
-            title={t.starter} 
-            price="15" 
-            tokens="12" 
-            desc={t.starterDesc} 
-            videos="12" 
-            images="24"
-            buyText={loading === 'starter' ? 'Laddar...' : t.buyNow}
-            videosText={t.videos}
-            imagesText={t.images}
-            onBuy={() => handlePurchase('starter')}
-          />
-          <PricingCard 
-            title={t.pro} 
-            price="30" 
-            tokens="25" 
-            desc={t.proDesc} 
-            videos="25" 
-            images="50"
-            buyText={loading === 'pro' ? 'Laddar...' : t.buyNow}
-            videosText={t.videos}
-            imagesText={t.images}
-            onBuy={() => handlePurchase('pro')}
-          />
-        </div>
-        <div className="text-center mt-8 text-muted-foreground text-sm font-futura">
-          1 video = 1 token  •  2 bilder = 1 token
-        </div>
-      </div>
+      {/* Hero Section */}
+      <div className="relative pt-20 pb-32 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="mb-8">
+            <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">
+              Vintage AI
+            </h1>
+            <div className="flex justify-center mb-6">
+              <svg width="200" height="60" viewBox="0 0 200 60">
+                <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30" 
+                      stroke="#D4AF37" strokeWidth="2" fill="none"/>
+                <rect x="15" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
+                <rect x="25" y="20" width="8" height="20" fill="#D4AF37" opacity="0.4"/>
+                <rect x="35" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
+                <rect x="157" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
+                <rect x="167" y="20" width="8" height="20" fill="#D4AF37" opacity="0.4"/>
+                <rect x="177" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
+              </svg>
+            </div>
+            <p className="text-2xl md:text-3xl text-amber-200 font-light mb-4">
+              Alla bilder har en story - vi gör den levande
+            </p>
+            <p className="text-lg md:text-xl text-amber-300/80 max-w-3xl mx-auto">
+              Familjealbum, hockeybilder, gamla planscherna, reklamposters - vad som helst. Väck dem till liv med AI.
+            </p>
+          </div>
 
-      <div className="max-w-4xl mx-auto px-4">
-        <h2 className="text-3xl text-center text-foreground mb-12 tracking-[0.15em] uppercase font-futura font-normal">
-          {t.howItWorks}
-        </h2>
-        <div className="grid md:grid-cols-4 gap-6">
-          {[t.step1, t.step2, t.step3, t.step4].map((step, i) => (
-            <div key={i} className="text-center">
-              <div className="w-12 h-12 mx-auto mb-4 border border-accent flex items-center justify-center text-accent text-xl font-futura">
-                {i + 1}
+          {/* Main Generator Box */}
+          <div className="max-w-4xl mx-auto mt-16 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-gray-900 to-green-900 p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
+              <div className="flex justify-center mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
+                  <Sparkles className="w-8 h-8 text-amber-500" />
+                  <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
+                </div>
               </div>
-              <p className="text-foreground text-sm font-futura">
-                {step}
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-amber-100">
+                Skapa Din Video
+              </h2>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="block">
+                    <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {uploadedImage ? (
+                        <img src={uploadedImage} alt="Uploaded" className="w-full h-48 object-cover rounded" />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
+                          <p className="text-amber-200 text-lg">Ladda upp din bild</p>
+                          <p className="text-amber-400/60 text-sm mt-2">Valfritt - du kan också bara skriva</p>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Beskriv vad som händer... (t.ex. 'Hon vänder sig om och ler, vinden vajar')"
+                    className="w-full p-4 bg-black/40 border border-amber-600/50 rounded text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-amber-500 h-32"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center">
+                    {isGenerating ? (
+                      <div className="text-center">
+                        <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
+                        <p className="text-amber-300">Skapar magi...</p>
+                      </div>
+                    ) : (
+                      <div className="text-center text-amber-400/40">
+                        <Video className="w-16 h-16 mx-auto mb-4" />
+                        <p>Din video visas här</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleGenerate}
+                    disabled={!prompt}
+                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    GENERERA VIDEO
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-center mt-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
+                  <div className="w-2 h-2 bg-amber-600 rotate-45"></div>
+                  <div className="w-24 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Prompting Guide */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-red-950 to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Lightbulb className="w-10 h-10 text-amber-500" />
+            <h2 className="text-5xl font-bold text-center text-amber-100">
+              Så Skriver Du Bra Prompts
+            </h2>
+          </div>
+          <p className="text-center text-amber-200/70 mb-16 text-xl">
+            En prompt är instruktionerna du ger till AI:n
+          </p>
+
+          {/* What is a prompt */}
+          <div className="max-w-4xl mx-auto mb-16 bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
+            <h3 className="text-3xl font-bold text-amber-100 mb-4">Tänk på det som en tom tavla</h3>
+            <p className="text-amber-200/80 text-lg mb-6">
+              Ju mer detaljer du fyller den med, desto närmare din vision kommer resultatet.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-red-950/30 border border-red-700/50 rounded-lg p-6">
+                <div className="text-red-400 font-bold mb-2 flex items-center gap-2">
+                  <span className="text-2xl">❌</span> För enkelt:
+                </div>
+                <p className="text-amber-200 italic">"En röd fågel i ett träd"</p>
+                <p className="text-amber-300/60 text-sm mt-3">AI måste gissa allt: Vilken fågel? Vilket träd? När? Hur?</p>
+              </div>
+
+              <div className="bg-green-950/30 border border-green-700/50 rounded-lg p-6">
+                <div className="text-green-400 font-bold mb-2 flex items-center gap-2">
+                  <span className="text-2xl">✅</span> Mycket bättre:
+                </div>
+                <p className="text-amber-200 italic">"En röd kardinal sitter på en ekgren, sommardag, solstrålar genom löven, fågeln tittar åt höger, mjuk morgonbris"</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Three ways to use */}
+          <div className="mb-16">
+            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">Tre Sätt Att Använda Appen</h3>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">Enkel animering</h4>
+                <p className="text-amber-200/80 mb-3">Ladda upp din bild och skriv enkelt:</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Ge liv åt bilden"</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">Lägg till detaljer</h4>
+                <p className="text-amber-200/80 mb-3">Har foto från första klass 1982? Lägg till:</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Jag åker på röda Bauer rullskridskor, gul Didriksons regnkappa, duggregn faller"</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">Skapa från text</h4>
+                <p className="text-amber-200/80 mb-3">Ingen bild? Beskriv din vision:</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Mitt rum 1966, orange tapet, lavalampa, Beatles-poster på väggen"</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Detail levels */}
+          <div className="mb-16 max-w-4xl mx-auto">
+            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">Nivåer av Detaljer</h3>
+            
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <h4 className="text-xl font-bold text-amber-100">Basic</h4>
+                </div>
+                <ul className="text-amber-200/80 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Vad händer:</strong> Person springer, bil kör, fågel flyger</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Var:</strong> I skog, på stan, vid strand</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>När:</strong> Sommar, kväll, 1970-tal</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <h4 className="text-xl font-bold text-amber-100">Mellanläge</h4>
+                </div>
+                <ul className="text-amber-200/80 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Känsla:</strong> Nostalgisk, dramatisk, glad, melankolisk</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Ljus:</strong> Solnedgång, blå timme, skarpt dagsljus</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Rörelse:</strong> Långsam, mjuk, dynamisk, hastig</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Väder:</strong> Duggregn vs spöregn (helt olika känslor!)</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <Zap className="w-6 h-6 text-amber-500" />
+                  <h4 className="text-xl font-bold text-amber-100">Avancerat</h4>
+                </div>
+                <ul className="text-amber-200/80 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Kameralins:</strong> 35mm, wide-angle, telephoto</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Kamerarörelse:</strong> Slow pan, zoom in, steady cam</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Filmstil:</strong> 60-talets Kodachrome, 80-talets VHS-kornig</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Vinkel:</strong> Bird's eye view, low angle, över axeln</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-500">•</span>
+                    <span><strong>Specifika märken:</strong> Bauer rullskridskor, Didriksons jacka</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Example prompt */}
+          <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-amber-50" />
+              </div>
+              <h3 className="text-2xl font-bold text-amber-100">Exempel: Hockeykort Wayne Gretzky</h3>
+            </div>
+            
+            <div className="bg-black/40 p-6 rounded-lg mb-6">
+              <p className="text-amber-200 text-lg italic leading-relaxed">
+                "{examplePrompt}"
               </p>
             </div>
-          ))}
+
+            <div className="space-y-3 text-amber-200/80">
+              <p className="font-bold text-amber-100">Varför funkar detta?</p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Specifik rörelse (åker framåt, tar skott, bromsar)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Detaljer (is sprayas, arenaljus reflekterar)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Årtionde och känsla (80-tal, VHS-kornig)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Kameraeffekt (slow motion)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400">✓</span>
+                  <span>Bakgrund (publiken suddig)</span>
+                </li>
+              </ul>
+            </div>
+
+            <button
+              onClick={() => setPrompt(examplePrompt)}
+              className="mt-6 w-full bg-amber-600 hover:bg-amber-500 text-amber-50 font-bold py-3 rounded transition-all"
+            >
+              Använd denna prompt
+            </button>
+          </div>
+
+          <p className="text-center text-amber-200 text-xl mt-12 font-bold">
+            Ju mer detaljer, desto närmare DIN vision!
+          </p>
         </div>
       </div>
 
-      <div className="text-center py-12 px-4">
-        <div className="max-w-2xl mx-auto relative bg-secondary p-8">
-          <GoldCorner position="topLeft" />
-          <GoldCorner position="topRight" />
-          <GoldCorner position="bottomLeft" />
-          <GoldCorner position="bottomRight" />
-          <div className="absolute inset-0 border border-border"></div>
-          <p className="relative text-foreground italic font-serif">
-            {t.gdprNotice}
+      {/* How It Works Section */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-green-950 to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-5xl font-bold text-center mb-16 text-amber-100">
+            SÅ FUNGERAR DET
+          </h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { num: "1", title: "Ladda Upp (valfritt)", desc: "Eller hoppa över och skriv bara" },
+              { num: "2", title: "Beskriv Din Vision", desc: "Så enkelt eller detaljerat du vill" },
+              { num: "3", title: "Få Din Video", desc: "AI skapar magi på sekunder" }
+            ].map((step, i) => (
+              <div key={i} className="text-center group">
+                <div className="relative inline-block mb-6">
+                  <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center text-4xl font-bold text-amber-50 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-amber-600/30">
+                    {step.num}
+                  </div>
+                  <div className="absolute inset-0 bg-amber-500 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-amber-100">{step.title}</h3>
+                <p className="text-amber-200/80">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Section */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 to-red-950">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
+            VÄLJ DITT PAKET
+          </h2>
+          <p className="text-center text-amber-200/60 mb-16 text-lg">
+            Betala per video - inga prenumerationer
           </p>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { 
+                name: "Upptäck", 
+                subtitle: "Testa tjänsten",
+                price: "$5", 
+                videos: 5,
+                color: "from-amber-700 to-amber-900",
+                borderColor: "border-amber-600",
+                packageType: "discover" as const
+              },
+              { 
+                name: "Klassisk", 
+                subtitle: "Bäst för de flesta",
+                price: "$18", 
+                videos: 20,
+                color: "from-red-900 to-red-950",
+                borderColor: "border-red-700",
+                popular: true,
+                packageType: "classic" as const
+              },
+              { 
+                name: "Premiär", 
+                subtitle: "Maximal kreativitet",
+                price: "$40", 
+                videos: 50,
+                color: "from-gray-800 to-gray-900",
+                borderColor: "border-gray-600",
+                packageType: "premier" as const
+              }
+            ].map((pkg, i) => (
+              <div key={i} className="relative group">
+                {pkg.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-50 px-6 py-2 rounded-full text-sm font-bold shadow-lg z-10">
+                    POPULÄRAST
+                  </div>
+                )}
+                <div className={`relative bg-gradient-to-br ${pkg.color} p-8 border-2 ${pkg.borderColor} rounded-lg hover:scale-105 transition-all duration-300 shadow-2xl h-full flex flex-col`}>
+                  <div className="absolute top-4 right-4 w-8 h-8">
+                    <svg viewBox="0 0 20 20" className="w-full h-full opacity-40">
+                      <path d="M0,0 L20,0 L20,20 Z" fill="#D4AF37"/>
+                    </svg>
+                  </div>
+
+                  <h3 className="text-3xl font-bold mb-2 text-amber-100">{pkg.name}</h3>
+                  <p className="text-amber-300/60 italic mb-4">{pkg.subtitle}</p>
+                  <div className="text-5xl font-bold mb-6 text-amber-100">{pkg.price}</div>
+                  
+                  <div className="space-y-3 mb-8 flex-grow">
+                    <div className="flex items-center gap-3 text-amber-200">
+                      <Video className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold">{pkg.videos} videos</span>
+                    </div>
+                    <div className="bg-black/30 rounded px-4 py-3 text-center text-amber-300">
+                      <div className="text-2xl font-bold">${(parseFloat(pkg.price.replace('$', '')) / pkg.videos).toFixed(2)}</div>
+                      <div className="text-sm text-amber-400/60">per video</div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => handlePurchase(pkg.packageType)}
+                    disabled={loading === pkg.packageType}
+                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed"
+                  >
+                    {loading === pkg.packageType ? 'LADDAR...' : 'VÄLJ PAKET'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 to-black border-t border-amber-600/30">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
+              <Film className="w-6 h-6 text-amber-600" />
+              <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
+            </div>
+          </div>
+          <p className="text-amber-300/60">© 2024 Vintage AI • Där nostalgi möter framtiden</p>
         </div>
       </div>
     </div>
