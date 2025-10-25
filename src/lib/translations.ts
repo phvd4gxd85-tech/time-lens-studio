@@ -107,7 +107,25 @@ export const translations = {
     noAccount: "No account? Purchase a package to get started.",
     loginError: "Invalid email or password",
     goToHome: "Go to Home",
-    footer: "Where nostalgia meets the future"
+    footer: "Where nostalgia meets the future",
+    promptInstruction: "A prompt is the instructions you give to the AI",
+    tooSimple: "Too simple:",
+    muchBetter: "Much better:",
+    redBirdExample: "A red bird in a tree",
+    aiMustGuess: "AI must guess everything: What bird? What tree? When? How?",
+    redCardinalExample: "A red cardinal sits on an oak branch, summer day, sunlight through leaves, bird looking right, soft morning breeze",
+    howItWorksTitle: "HOW IT WORKS",
+    whyThisWorks: "Why This Works?",
+    useThisPromptButton: "Use This Prompt",
+    moreDetailsBetter: "The more details, the closer to YOUR vision!",
+    specificMovement: "Specific movement (skates forward, takes shot, brakes)",
+    details: "Details (ice sprays, arena lights reflect)",
+    decadeAndFeel: "Decade and feel (80s, VHS grainy)",
+    cameraEffect: "Camera effect (slow motion)",
+    background: "Background (crowd blurred)",
+    popular: "MOST POPULAR",
+    loading: "LOADING...",
+    choosePackage: "CHOOSE PACKAGE"
   },
   sv: {
     title: "Vintage AI",
@@ -217,7 +235,25 @@ export const translations = {
     noAccount: "Inget konto? Köp ett paket för att komma igång.",
     loginError: "Ogiltig e-post eller lösenord",
     goToHome: "Gå till Start",
-    footer: "Där nostalgi möter framtiden"
+    footer: "Där nostalgi möter framtiden",
+    promptInstruction: "En prompt är instruktionerna du ger till AI:n",
+    tooSimple: "För enkelt:",
+    muchBetter: "Mycket bättre:",
+    redBirdExample: "En röd fågel i ett träd",
+    aiMustGuess: "AI måste gissa allt: Vilken fågel? Vilket träd? När? Hur?",
+    redCardinalExample: "En röd kardinal sitter på en ekgren, sommardag, solstrålar genom löven, fågeln tittar åt höger, mjuk morgonbris",
+    howItWorksTitle: "SÅ FUNGERAR DET",
+    whyThisWorks: "Varför funkar detta?",
+    useThisPromptButton: "Använd denna prompt",
+    moreDetailsBetter: "Ju mer detaljer, desto närmare DIN vision!",
+    specificMovement: "Specifik rörelse (åker framåt, tar skott, bromsar)",
+    details: "Detaljer (is sprayas, arenaljus reflekterar)",
+    decadeAndFeel: "Årtionde och känsla (80-tal, VHS-kornig)",
+    cameraEffect: "Kameraeffekt (slow motion)",
+    background: "Bakgrund (publiken suddig)",
+    popular: "POPULÄRAST",
+    loading: "LADDAR...",
+    choosePackage: "VÄLJ PAKET"
   }
 };
 

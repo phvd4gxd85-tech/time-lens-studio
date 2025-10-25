@@ -2,9 +2,11 @@ import { Upload, Film, Sparkles, Video, Lightbulb, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Home = () => {
   const { toast } = useToast();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -42,13 +44,13 @@ const Home = () => {
         console.log('Redirecting to Stripe checkout:', data.url);
         window.location.href = data.url;
       } else {
-        throw new Error('Ingen checkout URL mottagen');
+        throw new Error(language === 'sv' ? 'Ingen checkout URL mottagen' : 'No checkout URL received');
       }
     } catch (error) {
       console.error('Payment error:', error);
       toast({
-        title: "Fel vid betalning",
-        description: error instanceof Error ? error.message : "Kunde inte starta betalning. Försök igen.",
+        title: language === 'sv' ? "Fel vid betalning" : "Payment error",
+        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta betalning. Försök igen." : "Could not start payment. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -68,8 +70,8 @@ const Home = () => {
   const handleGenerate = async () => {
     if (!prompt) {
       toast({
-        title: "Prompt required",
-        description: "Please describe what you want to create",
+        title: language === 'sv' ? "Prompt krävs" : "Prompt required",
+        description: language === 'sv' ? "Vänligen beskriv vad du vill skapa" : "Please describe what you want to create",
         variant: "destructive",
       });
       return;
@@ -85,8 +87,8 @@ const Home = () => {
       
       if (!session) {
         toast({
-          title: "Authentication required",
-          description: "Please log in to generate videos",
+          title: language === 'sv' ? "Autentisering krävs" : "Authentication required",
+          description: language === 'sv' ? "Vänligen logga in för att generera videor" : "Please log in to generate videos",
           variant: "destructive",
         });
         setIsGenerating(false);
@@ -128,15 +130,15 @@ const Home = () => {
           setIsGenerating(false);
           clearInterval(pollInterval);
           toast({
-            title: "Video ready!",
-            description: "Your video has been generated successfully",
+            title: language === 'sv' ? "Video klar!" : "Video ready!",
+            description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
           });
         } else if (statusData.status === 'failed') {
           clearInterval(pollInterval);
           setIsGenerating(false);
           toast({
-            title: "Generation failed",
-            description: "Something went wrong. Please try again.",
+            title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
+            description: language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again.",
             variant: "destructive",
           });
         }
@@ -148,8 +150,8 @@ const Home = () => {
         if (isGenerating) {
           setIsGenerating(false);
           toast({
-            title: "Timeout",
-            description: "Video generation took too long. Please try again.",
+            title: language === 'sv' ? "Tidsgräns" : "Timeout",
+            description: language === 'sv' ? "Videogenereringen tog för lång tid. Försök igen." : "Video generation took too long. Please try again.",
             variant: "destructive",
           });
         }
@@ -159,8 +161,8 @@ const Home = () => {
       console.error('Generate error:', error);
       setIsGenerating(false);
       toast({
-        title: "Generation error",
-        description: error instanceof Error ? error.message : "Failed to generate video",
+        title: language === 'sv' ? "Genereringsfel" : "Generation error",
+        description: error instanceof Error ? error.message : (language === 'sv' ? "Misslyckades med att generera video" : "Failed to generate video"),
         variant: "destructive",
       });
     }
@@ -220,10 +222,10 @@ const Home = () => {
               </svg>
             </div>
             <p className="text-2xl md:text-3xl text-amber-200 font-light mb-4">
-              Alla bilder har en story - vi gör den levande
+              {t.subtitle}
             </p>
             <p className="text-lg md:text-xl text-amber-300/80 max-w-3xl mx-auto">
-              Familjealbum, hockeybilder, gamla planscherna, reklamposters - vad som helst. Väck dem till liv med AI.
+              {t.tagline}
             </p>
           </div>
 
@@ -240,7 +242,7 @@ const Home = () => {
               </div>
 
               <h2 className="text-3xl md:text-4xl font-bold mb-8 text-amber-100">
-                Skapa Din Video
+                {t.createYourVideo}
               </h2>
 
               <div className="grid md:grid-cols-2 gap-8">
@@ -258,8 +260,8 @@ const Home = () => {
                       ) : (
                         <div className="text-center">
                           <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
-                          <p className="text-amber-200 text-lg">Ladda upp din bild</p>
-                          <p className="text-amber-400/60 text-sm mt-2">Valfritt - du kan också bara skriva</p>
+                          <p className="text-amber-200 text-lg">{t.uploadYourImage}</p>
+                          <p className="text-amber-400/60 text-sm mt-2">{t.optionalUpload}</p>
                         </div>
                       )}
                     </div>
@@ -268,7 +270,7 @@ const Home = () => {
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Beskriv vad som händer... (t.ex. 'Hon vänder sig om och ler, vinden vajar')"
+                    placeholder={t.describeWhat}
                     className="w-full p-4 bg-black/40 border border-amber-600/50 rounded text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-amber-500 h-32"
                   />
                 </div>
@@ -284,7 +286,7 @@ const Home = () => {
                     ) : isGenerating ? (
                       <div className="text-center">
                         <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
-                        <p className="text-amber-300">Skapar magi...</p>
+                        <p className="text-amber-300">{t.creatingMagic}</p>
                         {progress > 0 && (
                           <div className="mt-4 w-48 mx-auto">
                             <div className="w-full bg-black/60 rounded-full h-2">
@@ -300,7 +302,7 @@ const Home = () => {
                     ) : (
                       <div className="text-center text-amber-400/40">
                         <Video className="w-16 h-16 mx-auto mb-4" />
-                        <p>Din video visas här</p>
+                        <p>{t.yourVideoHere}</p>
                       </div>
                     )}
                   </div>
@@ -311,7 +313,7 @@ const Home = () => {
                     className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Sparkles className="w-5 h-5" />
-                    {isGenerating ? 'GENERERAR...' : 'GENERERA VIDEO'}
+                    {isGenerating ? (language === 'sv' ? 'GENERERAR...' : 'GENERATING...') : t.generate.toUpperCase()}
                   </button>
                 </div>
               </div>
@@ -334,88 +336,88 @@ const Home = () => {
           <div className="flex items-center justify-center gap-4 mb-4">
             <Lightbulb className="w-10 h-10 text-amber-500" />
             <h2 className="text-5xl font-bold text-center text-amber-100">
-              Så Skriver Du Bra Prompts
+              {t.promptGuideTitle}
             </h2>
           </div>
           <p className="text-center text-amber-200/70 mb-16 text-xl">
-            En prompt är instruktionerna du ger till AI:n
+            {t.promptInstruction}
           </p>
 
           {/* What is a prompt */}
           <div className="max-w-4xl mx-auto mb-16 bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
-            <h3 className="text-3xl font-bold text-amber-100 mb-4">Tänk på det som en tom tavla</h3>
+            <h3 className="text-3xl font-bold text-amber-100 mb-4">{t.whatIsPrompt}</h3>
             <p className="text-amber-200/80 text-lg mb-6">
-              Ju mer detaljer du fyller den med, desto närmare din vision kommer resultatet.
+              {t.whatIsPromptDesc}
             </p>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-red-950/30 border border-red-700/50 rounded-lg p-6">
                 <div className="text-red-400 font-bold mb-2 flex items-center gap-2">
-                  <span className="text-2xl">❌</span> För enkelt:
+                  <span className="text-2xl">❌</span> {t.tooSimple}
                 </div>
-                <p className="text-amber-200 italic">"En röd fågel i ett träd"</p>
-                <p className="text-amber-300/60 text-sm mt-3">AI måste gissa allt: Vilken fågel? Vilket träd? När? Hur?</p>
+                <p className="text-amber-200 italic">"{t.redBirdExample}"</p>
+                <p className="text-amber-300/60 text-sm mt-3">{t.aiMustGuess}</p>
               </div>
 
               <div className="bg-green-950/30 border border-green-700/50 rounded-lg p-6">
                 <div className="text-green-400 font-bold mb-2 flex items-center gap-2">
-                  <span className="text-2xl">✅</span> Mycket bättre:
+                  <span className="text-2xl">✅</span> {t.muchBetter}
                 </div>
-                <p className="text-amber-200 italic">"En röd kardinal sitter på en ekgren, sommardag, solstrålar genom löven, fågeln tittar åt höger, mjuk morgonbris"</p>
+                <p className="text-amber-200 italic">"{t.redCardinalExample}"</p>
               </div>
             </div>
           </div>
 
           {/* Three ways to use */}
           <div className="mb-16">
-            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">Tre Sätt Att Använda Appen</h3>
+            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">{t.threeWays}</h3>
             
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
                 <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">Enkel animering</h4>
-                <p className="text-amber-200/80 mb-3">Ladda upp din bild och skriv enkelt:</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Ge liv åt bilden"</p>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.simpleAnimation}</h4>
+                <p className="text-amber-200/80 mb-3">{t.simpleAnimationDesc}</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.simpleAnimationExample}"</p>
               </div>
 
               <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
                 <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">Lägg till detaljer</h4>
-                <p className="text-amber-200/80 mb-3">Har foto från första klass 1982? Lägg till:</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Jag åker på röda Bauer rullskridskor, gul Didriksons regnkappa, duggregn faller"</p>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.addDetails}</h4>
+                <p className="text-amber-200/80 mb-3">{t.addDetailsDesc}</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.addDetailsExample}"</p>
               </div>
 
               <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
                 <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">Skapa från text</h4>
-                <p className="text-amber-200/80 mb-3">Ingen bild? Beskriv din vision:</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"Mitt rum 1966, orange tapet, lavalampa, Beatles-poster på väggen"</p>
+                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.createFromText}</h4>
+                <p className="text-amber-200/80 mb-3">{t.createFromTextDesc}</p>
+                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.createFromTextExample}"</p>
               </div>
             </div>
           </div>
 
           {/* Detail levels */}
           <div className="mb-16 max-w-4xl mx-auto">
-            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">Nivåer av Detaljer</h3>
+            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">{t.detailLevels}</h3>
             
             <div className="space-y-6">
               <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">Basic</h4>
+                  <h4 className="text-xl font-bold text-amber-100">{t.basicLevel}</h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Vad händer:</strong> Person springer, bil kör, fågel flyger</span>
+                    <span>{t.basicWhat}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Var:</strong> I skog, på stan, vid strand</span>
+                    <span>{t.basicWhere}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>När:</strong> Sommar, kväll, 1970-tal</span>
+                    <span>{t.basicWhen}</span>
                   </li>
                 </ul>
               </div>
@@ -424,24 +426,24 @@ const Home = () => {
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">Mellanläge</h4>
+                  <h4 className="text-xl font-bold text-amber-100">{t.mediumLevel}</h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Känsla:</strong> Nostalgisk, dramatisk, glad, melankolisk</span>
+                    <span>{t.mediumFeeling}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Ljus:</strong> Solnedgång, blå timme, skarpt dagsljus</span>
+                    <span>{t.mediumLight}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Rörelse:</strong> Långsam, mjuk, dynamisk, hastig</span>
+                    <span>{t.mediumMovement}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Väder:</strong> Duggregn vs spöregn (helt olika känslor!)</span>
+                    <span>{t.mediumWeather}</span>
                   </li>
                 </ul>
               </div>
@@ -451,28 +453,28 @@ const Home = () => {
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">Avancerat</h4>
+                  <h4 className="text-xl font-bold text-amber-100">{t.advancedLevel}</h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Kameralins:</strong> 35mm, wide-angle, telephoto</span>
+                    <span>{t.advancedLens}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Kamerarörelse:</strong> Slow pan, zoom in, steady cam</span>
+                    <span>{t.advancedMovement}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Filmstil:</strong> 60-talets Kodachrome, 80-talets VHS-kornig</span>
+                    <span>{t.advancedFilm}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Vinkel:</strong> Bird's eye view, low angle, över axeln</span>
+                    <span>{t.advancedAngle}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span><strong>Specifika märken:</strong> Bauer rullskridskor, Didriksons jacka</span>
+                    <span>{t.advancedBrands}</span>
                   </li>
                 </ul>
               </div>
@@ -485,51 +487,51 @@ const Home = () => {
               <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
                 <Sparkles className="w-6 h-6 text-amber-50" />
               </div>
-              <h3 className="text-2xl font-bold text-amber-100">Exempel: Hockeykort Wayne Gretzky</h3>
+              <h3 className="text-2xl font-bold text-amber-100">{t.exampleTitle}</h3>
             </div>
             
             <div className="bg-black/40 p-6 rounded-lg mb-6">
               <p className="text-amber-200 text-lg italic leading-relaxed">
-                "{examplePrompt}"
+                "{t.examplePrompt}"
               </p>
             </div>
 
             <div className="space-y-3 text-amber-200/80">
-              <p className="font-bold text-amber-100">Varför funkar detta?</p>
+              <p className="font-bold text-amber-100">{t.whyWorks}</p>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Specifik rörelse (åker framåt, tar skott, bromsar)</span>
+                  <span>{t.whyWork1}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Detaljer (is sprayas, arenaljus reflekterar)</span>
+                  <span>{t.whyWork2}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Årtionde och känsla (80-tal, VHS-kornig)</span>
+                  <span>{t.whyWork3}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Kameraeffekt (slow motion)</span>
+                  <span>{t.whyWork4}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400">✓</span>
-                  <span>Bakgrund (publiken suddig)</span>
+                  <span>{t.whyWork5}</span>
                 </li>
               </ul>
             </div>
 
             <button
-              onClick={() => setPrompt(examplePrompt)}
+              onClick={() => setPrompt(t.examplePrompt)}
               className="mt-6 w-full bg-amber-600 hover:bg-amber-500 text-amber-50 font-bold py-3 rounded transition-all"
             >
-              Använd denna prompt
+              {t.useThisPrompt}
             </button>
           </div>
 
           <p className="text-center text-amber-200 text-xl mt-12 font-bold">
-            Ju mer detaljer, desto närmare DIN vision!
+            {t.moreDetailsCloser}
           </p>
         </div>
       </div>
@@ -538,14 +540,14 @@ const Home = () => {
       <div className="relative py-24 px-4 bg-gradient-to-br from-green-950 to-gray-900">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-16 text-amber-100">
-            SÅ FUNGERAR DET
+            {t.howItWorksTitle}
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { num: "1", title: "Ladda Upp (valfritt)", desc: "Eller hoppa över och skriv bara" },
-              { num: "2", title: "Beskriv Din Vision", desc: "Så enkelt eller detaljerat du vill" },
-              { num: "3", title: "Få Din Video", desc: "AI skapar magi på sekunder" }
+              { num: "1", title: t.step1Title, desc: t.step1Desc },
+              { num: "2", title: t.step2Title, desc: t.step2Desc },
+              { num: "3", title: t.step3Title, desc: t.step3Desc }
             ].map((step, i) => (
               <div key={i} className="text-center group">
                 <div className="relative inline-block mb-6">
@@ -566,17 +568,17 @@ const Home = () => {
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 to-red-950">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
-            VÄLJ DITT PAKET
+            {t.pricingTitle.toUpperCase()}
           </h2>
           <p className="text-center text-amber-200/60 mb-16 text-lg">
-            Betala per video - inga prenumerationer
+            {t.pricingSubtitle}
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { 
-                name: "Upptäck", 
-                subtitle: "Testa tjänsten",
+                name: t.trial, 
+                subtitle: t.trialDesc,
                 price: "$5", 
                 videos: 3,
                 color: "from-amber-700 to-amber-900",
@@ -584,8 +586,8 @@ const Home = () => {
                 packageType: "discover" as const
               },
               { 
-                name: "Klassisk", 
-                subtitle: "Bäst för de flesta",
+                name: t.starter, 
+                subtitle: t.starterDesc,
                 price: "$18", 
                 videos: 12,
                 color: "from-red-900 to-red-950",
@@ -594,8 +596,8 @@ const Home = () => {
                 packageType: "classic" as const
               },
               { 
-                name: "Premiär", 
-                subtitle: "Maximal kreativitet",
+                name: t.pro, 
+                subtitle: t.proDesc,
                 price: "$40", 
                 videos: 25,
                 color: "from-gray-800 to-gray-900",
@@ -606,7 +608,7 @@ const Home = () => {
               <div key={i} className="relative group">
                 {pkg.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-50 px-6 py-2 rounded-full text-sm font-bold shadow-lg z-10">
-                    POPULÄRAST
+                    {t.popular}
                   </div>
                 )}
                 <div className={`relative bg-gradient-to-br ${pkg.color} p-8 border-2 ${pkg.borderColor} rounded-lg hover:scale-105 transition-all duration-300 shadow-2xl h-full flex flex-col`}>
@@ -623,11 +625,11 @@ const Home = () => {
                   <div className="space-y-3 mb-8 flex-grow">
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">{pkg.videos} videos</span>
+                      <span className="font-semibold">{pkg.videos} {t.videos}</span>
                     </div>
                     <div className="bg-black/30 rounded px-4 py-3 text-center text-amber-300">
                       <div className="text-2xl font-bold">${(parseFloat(pkg.price.replace('$', '')) / pkg.videos).toFixed(2)}</div>
-                      <div className="text-sm text-amber-400/60">per video</div>
+                      <div className="text-sm text-amber-400/60">{t.perVideo}</div>
                     </div>
                   </div>
 
@@ -636,7 +638,7 @@ const Home = () => {
                     disabled={loading === pkg.packageType}
                     className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed"
                   >
-                    {loading === pkg.packageType ? 'LADDAR...' : 'VÄLJ PAKET'}
+                    {loading === pkg.packageType ? t.loading : t.choosePackage}
                   </button>
                 </div>
               </div>
@@ -655,7 +657,7 @@ const Home = () => {
               <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
             </div>
           </div>
-          <p className="text-amber-300/60">© 2024 Vintage AI • Där nostalgi möter framtiden</p>
+          <p className="text-amber-300/60">© 2024 Vintage AI • {t.footer}</p>
         </div>
       </div>
     </div>
