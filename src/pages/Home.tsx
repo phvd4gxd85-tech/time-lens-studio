@@ -9,6 +9,9 @@ const Home = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState('');
+  const [generationId, setGenerationId] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
 
   const PRICE_IDS = {
     discover: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
@@ -62,9 +65,105 @@ const Home = () => {
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!prompt) {
+      toast({
+        title: "Prompt required",
+        description: "Please describe what you want to create",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 3000);
+    setVideoUrl(null);
+    setProgress(0);
+
+    try {
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to generate videos",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
+
+      // Start video generation
+      const { data, error } = await supabase.functions.invoke('generate-video', {
+        body: { 
+          prompt,
+          imageUrl: uploadedImage 
+        }
+      });
+
+      if (error) throw error;
+
+      const genId = data.generation_id;
+      setGenerationId(genId);
+      console.log('Video generation started:', genId);
+
+      // Poll for status
+      const pollInterval = setInterval(async () => {
+        const { data: statusData, error: statusError } = await supabase.functions.invoke('check-video-status', {
+          body: { generation_id: genId }
+        });
+
+        if (statusError) {
+          console.error('Status check error:', statusError);
+          clearInterval(pollInterval);
+          setIsGenerating(false);
+          return;
+        }
+
+        console.log('Video status:', statusData.status, 'Progress:', statusData.progress);
+        setProgress(statusData.progress || 0);
+
+        if (statusData.status === 'completed' && statusData.video_url) {
+          setVideoUrl(statusData.video_url);
+          setIsGenerating(false);
+          clearInterval(pollInterval);
+          toast({
+            title: "Video ready!",
+            description: "Your video has been generated successfully",
+          });
+        } else if (statusData.status === 'failed') {
+          clearInterval(pollInterval);
+          setIsGenerating(false);
+          toast({
+            title: "Generation failed",
+            description: "Something went wrong. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 3000); // Check every 3 seconds
+
+      // Stop polling after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (isGenerating) {
+          setIsGenerating(false);
+          toast({
+            title: "Timeout",
+            description: "Video generation took too long. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 300000);
+
+    } catch (error) {
+      console.error('Generate error:', error);
+      setIsGenerating(false);
+      toast({
+        title: "Generation error",
+        description: error instanceof Error ? error.message : "Failed to generate video",
+        variant: "destructive",
+      });
+    }
   };
 
   const examplePrompt = "Wayne Gretzky åker framåt mot kameran, Edmonton Oilers tröja, tar skottet mot mål, is sprayas upp när han bromsar, arenaljus reflekterar i isen, 80-talets kornig VHS-känsla, slow motion, publiken suddig i bakgrunden";
@@ -175,11 +274,28 @@ const Home = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center">
-                    {isGenerating ? (
+                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center overflow-hidden">
+                    {videoUrl ? (
+                      <video 
+                        src={videoUrl} 
+                        controls 
+                        className="w-full h-full object-contain rounded"
+                      />
+                    ) : isGenerating ? (
                       <div className="text-center">
                         <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
                         <p className="text-amber-300">Skapar magi...</p>
+                        {progress > 0 && (
+                          <div className="mt-4 w-48 mx-auto">
+                            <div className="w-full bg-black/60 rounded-full h-2">
+                              <div 
+                                className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progress}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-amber-400 text-sm mt-2">{progress}%</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-center text-amber-400/40">
@@ -191,11 +307,11 @@ const Home = () => {
 
                   <button
                     onClick={handleGenerate}
-                    disabled={!prompt}
+                    disabled={!prompt || isGenerating}
                     className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Sparkles className="w-5 h-5" />
-                    GENERERA VIDEO
+                    {isGenerating ? 'GENERERAR...' : 'GENERERA VIDEO'}
                   </button>
                 </div>
               </div>

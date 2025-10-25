@@ -2,3 +2,10 @@ project_id = "nplznqgzotuhzscwcrui"
 
 [functions.create-payment]
 verify_jwt = false
+
+[functions.generate-video]
+verify_jwt = true
+
+[functions.check-video-status]
+verify_jwt = true
+
