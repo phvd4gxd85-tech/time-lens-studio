@@ -21,7 +21,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <LanguageProvider>
-            <div className="min-h-screen bg-background dark">
+            <div className="min-h-screen bg-background">
               <Header />
               <main className="py-12">
                 <Routes>
