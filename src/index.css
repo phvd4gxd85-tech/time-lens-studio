@@ -71,32 +71,32 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 30 8% 12%;
-    --foreground: 30 15% 95%;
+    --background: 25 15% 8%;
+    --foreground: 42 78% 85%;
 
-    --card: 30 8% 15%;
-    --card-foreground: 30 15% 95%;
+    --card: 25 20% 12%;
+    --card-foreground: 42 78% 85%;
 
-    --popover: 30 8% 15%;
-    --popover-foreground: 30 15% 95%;
+    --popover: 25 20% 12%;
+    --popover-foreground: 42 78% 85%;
 
     --primary: 42 78% 55%;
-    --primary-foreground: 30 8% 12%;
+    --primary-foreground: 25 15% 8%;
 
-    --secondary: 30 8% 20%;
-    --secondary-foreground: 30 15% 95%;
+    --secondary: 25 15% 15%;
+    --secondary-foreground: 42 78% 85%;
 
-    --muted: 30 8% 20%;
-    --muted-foreground: 30 15% 65%;
+    --muted: 25 15% 20%;
+    --muted-foreground: 42 50% 65%;
 
-    --accent: 40 55% 50%;
-    --accent-foreground: 30 15% 95%;
+    --accent: 42 78% 55%;
+    --accent-foreground: 25 15% 8%;
 
     --destructive: 0 62.8% 50%;
-    --destructive-foreground: 30 15% 95%;
+    --destructive-foreground: 42 78% 85%;
 
-    --border: 30 8% 25%;
-    --input: 30 8% 25%;
+    --border: 42 40% 30%;
+    --input: 42 40% 30%;
     --ring: 42 78% 55%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -117,6 +117,10 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Outfit', sans-serif;
+  }
+  
+  body.dark {
+    background: linear-gradient(to bottom right, hsl(25 15% 8%), hsl(140 30% 10%), hsl(25 15% 8%));
   }
   
   .font-futura {

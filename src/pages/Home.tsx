@@ -171,7 +171,7 @@ const Home = () => {
   const examplePrompt = "Wayne Gretzky åker framåt mot kameran, Edmonton Oilers tröja, tar skottet mot mål, is sprayas upp när han bromsar, arenaljus reflekterar i isen, 80-talets kornig VHS-känsla, slow motion, publiken suddig i bakgrunden";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
+    <div className="min-h-screen text-foreground" style={{ fontFamily: "'Playfair Display', serif" }}>
       {/* Art Deco Corner Ornaments */}
       <div className="fixed top-0 left-0 w-32 h-32 pointer-events-none z-50">
         <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
@@ -206,49 +206,49 @@ const Home = () => {
       <div className="relative pt-20 pb-32 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">
+            <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-accent">
               Vintage AI
             </h1>
             <div className="flex justify-center mb-6">
               <svg width="200" height="60" viewBox="0 0 200 60">
                 <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30" 
-                      stroke="#D4AF37" strokeWidth="2" fill="none"/>
-                <rect x="15" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
-                <rect x="25" y="20" width="8" height="20" fill="#D4AF37" opacity="0.4"/>
-                <rect x="35" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
-                <rect x="157" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
-                <rect x="167" y="20" width="8" height="20" fill="#D4AF37" opacity="0.4"/>
-                <rect x="177" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
+                      stroke="hsl(var(--accent))" strokeWidth="2" fill="none"/>
+                <rect x="15" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.6"/>
+                <rect x="25" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.4"/>
+                <rect x="35" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.6"/>
+                <rect x="157" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.6"/>
+                <rect x="167" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.4"/>
+                <rect x="177" y="20" width="8" height="20" fill="hsl(var(--accent))" opacity="0.6"/>
               </svg>
             </div>
-            <p className="text-2xl md:text-3xl text-amber-200 font-light mb-4">
+            <p className="text-2xl md:text-3xl text-muted-foreground font-light mb-4">
               {t.subtitle}
             </p>
-            <p className="text-lg md:text-xl text-amber-300/80 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground/80 max-w-3xl mx-auto">
               {t.tagline}
             </p>
           </div>
 
           {/* Main Generator Box */}
           <div className="max-w-4xl mx-auto mt-16 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
-            <div className="relative bg-gradient-to-br from-gray-900 to-green-900 p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-primary/20 blur-xl"></div>
+            <div className="relative bg-card border-2 border-accent p-8 md:p-12 rounded-lg shadow-2xl">
               <div className="flex justify-center mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-                  <Sparkles className="w-8 h-8 text-amber-500" />
-                  <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-accent"></div>
+                  <Sparkles className="w-8 h-8 text-accent" />
+                  <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-accent"></div>
                 </div>
               </div>
 
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-amber-100">
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-foreground">
                 {t.createYourVideo}
               </h2>
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <label className="block">
-                    <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
+                    <div className="border-2 border-dashed border-accent rounded-lg p-8 hover:border-accent/70 transition-all cursor-pointer bg-card/50 hover:bg-card/70 group">
                       <input
                         type="file"
                         accept="image/*"
@@ -259,9 +259,9 @@ const Home = () => {
                         <img src={uploadedImage} alt="Uploaded" className="w-full h-48 object-cover rounded" />
                       ) : (
                         <div className="text-center">
-                          <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
-                          <p className="text-amber-200 text-lg">{t.uploadYourImage}</p>
-                          <p className="text-amber-400/60 text-sm mt-2">{t.optionalUpload}</p>
+                          <Upload className="w-16 h-16 mx-auto mb-4 text-accent group-hover:text-accent/80 transition-colors" />
+                          <p className="text-foreground text-lg">{t.uploadYourImage}</p>
+                          <p className="text-muted-foreground text-sm mt-2">{t.optionalUpload}</p>
                         </div>
                       )}
                     </div>
@@ -271,12 +271,12 @@ const Home = () => {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder={t.describeWhat}
-                    className="w-full p-4 bg-black/40 border border-amber-600/50 rounded text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-amber-500 h-32"
+                    className="w-full p-4 bg-card/50 border border-border rounded text-foreground placeholder-muted-foreground focus:outline-none focus:border-accent h-32"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center overflow-hidden">
+                  <div className="bg-card/50 border border-border rounded-lg p-6 h-48 flex items-center justify-center overflow-hidden">
                     {videoUrl ? (
                       <video 
                         src={videoUrl} 
@@ -285,22 +285,22 @@ const Home = () => {
                       />
                     ) : isGenerating ? (
                       <div className="text-center">
-                        <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
-                        <p className="text-amber-300">{t.creatingMagic}</p>
+                        <Film className="w-16 h-16 mx-auto mb-4 text-accent animate-pulse" />
+                        <p className="text-foreground">{t.creatingMagic}</p>
                         {progress > 0 && (
                           <div className="mt-4 w-48 mx-auto">
-                            <div className="w-full bg-black/60 rounded-full h-2">
+                            <div className="w-full bg-muted rounded-full h-2">
                               <div 
-                                className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                                className="bg-accent h-2 rounded-full transition-all duration-300"
                                 style={{ width: `${progress}%` }}
                               ></div>
                             </div>
-                            <p className="text-amber-400 text-sm mt-2">{progress}%</p>
+                            <p className="text-muted-foreground text-sm mt-2">{progress}%</p>
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-center text-amber-400/40">
+                      <div className="text-center text-muted-foreground">
                         <Video className="w-16 h-16 mx-auto mb-4" />
                         <p>{t.yourVideoHere}</p>
                       </div>
@@ -310,7 +310,7 @@ const Home = () => {
                   <button
                     onClick={handleGenerate}
                     disabled={!prompt || isGenerating}
-                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 disabled:from-muted disabled:to-muted text-accent-foreground font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-accent/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Sparkles className="w-5 h-5" />
                     {isGenerating ? (language === 'sv' ? 'GENERERAR...' : 'GENERATING...') : t.generate.toUpperCase()}

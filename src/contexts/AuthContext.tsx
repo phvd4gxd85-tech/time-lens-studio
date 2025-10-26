@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error: error.message };
     }
     
-    navigate('/studio');
+    navigate('/');
     return { error: null };
   };
 
