@@ -9,17 +9,30 @@ import { Info } from 'lucide-react';
 
 const Login = () => {
   const { t } = useLanguage();
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSignUp && password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: t.passwordsDontMatch,
+      });
+      return;
+    }
+    
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error } = isSignUp 
+      ? await signUp(email, password)
+      : await signIn(email, password);
     
     if (error) {
       toast({
@@ -27,6 +40,14 @@ const Login = () => {
         title: t.loginError,
         description: error,
       });
+    } else if (isSignUp) {
+      toast({
+        title: t.signupSuccess,
+      });
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setIsSignUp(false);
     }
     
     setLoading(false);
@@ -80,7 +101,7 @@ const Login = () => {
             </div>
 
             <h2 className="text-3xl text-center text-amber-100 tracking-[0.15em] uppercase mb-8 font-bold">
-              {t.loginTitle}
+              {isSignUp ? t.signupTitle : t.loginTitle}
             </h2>
 
             <Alert className="bg-black/40 border-amber-600/30">
@@ -90,7 +111,7 @@ const Login = () => {
               </AlertDescription>
             </Alert>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <Input
                 type="email"
                 placeholder={t.email}
@@ -107,19 +128,44 @@ const Login = () => {
                 required
                 className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
               />
+              
+              {isSignUp && (
+                <Input
+                  type="password"
+                  placeholder={t.confirmPassword}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
+                />
+              )}
 
               <Button 
                 type="submit"
                 disabled={loading}
                 className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-amber-50 py-6 font-bold tracking-[0.15em] uppercase"
               >
-                <span className="relative">{loading ? '...' : t.loginButton}</span>
+                <span className="relative">{loading ? '...' : (isSignUp ? t.signupButton : t.loginButton)}</span>
               </Button>
             </form>
 
-            <p className="text-center text-sm text-amber-300/60 italic">
-              {t.loginNote}
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-sm text-amber-300/60 italic">
+                {isSignUp ? t.alreadyHaveAccount : t.noAccountYet}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
+                className="text-amber-400 hover:text-amber-300 underline text-sm font-semibold"
+              >
+                {isSignUp ? t.switchToLogin : t.switchToSignup}
+              </button>
+            </div>
           </div>
         </div>
       </div>
