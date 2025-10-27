@@ -43,8 +43,8 @@ serve(async (req) => {
 
     console.log("Checking video status for generation:", generation_id);
 
-    // Check status with Kye API
-    const kyeResponse = await fetch(`https://api.kye.ai/v1/generation/${generation_id}`, {
+    // Check status with KIE Runway API
+    const kieResponse = await fetch(`https://api.kie.ai/api/v1/runway/record-detail?taskId=${generation_id}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${KYE_API_KEY}`,
@@ -52,20 +52,40 @@ serve(async (req) => {
       },
     });
 
-    if (!kyeResponse.ok) {
-      const errorText = await kyeResponse.text();
-      console.error("Kye API error:", kyeResponse.status, errorText);
-      throw new Error(`Kye API error: ${kyeResponse.status}`);
+    if (!kieResponse.ok) {
+      const errorText = await kieResponse.text();
+      console.error("KIE API error:", kieResponse.status, errorText);
+      throw new Error(`KIE API error: ${kieResponse.status}`);
     }
 
-    const kyeData = await kyeResponse.json();
-    console.log("Video status:", kyeData.status);
+    const kieData = await kieResponse.json();
+    console.log("Video status response:", kieData);
+
+    if (kieData.code !== 200) {
+      throw new Error(`KIE API error: ${kieData.msg}`);
+    }
+
+    const state = kieData.data.state;
+    const videoUrl = kieData.data.videoInfo?.videoUrl || null;
+    
+    // Map KIE states to our states
+    let status = "processing";
+    let progress = 0;
+    
+    if (state === "success") {
+      status = "completed";
+      progress = 100;
+    } else if (state === "failed") {
+      status = "failed";
+    } else if (state === "submitted") {
+      progress = 50;
+    }
 
     return new Response(
       JSON.stringify({
-        status: kyeData.status,
-        video_url: kyeData.video_url || null,
-        progress: kyeData.progress || 0,
+        status: status,
+        video_url: videoUrl,
+        progress: progress,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

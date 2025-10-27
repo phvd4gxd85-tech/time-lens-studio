@@ -45,8 +45,8 @@ serve(async (req) => {
     console.log("Prompt:", prompt);
     console.log("Image URL:", imageUrl || "No image provided");
 
-    // Call Kye API
-    const kyeResponse = await fetch("https://api.kye.ai/v1/generation", {
+    // Call KIE Runway API
+    const kieResponse = await fetch("https://api.kie.ai/api/v1/runway/generate", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${KYE_API_KEY}`,
@@ -54,24 +54,30 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         prompt: prompt,
-        image_url: imageUrl,
-        duration: 5, // 5 second video
+        imageUrl: imageUrl || undefined,
+        duration: 5,
+        quality: "720p",
+        waterMark: "",
       }),
     });
 
-    if (!kyeResponse.ok) {
-      const errorText = await kyeResponse.text();
-      console.error("Kye API error:", kyeResponse.status, errorText);
-      throw new Error(`Kye API error: ${kyeResponse.status} - ${errorText}`);
+    if (!kieResponse.ok) {
+      const errorText = await kieResponse.text();
+      console.error("KIE API error:", kieResponse.status, errorText);
+      throw new Error(`KIE API error: ${kieResponse.status} - ${errorText}`);
     }
 
-    const kyeData = await kyeResponse.json();
-    console.log("Video generation started:", kyeData);
+    const kieData = await kieResponse.json();
+    console.log("Video generation started:", kieData);
+
+    if (kieData.code !== 200) {
+      throw new Error(`KIE API error: ${kieData.msg}`);
+    }
 
     return new Response(
       JSON.stringify({
-        generation_id: kyeData.id,
-        status: kyeData.status,
+        generation_id: kieData.data.taskId,
+        status: "submitted",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
