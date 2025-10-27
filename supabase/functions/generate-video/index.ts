@@ -45,6 +45,45 @@ serve(async (req) => {
     console.log("Prompt:", prompt);
     console.log("Image URL:", imageUrl || "No image provided");
 
+    // If imageUrl is base64, upload to Supabase Storage first
+    let publicImageUrl = imageUrl;
+    
+    if (imageUrl && imageUrl.startsWith('data:image')) {
+      console.log("Uploading base64 image to storage...");
+      
+      // Extract base64 data
+      const base64Data = imageUrl.split(',')[1];
+      const mimeType = imageUrl.match(/data:(.*?);/)?.[1] || 'image/jpeg';
+      const extension = mimeType.split('/')[1];
+      
+      // Convert base64 to binary
+      const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      
+      // Upload to Supabase Storage
+      const fileName = `${user.id}/${Date.now()}.${extension}`;
+      const { data: uploadData, error: uploadError } = await supabaseClient
+        .storage
+        .from('videos')
+        .upload(fileName, binaryData, {
+          contentType: mimeType,
+          upsert: true
+        });
+      
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        throw new Error(`Failed to upload image: ${uploadError.message}`);
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabaseClient
+        .storage
+        .from('videos')
+        .getPublicUrl(fileName);
+      
+      publicImageUrl = publicUrl;
+      console.log("Image uploaded to:", publicImageUrl);
+    }
+
     // Call KIE Runway API
     const kieResponse = await fetch("https://api.kie.ai/api/v1/runway/generate", {
       method: "POST",
@@ -54,7 +93,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         prompt: prompt,
-        imageUrl: imageUrl || undefined,
+        imageUrl: publicImageUrl || undefined,
         duration: 5,
         quality: "720p",
         waterMark: "",
