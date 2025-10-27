@@ -77,13 +77,6 @@ const Home = () => {
       return;
     }
 
-    // Temporarily show coming soon message
-    toast({
-      title: language === 'sv' ? "Funktion under utveckling" : "Feature in development",
-      description: language === 'sv' ? "Videogenerering är tillfälligt inaktiverad för att fixa tekniska problem." : "Video generation is temporarily disabled to fix technical issues.",
-    });
-    return;
-
     setIsGenerating(true);
     setVideoUrl(null);
     setProgress(0);
