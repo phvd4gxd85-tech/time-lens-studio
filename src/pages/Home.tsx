@@ -105,11 +105,12 @@ const Home = () => {
 
       if (error) {
         console.error('Generate video error:', error);
-        throw error;
+        throw new Error(error.message || 'Failed to start video generation');
       }
 
-      if (!data || !data.generation_id) {
-        throw new Error('No generation ID received');
+      if (!data?.generation_id) {
+        console.error('Invalid response:', data);
+        throw new Error('No generation ID received from server');
       }
 
       const genId = data.generation_id;
@@ -117,52 +118,70 @@ const Home = () => {
       console.log('Video generation started:', genId);
 
       // Poll for status
+      let pollAttempts = 0;
+      const maxPollAttempts = 100; // 100 * 3 seconds = 5 minutes
+      
       const pollInterval = setInterval(async () => {
-        const { data: statusData, error: statusError } = await supabase.functions.invoke('check-video-status', {
-          body: { generation_id: genId }
-        });
-
-        if (statusError) {
-          console.error('Status check error:', statusError);
+        pollAttempts++;
+        
+        if (pollAttempts > maxPollAttempts) {
           clearInterval(pollInterval);
-          setIsGenerating(false);
-          return;
-        }
-
-        console.log('Video status:', statusData.status, 'Progress:', statusData.progress);
-        setProgress(statusData.progress || 0);
-
-        if (statusData.status === 'completed' && statusData.video_url) {
-          setVideoUrl(statusData.video_url);
-          setIsGenerating(false);
-          clearInterval(pollInterval);
-          toast({
-            title: language === 'sv' ? "Video klar!" : "Video ready!",
-            description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
-          });
-        } else if (statusData.status === 'failed') {
-          clearInterval(pollInterval);
-          setIsGenerating(false);
-          toast({
-            title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
-            description: language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }, 3000); // Check every 3 seconds
-
-      // Stop polling after 5 minutes
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        if (isGenerating) {
           setIsGenerating(false);
           toast({
             title: language === 'sv' ? "Tidsgräns" : "Timeout",
             description: language === 'sv' ? "Videogenereringen tog för lång tid. Försök igen." : "Video generation took too long. Please try again.",
             variant: "destructive",
           });
+          return;
         }
-      }, 300000);
+
+        try {
+          const { data: statusData, error: statusError } = await supabase.functions.invoke('check-video-status', {
+            body: { generation_id: genId }
+          });
+
+          if (statusError) {
+            console.error('Status check error:', statusError);
+            // Don't stop on first error, retry
+            return;
+          }
+
+          if (!statusData) {
+            console.error('No status data received');
+            return;
+          }
+
+          console.log('Video status:', statusData.status, 'Progress:', statusData.progress);
+          
+          const currentProgress = statusData.progress || 0;
+          setProgress(currentProgress);
+
+          if (statusData.status === 'completed') {
+            if (statusData.video_url) {
+              setVideoUrl(statusData.video_url);
+              setIsGenerating(false);
+              clearInterval(pollInterval);
+              toast({
+                title: language === 'sv' ? "Video klar!" : "Video ready!",
+                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
+              });
+            } else {
+              console.error('Completed but no video URL');
+            }
+          } else if (statusData.status === 'failed') {
+            clearInterval(pollInterval);
+            setIsGenerating(false);
+            toast({
+              title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
+              description: language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again.",
+              variant: "destructive",
+            });
+          }
+        } catch (pollError) {
+          console.error('Poll error:', pollError);
+          // Continue polling despite errors
+        }
+      }, 3000); // Check every 3 seconds
 
     } catch (error) {
       console.error('Generate error:', error);
