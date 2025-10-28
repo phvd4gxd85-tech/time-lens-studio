@@ -197,7 +197,7 @@ const Home = () => {
   const examplePrompt = "Wayne Gretzky åker framåt mot kameran, Edmonton Oilers tröja, tar skottet mot mål, is sprayas upp när han bromsar, arenaljus reflekterar i isen, 80-talets kornig VHS-känsla, slow motion, publiken suddig i bakgrunden";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
       {/* Art Deco Corner Ornaments */}
       <div className="fixed top-0 left-0 w-32 h-32 pointer-events-none z-50">
         <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
@@ -333,11 +333,11 @@ const Home = () => {
                     )}
                   </div>
 
-                  {videoUrl && (
+                   {videoUrl && (
                     <a
                       href={videoUrl}
                       download="vintage-ai-video.mp4"
-                      className="w-full bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-green-600/50 flex items-center justify-center gap-2"
+                      className="w-full bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-700/50 flex items-center justify-center gap-2"
                     >
                       <Download className="w-5 h-5" />
                       {language === 'sv' ? 'LADDA NER VIDEO' : 'DOWNLOAD VIDEO'}

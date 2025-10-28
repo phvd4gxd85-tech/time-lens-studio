@@ -115,8 +115,10 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     font-family: 'Outfit', sans-serif;
+    background: linear-gradient(to bottom right, #111827, #052e16, #111827);
+    min-height: 100vh;
   }
   
   .font-futura {
