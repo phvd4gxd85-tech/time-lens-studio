@@ -1,4 +1,4 @@
-import { Upload, Film, Sparkles, Video, Lightbulb, Zap } from 'lucide-react';
+import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
@@ -314,6 +314,17 @@ const Home = () => {
                     )}
                   </div>
 
+                  {videoUrl && (
+                    <a
+                      href={videoUrl}
+                      download="vintage-ai-video.mp4"
+                      className="w-full bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-green-600/50 flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      {language === 'sv' ? 'LADDA NER VIDEO' : 'DOWNLOAD VIDEO'}
+                    </a>
+                  )}
+                  
                   <button
                     onClick={handleGenerate}
                     disabled={!prompt || isGenerating}
