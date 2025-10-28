@@ -229,7 +229,7 @@ const Home = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="relative pt-20 pb-32 px-4">
+      <div className="relative pt-4 pb-32 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">

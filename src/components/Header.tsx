@@ -10,14 +10,14 @@ export const Header = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="relative bg-gradient-to-b from-card to-secondary border-b border-border">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
+    <header className="relative bg-transparent border-b border-amber-600/30">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center">
           <button 
             onClick={() => navigate('/')}
-            className="text-2xl text-foreground tracking-[0.2em] hover:text-accent transition-colors font-futura font-light"
+            className="text-2xl text-amber-100 tracking-[0.2em] hover:text-amber-300 transition-colors font-futura font-light"
           >
             {t.title}
           </button>
@@ -26,15 +26,15 @@ export const Header = () => {
             <Button
               variant="ghost"
               onClick={() => setLanguage(language === 'sv' ? 'en' : 'sv')}
-              className="flex items-center gap-2 text-foreground hover:text-accent transition-colors font-futura"
+              className="flex items-center gap-2 text-amber-100 hover:text-amber-300 transition-colors font-futura"
             >
               <Globe size={18} />
               <span className="text-sm tracking-wider uppercase">{language === 'sv' ? 'EN' : 'SV'}</span>
             </Button>
 
             {user && (
-              <div className="flex items-center gap-2 text-foreground font-futura">
-                <Sparkles size={18} className="text-accent" />
+              <div className="flex items-center gap-2 text-amber-100 font-futura">
+                <Sparkles size={18} className="text-amber-500" />
                 <span className="text-sm tracking-wider">{tokens} {t.tokens}</span>
               </div>
             )}
@@ -43,7 +43,7 @@ export const Header = () => {
               <Button
                 variant="ghost"
                 onClick={signOut}
-                className="flex items-center gap-2 text-foreground hover:text-accent transition-colors font-futura"
+                className="flex items-center gap-2 text-amber-100 hover:text-amber-300 transition-colors font-futura"
               >
                 <LogOut size={18} />
                 <span className="text-sm tracking-wider uppercase">{t.logout}</span>
@@ -52,7 +52,7 @@ export const Header = () => {
               <Button
                 variant="ghost"
                 onClick={() => navigate('/login')}
-                className="flex items-center gap-2 text-foreground hover:text-accent transition-colors font-futura"
+                className="flex items-center gap-2 text-amber-100 hover:text-amber-300 transition-colors font-futura"
               >
                 <LogIn size={18} />
                 <span className="text-sm tracking-wider uppercase">{t.login}</span>

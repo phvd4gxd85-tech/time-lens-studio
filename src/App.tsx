@@ -21,9 +21,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <LanguageProvider>
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen">
               <Header />
-              <main className="py-12">
+              <main>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
@@ -32,9 +32,6 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
-              <footer className="relative bg-gradient-to-t from-card to-secondary border-t border-border py-8">
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
-              </footer>
             </div>
           </LanguageProvider>
         </AuthProvider>
