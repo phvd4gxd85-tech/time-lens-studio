@@ -103,7 +103,14 @@ const Home = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Generate video error:', error);
+        throw error;
+      }
+
+      if (!data || !data.generation_id) {
+        throw new Error('No generation ID received');
+      }
 
       const genId = data.generation_id;
       setGenerationId(genId);

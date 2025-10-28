@@ -17,23 +17,14 @@ serve(async (req) => {
       throw new Error('KYE_API_KEY is not configured');
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    // Verify user is authenticated
+    // JWT is automatically verified by Supabase when verify_jwt = true
+    // We just verify the header exists
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("No authorization header");
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !user) {
-      throw new Error("User not authenticated");
-    }
+    console.log("Authenticated request received");
 
     const { generation_id } = await req.json();
 
