@@ -57,15 +57,70 @@ serve(async (req) => {
     }
 
     const state = kieData.data.state;
-    const videoUrl = kieData.data.videoInfo?.videoUrl || null;
+    const kieVideoUrl = kieData.data.videoInfo?.videoUrl || null;
     
     // Map KIE states to our states
     let status = "processing";
     let progress = 0;
+    let finalVideoUrl = null;
     
-    if (state === "success") {
+    if (state === "success" && kieVideoUrl) {
       status = "completed";
       progress = 100;
+      
+      try {
+        console.log("Downloading video from KIE:", kieVideoUrl);
+        
+        // Download video from KIE
+        const videoResponse = await fetch(kieVideoUrl);
+        if (!videoResponse.ok) {
+          throw new Error(`Failed to download video: ${videoResponse.status}`);
+        }
+        
+        const videoBlob = await videoResponse.arrayBuffer();
+        console.log("Video downloaded, size:", videoBlob.byteLength);
+        
+        // Get user ID from token
+        const token = authHeader.replace("Bearer ", "");
+        const supabaseClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        );
+        
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+        if (userError || !user) {
+          throw new Error("User not authenticated");
+        }
+        
+        // Upload to Supabase Storage
+        const fileName = `${user.id}/${generation_id}-${Date.now()}.mp4`;
+        const { error: uploadError } = await supabaseClient
+          .storage
+          .from('videos')
+          .upload(fileName, videoBlob, {
+            contentType: 'video/mp4',
+            upsert: false
+          });
+        
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+          throw new Error(`Failed to upload video: ${uploadError.message}`);
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabaseClient
+          .storage
+          .from('videos')
+          .getPublicUrl(fileName);
+        
+        finalVideoUrl = publicUrl;
+        console.log("Video uploaded to storage:", finalVideoUrl);
+        
+      } catch (uploadErr) {
+        console.error("Error uploading video to storage:", uploadErr);
+        // Fall back to KIE URL if upload fails
+        finalVideoUrl = kieVideoUrl;
+      }
     } else if (state === "failed") {
       status = "failed";
     } else if (state === "submitted") {
@@ -75,7 +130,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         status: status,
-        video_url: videoUrl,
+        video_url: finalVideoUrl,
         progress: progress,
       }),
       {
