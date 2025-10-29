@@ -13,28 +13,19 @@ serve(async (req) => {
 
   try {
     const KYE_API_KEY = Deno.env.get('KYE_API_KEY');
-    if (!KYE_API_KEY) {
-      throw new Error('KYE_API_KEY is not configured');
-    }
+    if (!KYE_API_KEY) throw new Error('KYE_API_KEY is not configured');
 
-    // JWT is automatically verified by Supabase when verify_jwt = true
-    // We just verify the header exists
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header");
-    }
+    if (!authHeader) throw new Error("No authorization header");
 
     console.log("Authenticated request received");
 
     const { generation_id } = await req.json();
-
-    if (!generation_id) {
-      throw new Error("Generation ID is required");
-    }
+    if (!generation_id) throw new Error("Generation ID is required");
 
     console.log("Checking video status for generation:", generation_id);
 
-    // Check status with KIE Runway API
+    // KIE API status check
     const kieResponse = await fetch(`https://api.kie.ai/api/v1/runway/record-detail?taskId=${generation_id}`, {
       method: "GET",
       headers: {
@@ -45,82 +36,67 @@ serve(async (req) => {
 
     if (!kieResponse.ok) {
       const errorText = await kieResponse.text();
-      console.error("KIE API error:", kieResponse.status, errorText);
-      throw new Error(`KIE API error: ${kieResponse.status}`);
+      throw new Error(`KIE API error: ${kieResponse.status} ${errorText}`);
     }
 
     const kieData = await kieResponse.json();
-    console.log("Video status response:", kieData);
-
-    if (kieData.code !== 200) {
-      throw new Error(`KIE API error: ${kieData.msg}`);
-    }
+    if (kieData.code !== 200) throw new Error(`KIE API error: ${kieData.msg}`);
 
     const state = kieData.data.state;
     const kieVideoUrl = kieData.data.videoInfo?.videoUrl || null;
-    
-    // Map KIE states to our states
+
     let status = "processing";
     let progress = 0;
-    let finalVideoUrl = null;
-    
+    let finalVideoUrl: string | null = null;
+
     if (state === "success" && kieVideoUrl) {
       status = "completed";
       progress = 100;
-      
+
       try {
-        console.log("Downloading video from KIE:", kieVideoUrl);
-        
-        // Download video from KIE
+        console.log("Streaming video from KIE to Supabase");
+
         const videoResponse = await fetch(kieVideoUrl);
-        if (!videoResponse.ok) {
-          throw new Error(`Failed to download video: ${videoResponse.status}`);
-        }
-        
-        const videoBlob = await videoResponse.arrayBuffer();
-        console.log("Video downloaded, size:", videoBlob.byteLength);
-        
-        // Get user ID from token
-        const token = authHeader.replace("Bearer ", "");
+        if (!videoResponse.body) throw new Error("No video stream available from KIE");
+
+        // Supabase client
         const supabaseClient = createClient(
           Deno.env.get("SUPABASE_URL") ?? "",
           Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
         );
-        
+
+        // Get user ID from JWT
+        const token = authHeader.replace("Bearer ", "");
         const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-        if (userError || !user) {
-          throw new Error("User not authenticated");
-        }
-        
-        // Upload to Supabase Storage
+        if (userError || !user) throw new Error("User not authenticated");
+
         const fileName = `${user.id}/${generation_id}-${Date.now()}.mp4`;
+
+        // Stream upload
         const { error: uploadError } = await supabaseClient
           .storage
-          .from('videos')
-          .upload(fileName, videoBlob, {
-            contentType: 'video/mp4',
+          .from("videos")
+          .upload(fileName, videoResponse.body, {
+            contentType: "video/mp4",
             upsert: false
           });
-        
-        if (uploadError) {
-          console.error("Storage upload error:", uploadError);
-          throw new Error(`Failed to upload video: ${uploadError.message}`);
-        }
-        
-        // Get public URL
+
+        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+
+        // Internal playback URL
         const { data: { publicUrl } } = supabaseClient
           .storage
-          .from('videos')
+          .from("videos")
           .getPublicUrl(fileName);
-        
+
         finalVideoUrl = publicUrl;
-        console.log("Video uploaded to storage:", finalVideoUrl);
-        
+
       } catch (uploadErr) {
-        console.error("Error uploading video to storage:", uploadErr);
-        // Fall back to KIE URL if upload fails
+        console.error("Streaming/upload error:", uploadErr);
+        // fallback till KIE URL om streaming failar
         finalVideoUrl = kieVideoUrl;
       }
+
     } else if (state === "failed") {
       status = "failed";
     } else if (state === "submitted") {
@@ -129,25 +105,18 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        status: status,
+        status,
         video_url: finalVideoUrl,
-        progress: progress,
+        progress
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
+
   } catch (error) {
-    console.error("Error in check-video-status:", error);
+    console.error("Error in Edge Function:", error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error occurred",
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });
