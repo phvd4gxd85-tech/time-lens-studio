@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,14 +17,10 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
 
-    console.log("Authenticated request received");
-
     const { generation_id } = await req.json();
     if (!generation_id) throw new Error("Generation ID is required");
 
-    console.log("Checking video status for generation:", generation_id);
-
-    // KIE API status check
+    // Poll Kie for video status
     const kieResponse = await fetch(`https://api.kie.ai/api/v1/runway/record-detail?taskId=${generation_id}`, {
       method: "GET",
       headers: {
@@ -52,51 +47,7 @@ serve(async (req) => {
     if (state === "success" && kieVideoUrl) {
       status = "completed";
       progress = 100;
-
-      try {
-        console.log("Streaming video from KIE to Supabase");
-
-        const videoResponse = await fetch(kieVideoUrl);
-        if (!videoResponse.body) throw new Error("No video stream available from KIE");
-
-        // Supabase client
-        const supabaseClient = createClient(
-          Deno.env.get("SUPABASE_URL") ?? "",
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-        );
-
-        // Get user ID from JWT
-        const token = authHeader.replace("Bearer ", "");
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-        if (userError || !user) throw new Error("User not authenticated");
-
-        const fileName = `${user.id}/${generation_id}-${Date.now()}.mp4`;
-
-        // Stream upload
-        const { error: uploadError } = await supabaseClient
-          .storage
-          .from("videos")
-          .upload(fileName, videoResponse.body, {
-            contentType: "video/mp4",
-            upsert: false
-          });
-
-        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
-
-        // Internal playback URL
-        const { data: { publicUrl } } = supabaseClient
-          .storage
-          .from("videos")
-          .getPublicUrl(fileName);
-
-        finalVideoUrl = publicUrl;
-
-      } catch (uploadErr) {
-        console.error("Streaming/upload error:", uploadErr);
-        // fallback till KIE URL om streaming failar
-        finalVideoUrl = kieVideoUrl;
-      }
-
+      finalVideoUrl = kieVideoUrl; // Directly use Kie URL
     } else if (state === "failed") {
       status = "failed";
     } else if (state === "submitted") {
