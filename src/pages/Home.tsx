@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
+import { RunwayVideoGenerator } from '@/components/RunwayVideoGenerator';
 
 const Home = () => {
   const { toast } = useToast();
@@ -1019,6 +1020,8 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Runway Video Generator Section */}
+      <RunwayVideoGenerator />
 
       {/* How It Works Section */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
