@@ -545,7 +545,7 @@ const Home = () => {
       </div>
 
       {/* Image Generator Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
+      <div className="relative py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
             {language === 'sv' ? 'SKAPA BILDER' : 'CREATE IMAGES'}
