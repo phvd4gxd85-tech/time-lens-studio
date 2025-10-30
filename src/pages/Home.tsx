@@ -549,7 +549,7 @@ const Home = () => {
         <div className="max-w-6xl mx-auto">
           <div className="max-w-4xl mx-auto relative">
             <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
-            <div className="relative bg-gradient-to-br from-gray-900 to-green-900 p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
+            <div className="relative bg-[#0f172a] p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
               <div className="flex justify-center mb-8">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
