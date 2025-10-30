@@ -697,7 +697,7 @@ const Home = () => {
                 name: t.trial, 
                 subtitle: t.trialDesc,
                 price: "$5", 
-                videos: 3,
+                videos: 2,
                 color: "from-amber-700 to-amber-900",
                 borderColor: "border-amber-600",
                 packageType: "discover" as const
@@ -706,7 +706,7 @@ const Home = () => {
                 name: t.starter, 
                 subtitle: t.starterDesc,
                 price: "$18", 
-                videos: 12,
+                videos: 10,
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
                 popular: true,
@@ -743,10 +743,6 @@ const Home = () => {
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
                       <span className="font-semibold">{pkg.videos} {t.videos}</span>
-                    </div>
-                    <div className="bg-black/30 rounded px-4 py-3 text-center text-amber-300">
-                      <div className="text-2xl font-bold">${(parseFloat(pkg.price.replace('$', '')) / pkg.videos).toFixed(2)}</div>
-                      <div className="text-sm text-amber-400/60">{t.perVideo}</div>
                     </div>
                   </div>
 
