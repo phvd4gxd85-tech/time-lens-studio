@@ -705,8 +705,8 @@ const Home = () => {
               { 
                 name: t.starter, 
                 subtitle: t.starterDesc,
-                price: "$18", 
-                videos: 10,
+                price: "$20", 
+                videos: 6,
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
                 popular: true,
@@ -716,7 +716,7 @@ const Home = () => {
                 name: t.pro, 
                 subtitle: t.proDesc,
                 price: "$40", 
-                videos: 25,
+                videos: 12,
                 color: "from-gray-800 to-gray-900",
                 borderColor: "border-gray-600",
                 packageType: "premier" as const
