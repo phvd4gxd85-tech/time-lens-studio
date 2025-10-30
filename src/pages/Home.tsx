@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 
 const Home = () => {
   const { toast } = useToast();
@@ -431,6 +432,42 @@ const Home = () => {
             <p className="text-lg md:text-xl text-amber-300/80 max-w-3xl mx-auto">
               {t.tagline}
             </p>
+          </div>
+
+          {/* Inspiration Example */}
+          <div className="max-w-5xl mx-auto mt-24 relative">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
+                {language === 'sv' ? 'Skapa Magin' : 'Create the Magic'}
+              </h2>
+              <p className="text-amber-200/70 text-lg">
+                {language === 'sv' 
+                  ? 'Ett exempel på vad du kan skapa med Vintage AI' 
+                  : 'An example of what you can create with Vintage AI'}
+              </p>
+            </div>
+            
+            <div className="relative group">
+              {/* Gold frame */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/30 to-amber-800/30 blur-2xl"></div>
+              <div className="relative border-8 border-amber-600 shadow-2xl shadow-amber-600/50 rounded-lg overflow-hidden">
+                {/* Corner decorations */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-amber-400"></div>
+                <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-amber-400"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-amber-400"></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-amber-400"></div>
+                
+                {/* Inner border */}
+                <div className="absolute inset-4 border-2 border-amber-500/50 rounded pointer-events-none"></div>
+                
+                {/* Image */}
+                <img 
+                  src={vintageAiExample} 
+                  alt="Vintage AI Example" 
+                  className="w-full h-auto"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Main Generator Box */}
