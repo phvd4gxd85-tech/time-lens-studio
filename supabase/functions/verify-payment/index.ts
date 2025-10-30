@@ -48,11 +48,11 @@ serve(async (req) => {
       throw new Error("Missing email or package type");
     }
 
-    // Define package credits
+    // Define package credits based on actual pricing
     const packageCredits: Record<string, { videos: number; images: number }> = {
-      starter: { videos: 50, images: 100 },
-      classic: { videos: 250, images: 500 },
-      premier: { videos: 1000, images: 2000 }
+      starter: { videos: 2, images: 5 },      // Klassisk $6
+      classic: { videos: 8, images: 15 },     // Premiär $20
+      premier: { videos: 25, images: 40 }     // Upptäck $55
     };
 
     const credits = packageCredits[packageType];
