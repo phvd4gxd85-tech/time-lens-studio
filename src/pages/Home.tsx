@@ -547,15 +547,9 @@ const Home = () => {
       {/* Image Generator Section */}
       <div className="relative py-24 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
-            {language === 'sv' ? 'SKAPA BILDER' : 'CREATE IMAGES'}
-          </h2>
-          <p className="text-center text-amber-200/60 mb-16 text-lg">
-            {language === 'sv' ? 'Generera vintage-inspirerade bilder med AI' : 'Generate vintage-inspired images with AI'}
-          </p>
-
-          <div className="max-w-4xl mx-auto">
-            <div className="relative bg-gray-900 p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
+          <div className="max-w-4xl mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-gray-900 to-green-900 p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
               <div className="flex justify-center mb-8">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
@@ -563,6 +557,10 @@ const Home = () => {
                   <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
                 </div>
               </div>
+
+              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-amber-100">
+                {language === 'sv' ? 'Skapa Bilder' : 'Create Images'}
+              </h2>
 
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
