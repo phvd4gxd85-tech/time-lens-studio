@@ -703,8 +703,11 @@ const Home = () => {
               <video 
                 src={exampleVideo} 
                 controls 
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-full rounded-lg shadow-2xl border-2 border-amber-600/30"
-                poster={vintageAiExample}
               />
               <div className="mt-6 bg-gradient-to-br from-amber-900/40 to-red-900/40 p-6 rounded-lg border-2 border-amber-500">
                 <h4 className="font-semibold mb-3 text-xl text-amber-100">
