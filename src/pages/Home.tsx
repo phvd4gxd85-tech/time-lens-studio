@@ -681,94 +681,189 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Prompting Guide */}
+      {/* How to Use Guide */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-4">
             <Lightbulb className="w-10 h-10 text-amber-500" />
             <h2 className="text-5xl font-bold text-center text-amber-100">
-              {t.promptGuideTitle}
+              {language === 'sv' ? 'Så Här Använder Du Vintage AI' : 'How to Use Vintage AI'}
             </h2>
           </div>
           <p className="text-center text-amber-200/70 mb-16 text-xl">
-            {t.promptInstruction}
+            {language === 'sv' 
+              ? 'Lär dig skapa magiska videos och bilder med AI' 
+              : 'Learn to create magical videos and images with AI'}
           </p>
 
-          {/* What is a prompt */}
-          <div className="max-w-4xl mx-auto mb-16 bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
-            <h3 className="text-3xl font-bold text-amber-100 mb-4">{t.whatIsPrompt}</h3>
-            <p className="text-amber-200/80 text-lg mb-6">
-              {t.whatIsPromptDesc}
-            </p>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-red-950/30 border border-red-700/50 rounded-lg p-6">
-                <div className="text-red-400 font-bold mb-2 flex items-center gap-2">
-                  <span className="text-2xl">❌</span> {t.tooSimple}
-                </div>
-                <p className="text-amber-200 italic">"{t.redBirdExample}"</p>
-                <p className="text-amber-300/60 text-sm mt-3">{t.aiMustGuess}</p>
-              </div>
-
-              <div className="bg-green-950/30 border border-green-700/50 rounded-lg p-6">
-                <div className="text-green-400 font-bold mb-2 flex items-center gap-2">
-                  <span className="text-2xl">✅</span> {t.muchBetter}
-                </div>
-                <p className="text-amber-200 italic">"{t.redCardinalExample}"</p>
-              </div>
+          {/* VIDEO Section */}
+          <div className="mb-20">
+            <div className="flex items-center justify-center gap-3 mb-12">
+              <Film className="w-8 h-8 text-amber-500" />
+              <h3 className="text-4xl font-bold text-amber-100">
+                {language === 'sv' ? 'SKAPA VIDEOS' : 'CREATE VIDEOS'}
+              </h3>
             </div>
-          </div>
 
-          {/* Three ways to use */}
-          <div className="mb-16">
-            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">{t.threeWays}</h3>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              {/* Option 1: Animate existing image */}
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
                 <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.simpleAnimation}</h4>
-                <p className="text-amber-200/80 mb-3">{t.simpleAnimationDesc}</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.simpleAnimationExample}"</p>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">
+                  {language === 'sv' ? 'Gör Bilder Levande' : 'Bring Images to Life'}
+                </h4>
+                <p className="text-amber-200/80 mb-4">
+                  {language === 'sv' 
+                    ? 'Ladda upp en befintlig bild och få den att röra sig! Perfekt för att få personer att le, röra på sig, eller skapa subtila rörelser.' 
+                    : 'Upload an existing image and make it move! Perfect for making people smile, move, or create subtle movements.'}
+                </p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">
+                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+                  </p>
+                  <p className="text-amber-200 italic">
+                    "{language === 'sv' 
+                      ? 'Få personen att le och blinka, mjuk rörelse' 
+                      : 'Make the person smile and blink, subtle movement'}"
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
+              {/* Option 2: Create from scratch */}
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
                 <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.addDetails}</h4>
-                <p className="text-amber-200/80 mb-3">{t.addDetailsDesc}</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.addDetailsExample}"</p>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">
+                  {language === 'sv' ? 'Skapa Helt Ny Scen' : 'Create Brand New Scene'}
+                </h4>
+                <p className="text-amber-200/80 mb-4">
+                  {language === 'sv' 
+                    ? 'Beskriv en hel scen i text och AI:n skapar en video från grunden.' 
+                    : 'Describe an entire scene in text and AI creates a video from scratch.'}
+                </p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">
+                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+                  </p>
+                  <p className="text-amber-200 italic">
+                    "{language === 'sv' 
+                      ? 'En vintage reklamskylt som lyser i neonfärger över snötäckta tak i Stockholm, vintermorgon' 
+                      : 'A vintage neon sign glowing over snow-covered rooftops in Stockholm, winter morning'}"
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Video Example with actual prompt */}
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-amber-50" />
+                </div>
+                <h4 className="text-2xl font-bold text-amber-100">
+                  {language === 'sv' ? 'Exempel-Prompt för Video' : 'Example Video Prompt'}
+                </h4>
+              </div>
+              
+              <div className="bg-black/40 p-6 rounded-lg mb-4">
+                <p className="text-amber-200 text-lg italic leading-relaxed">
+                  "{language === 'sv' 
+                    ? 'Ta detta hockeykort av Wayne Gretzky och animera det. Få honom att blinka och le subtilt, vintage känsla, mjuka rörelser som på gamla filmkameror' 
+                    : 'Take this Wayne Gretzky hockey card and animate it. Make him blink and smile subtly, vintage feel, smooth movements like old film cameras'}"
+                </p>
+              </div>
+              
+              <p className="text-amber-200/70 text-sm">
+                {language === 'sv' 
+                  ? '💡 Tips: Ladda först upp bilden, skriv sedan prompten för bästa resultat' 
+                  : '💡 Tip: First upload the image, then write the prompt for best results'}
+              </p>
+            </div>
+          </div>
+
+          {/* IMAGE Section */}
+          <div className="mb-20">
+            <div className="flex items-center justify-center gap-3 mb-12">
+              <Camera className="w-8 h-8 text-amber-500" />
+              <h3 className="text-4xl font-bold text-amber-100">
+                {language === 'sv' ? 'SKAPA BILDER' : 'CREATE IMAGES'}
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-12">
+              {/* Option 1: Edit existing */}
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">
+                  {language === 'sv' ? 'Redigera Befintlig Bild' : 'Edit Existing Image'}
+                </h4>
+                <p className="text-amber-200/80 mb-4">
+                  {language === 'sv' 
+                    ? 'Ladda upp en bild och ändra detaljer - byt färg på kläder, ändra bakgrund, eller lägg till element.' 
+                    : 'Upload an image and change details - change clothing colors, alter background, or add elements.'}
+                </p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">
+                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+                  </p>
+                  <p className="text-amber-200 italic">
+                    "{language === 'sv' 
+                      ? 'Byt ut jackan till en röd färg, behåll allt annat' 
+                      : 'Change the jacket to red color, keep everything else'}"
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
-                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
-                <h4 className="text-xl font-bold text-amber-100 mb-3">{t.createFromText}</h4>
-                <p className="text-amber-200/80 mb-3">{t.createFromTextDesc}</p>
-                <p className="text-amber-300 italic bg-black/30 p-3 rounded">"{t.createFromTextExample}"</p>
+              {/* Option 2: Create from scratch */}
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">
+                  {language === 'sv' ? 'Skapa Helt Ny Bild' : 'Create Brand New Image'}
+                </h4>
+                <p className="text-amber-200/80 mb-4">
+                  {language === 'sv' 
+                    ? 'Beskriv din vision i text och AI:n skapar bilden från grunden.' 
+                    : 'Describe your vision in text and AI creates the image from scratch.'}
+                </p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">
+                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+                  </p>
+                  <p className="text-amber-200 italic">
+                    "{language === 'sv' 
+                      ? 'En vintage reklamskylt med texten VINTAGE AI och en filmrulle, neonljus, Stockholms takåsar' 
+                      : 'A vintage sign with text VINTAGE AI and a film reel, neon lights, Stockholm rooftops'}"
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Detail levels */}
+          {/* How to Build a Great Prompt */}
           <div className="mb-16 max-w-4xl mx-auto">
-            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">{t.detailLevels}</h3>
+            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">
+              {language === 'sv' ? 'Hur Bygger Man En Bra Prompt?' : 'How to Build a Great Prompt?'}
+            </h3>
             
             <div className="space-y-6">
               <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">{t.basicLevel}</h4>
+                  <h4 className="text-xl font-bold text-amber-100">
+                    {language === 'sv' ? 'Grund-Nivå' : 'Basic Level'}
+                  </h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.basicWhat}</span>
+                    <span>{language === 'sv' ? 'Vad händer i bilden/videon?' : 'What happens in the image/video?'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.basicWhere}</span>
+                    <span>{language === 'sv' ? 'Var utspelar det sig?' : 'Where does it take place?'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.basicWhen}</span>
+                    <span>{language === 'sv' ? 'När på dagen?' : 'What time of day?'}</span>
                   </li>
                 </ul>
               </div>
@@ -777,24 +872,26 @@ const Home = () => {
                 <div className="flex items-center gap-3 mb-3">
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">{t.mediumLevel}</h4>
+                  <h4 className="text-xl font-bold text-amber-100">
+                    {language === 'sv' ? 'Mellan-Nivå' : 'Medium Level'}
+                  </h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.mediumFeeling}</span>
+                    <span>{language === 'sv' ? 'Känslor och stämning' : 'Emotions and mood'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.mediumLight}</span>
+                    <span>{language === 'sv' ? 'Ljussättning (varmt, kallt, dramatiskt)' : 'Lighting (warm, cold, dramatic)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.mediumMovement}</span>
+                    <span>{language === 'sv' ? 'Rörelser (mjuka, snabba, subtila)' : 'Movements (smooth, fast, subtle)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.mediumWeather}</span>
+                    <span>{language === 'sv' ? 'Väder och atmosfär' : 'Weather and atmosphere'}</span>
                   </li>
                 </ul>
               </div>
@@ -804,85 +901,36 @@ const Home = () => {
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
                   <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">{t.advancedLevel}</h4>
+                  <h4 className="text-xl font-bold text-amber-100">
+                    {language === 'sv' ? 'Avancerad-Nivå' : 'Advanced Level'}
+                  </h4>
                 </div>
                 <ul className="text-amber-200/80 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.advancedLens}</span>
+                    <span>{language === 'sv' ? 'Kamerarörelser (zoom, pan, statisk)' : 'Camera movements (zoom, pan, static)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.advancedMovement}</span>
+                    <span>{language === 'sv' ? 'Filmstil (vintage, modern, noir)' : 'Film style (vintage, modern, noir)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.advancedFilm}</span>
+                    <span>{language === 'sv' ? 'Kameravinkel (fågelperspektiv, grodperspektiv)' : 'Camera angle (bird\'s eye, worm\'s eye)'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-500">•</span>
-                    <span>{t.advancedAngle}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{t.advancedBrands}</span>
+                    <span>{language === 'sv' ? 'Specifika filmreferenser' : 'Specific film references'}</span>
                   </li>
                 </ul>
               </div>
             </div>
-          </div>
-
-          {/* Example prompt */}
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-amber-50" />
-              </div>
-              <h3 className="text-2xl font-bold text-amber-100">{t.exampleTitle}</h3>
-            </div>
-            
-            <div className="bg-black/40 p-6 rounded-lg mb-6">
-              <p className="text-amber-200 text-lg italic leading-relaxed">
-                "{t.examplePrompt}"
-              </p>
-            </div>
-
-            <div className="space-y-3 text-amber-200/80">
-              <p className="font-bold text-amber-100">{t.whyWorks}</p>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span>{t.whyWork1}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span>{t.whyWork2}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span>{t.whyWork3}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span>{t.whyWork4}</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-400">✓</span>
-                  <span>{t.whyWork5}</span>
-                </li>
-              </ul>
-            </div>
-
-            <button
-              onClick={() => setPrompt(t.examplePrompt)}
-              className="mt-6 w-full bg-amber-600 hover:bg-amber-500 text-amber-50 font-bold py-3 rounded transition-all"
-            >
-              {t.useThisPrompt}
-            </button>
           </div>
 
           <p className="text-center text-amber-200 text-xl mt-12 font-bold">
-            {t.moreDetailsCloser}
+            {language === 'sv' 
+              ? '✨ Ju mer detaljer, desto närmare din vision kommer resultatet ✨' 
+              : '✨ The more details, the closer to your vision the result will be ✨'}
           </p>
         </div>
       </div>
