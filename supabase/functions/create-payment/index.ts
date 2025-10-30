@@ -31,9 +31,9 @@ serve(async (req) => {
 
     // Validate allowed price IDs
     const ALLOWED_PRICES: Record<string, string> = {
-      'price_1SKbRvQt7FLZjS8hiRIqK4RZ': 'starter',
-      'price_1SKbZhQt7FLZjS8hcsyNqiGM': 'classic',
-      'price_1SKbTIQt7FLZjS8hIee7YD54': 'premier'
+      'price_1SNsvKQt7FLZjS8hXtfTMW47': 'starter',   // $6
+      'price_1SNsvaQt7FLZjS8hoxcTNsfN': 'classic',   // $20
+      'price_1SNswDQt7FLZjS8huIapxFyx': 'premier'    // $55
     };
 
     if (!ALLOWED_PRICES[priceId]) {

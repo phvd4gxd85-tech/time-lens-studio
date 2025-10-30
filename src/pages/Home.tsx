@@ -77,9 +77,9 @@ const Home = () => {
   }, [language, refreshCredits, toast]);
 
   const PRICE_IDS = {
-    starter: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
-    classic: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
-    premier: "price_1SKbTIQt7FLZjS8hIee7YD54",
+    starter: "price_1SNsvKQt7FLZjS8hXtfTMW47",  // $6
+    classic: "price_1SNsvaQt7FLZjS8hoxcTNsfN",  // $20
+    premier: "price_1SNswDQt7FLZjS8huIapxFyx",  // $55
   };
 
   const handlePurchase = async (packageType: 'starter' | 'classic' | 'premier') => {
