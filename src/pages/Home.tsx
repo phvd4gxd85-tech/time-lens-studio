@@ -546,6 +546,26 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Example Video Showcase Section */}
+      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/20 to-gray-900">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-amber-800/20 blur-2xl"></div>
+            <div className="relative">
+              <video 
+                src={exampleVideo} 
+                controls 
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/30 object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Image Generator Section */}
       <div className="relative py-24 px-4">
         <div className="max-w-6xl mx-auto">
@@ -697,32 +717,6 @@ const Home = () => {
               : 'Learn to create magical videos and images with AI'}
           </p>
 
-          {/* Example Video Section */}
-          <div className="mb-16">
-            <div className="max-w-3xl mx-auto">
-              <video 
-                src={exampleVideo} 
-                controls 
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/30 object-cover"
-              />
-              <div className="mt-6 bg-gradient-to-br from-amber-900/40 to-red-900/40 p-6 rounded-lg border-2 border-amber-500">
-                <h4 className="font-semibold mb-3 text-xl text-amber-100">
-                  <span className="text-amber-400">
-                    {language === 'sv' ? 'Prompt som användes:' : 'Prompt used:'}
-                  </span>
-                </h4>
-                <p className="text-lg text-amber-200 leading-relaxed italic">
-                  "{language === 'sv' 
-                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden. Skylten är lite sliten och vintage. Lägg till en subtil vinglans-effekt som rör sig över skylten och få det att kännas levande med lätt rörelse.' 
-                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind. The sign is slightly worn and vintage. Add a subtle glass reflection effect moving across the sign and make it feel alive with gentle movement.'}"
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* VIDEO Section */}
           <div className="mb-20">
