@@ -435,6 +435,24 @@ const Home = () => {
             </p>
           </div>
 
+          {/* Example Video Showcase */}
+          <div className="max-w-4xl mx-auto mt-12 mb-12">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-amber-800/20 blur-2xl"></div>
+              <div className="relative">
+                <video 
+                  src={exampleVideo} 
+                  controls 
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Main Generator Box */}
           <div className="max-w-4xl mx-auto mt-16 relative">
             <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
@@ -541,26 +559,6 @@ const Home = () => {
                   <div className="w-24 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Example Video Showcase Section */}
-      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/20 to-gray-900">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-amber-800/20 blur-2xl"></div>
-            <div className="relative">
-              <video 
-                src={exampleVideo} 
-                controls 
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/30 object-cover"
-              />
             </div>
           </div>
         </div>
