@@ -706,9 +706,9 @@ const Home = () => {
               { 
                 name: t.pro, 
                 subtitle: t.proDesc,
-                price: "$14", 
-                videos: 5,
-                images: 10,
+                price: "$20", 
+                videos: 8,
+                images: 15,
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
                 packageType: "classic" as const
@@ -716,9 +716,9 @@ const Home = () => {
               { 
                 name: t.trial, 
                 subtitle: t.trialDesc,
-                price: "$35", 
-                videos: 15,
-                images: 30,
+                price: "$55", 
+                videos: 25,
+                images: 40,
                 color: "from-gray-800 to-gray-900",
                 borderColor: "border-gray-600",
                 packageType: "premier" as const
