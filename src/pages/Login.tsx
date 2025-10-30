@@ -143,7 +143,7 @@ const Login = () => {
               <Button 
                 type="submit"
                 disabled={loading}
-                className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-amber-50 py-6 font-bold tracking-[0.15em] uppercase"
+                className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white hover:text-gray-900 py-6 font-bold tracking-[0.15em] uppercase transition-all duration-300"
               >
                 <span className="relative">{loading ? '...' : (isSignUp ? t.signupButton : t.loginButton)}</span>
               </Button>
