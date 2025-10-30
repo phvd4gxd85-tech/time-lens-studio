@@ -217,9 +217,6 @@ const Home = () => {
       <div className="relative pt-4 pb-32 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">
-              Vintage AI
-            </h1>
             <div className="flex justify-center mb-6">
               <svg width="200" height="60" viewBox="0 0 200 60">
                 <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30" 
@@ -353,7 +350,7 @@ const Home = () => {
       </div>
 
       {/* Prompting Guide */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-red-950 to-gray-900">
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-4">
             <Lightbulb className="w-10 h-10 text-amber-500" />
@@ -559,7 +556,7 @@ const Home = () => {
       </div>
 
       {/* How It Works Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-green-950 to-gray-900">
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-16 text-amber-100">
             {t.howItWorksTitle}
@@ -587,7 +584,7 @@ const Home = () => {
       </div>
 
       {/* Pricing Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 to-red-950">
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
             {t.pricingTitle.toUpperCase()}
@@ -670,7 +667,7 @@ const Home = () => {
       </div>
 
       {/* Footer */}
-      <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 to-black border-t border-amber-600/30">
+      <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 border-t border-amber-600/30">
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-4">

@@ -14,14 +14,7 @@ export const Header = () => {
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center">
-          <button 
-            onClick={() => navigate('/')}
-            className="text-2xl text-amber-100 tracking-[0.2em] hover:text-amber-300 transition-colors font-futura font-light"
-          >
-            {t.title}
-          </button>
-
+        <div className="flex justify-end items-center w-full">
           <div className="flex items-center gap-6">
             <Button
               variant="ghost"
