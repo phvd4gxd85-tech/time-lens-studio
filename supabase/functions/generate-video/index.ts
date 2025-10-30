@@ -39,33 +39,33 @@ serve(async (req) => {
 
     console.log("Authenticated user:", user.id);
 
-    // Check and deduct tokens BEFORE generating video
+    // Check and deduct video credit BEFORE generating video
     const { data: tokenData, error: tokenError } = await supabaseClient
       .from('user_tokens')
-      .select('tokens')
+      .select('videos')
       .eq('user_id', user.id)
       .single();
 
     if (tokenError || !tokenData) {
-      throw new Error("Could not fetch user tokens");
+      throw new Error("Could not fetch user video credits");
     }
 
-    if (tokenData.tokens < 1) {
-      throw new Error("Insufficient tokens. Please purchase more tokens to continue.");
+    if (tokenData.videos < 1) {
+      throw new Error("Insufficient video credits. Please purchase more to continue.");
     }
 
-    // Deduct 1 token
+    // Deduct 1 video credit
     const { error: updateError } = await supabaseClient
       .from('user_tokens')
-      .update({ tokens: tokenData.tokens - 1 })
+      .update({ videos: tokenData.videos - 1 })
       .eq('user_id', user.id);
 
     if (updateError) {
-      console.error("Failed to deduct token:", updateError);
-      throw new Error("Failed to deduct token");
+      console.error("Failed to deduct video credit:", updateError);
+      throw new Error("Failed to deduct video credit");
     }
 
-    console.log(`Token deducted. User ${user.id} now has ${tokenData.tokens - 1} tokens`);
+    console.log(`Video credit deducted. User ${user.id} now has ${tokenData.videos - 1} videos`);
 
     const { prompt, imageUrl } = await req.json();
 

@@ -1,8 +1,9 @@
 import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
@@ -10,6 +11,7 @@ import santaExample from '@/assets/santa-example.mov';
 const Home = () => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
+  const { refreshCredits } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -23,6 +25,56 @@ const Home = () => {
   const [uploadedImageForGen, setUploadedImageForGen] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  // Check for Stripe payment success on page load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    
+    if (sessionId) {
+      console.log('Stripe session detected, verifying payment:', sessionId);
+      
+      // Clear URL parameters
+      window.history.replaceState({}, '', window.location.pathname);
+      
+      // Verify payment and add credits
+      const verifyPayment = async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke('verify-payment', {
+            body: { session_id: sessionId }
+          });
+
+          if (error) {
+            console.error('Payment verification error:', error);
+            toast({
+              title: language === 'sv' ? "Verifieringsfel" : "Verification Error",
+              description: language === 'sv' 
+                ? "Kunde inte verifiera betalningen. Kontakta support om problemet kvarstår." 
+                : "Could not verify payment. Contact support if the issue persists.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          console.log('Payment verified:', data);
+          
+          // Refresh credits
+          await refreshCredits();
+          
+          toast({
+            title: language === 'sv' ? "Betalning Lyckades!" : "Payment Successful!",
+            description: language === 'sv' 
+              ? `Dina krediter har lagts till: ${data.credits_added.videos} videos och ${data.credits_added.images} bilder` 
+              : `Your credits have been added: ${data.credits_added.videos} videos and ${data.credits_added.images} images`,
+          });
+        } catch (err) {
+          console.error('Error verifying payment:', err);
+        }
+      };
+      
+      verifyPayment();
+    }
+  }, [language, refreshCredits, toast]);
 
   const PRICE_IDS = {
     starter: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",

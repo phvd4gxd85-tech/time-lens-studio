@@ -12,3 +12,6 @@ verify_jwt = true
 [functions.poll-video-status]
 verify_jwt = false
 
+[functions.verify-payment]
+verify_jwt = false
+
