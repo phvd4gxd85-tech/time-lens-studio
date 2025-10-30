@@ -1,4 +1,4 @@
-import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download } from 'lucide-react';
+import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
@@ -16,12 +16,10 @@ const Home = () => {
   const [progress, setProgress] = useState(0);
 
   const PRICE_IDS = {
-    discover: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
-    classic: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
-    premier: "price_1SKbTIQt7FLZjS8hIee7YD54",
+    starter: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
   };
 
-  const handlePurchase = async (packageType: 'discover' | 'classic' | 'premier') => {
+  const handlePurchase = async (packageType: 'starter') => {
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
@@ -691,43 +689,20 @@ const Home = () => {
             {t.pricingSubtitle}
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-1 gap-8 max-w-md mx-auto">
             {[
-              { 
-                name: t.trial, 
-                subtitle: t.trialDesc,
-                price: "$7", 
-                videos: 2,
-                color: "from-amber-700 to-amber-900",
-                borderColor: "border-amber-600",
-                packageType: "discover" as const
-              },
               { 
                 name: t.starter, 
                 subtitle: t.starterDesc,
-                price: "$25", 
-                videos: 6,
-                color: "from-red-900 to-red-950",
-                borderColor: "border-red-700",
-                popular: true,
-                packageType: "classic" as const
-              },
-              { 
-                name: t.pro, 
-                subtitle: t.proDesc,
-                price: "$45", 
-                videos: 12,
-                color: "from-gray-800 to-gray-900",
-                borderColor: "border-gray-600",
-                packageType: "premier" as const
+                price: "$6", 
+                videos: 2,
+                images: 5,
+                color: "from-amber-700 to-amber-900",
+                borderColor: "border-amber-600",
+                packageType: "starter" as const
               }
             ].map((pkg, i) => (
               <div key={i} className="relative group">
-                {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-600 text-amber-50 px-6 py-2 rounded-full text-sm font-bold shadow-lg z-10">
-                    {t.popular}
-                  </div>
-                )}
                 <div className={`relative bg-gradient-to-br ${pkg.color} p-8 border-2 ${pkg.borderColor} rounded-lg hover:scale-105 transition-all duration-300 shadow-2xl h-full flex flex-col`}>
                   <div className="absolute top-4 right-4 w-8 h-8">
                     <svg viewBox="0 0 20 20" className="w-full h-full opacity-40">
@@ -743,6 +718,10 @@ const Home = () => {
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
                       <span className="font-semibold">{pkg.videos} {t.videos}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-amber-200">
+                      <Camera className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold">{pkg.images} {t.images}</span>
                     </div>
                   </div>
 
