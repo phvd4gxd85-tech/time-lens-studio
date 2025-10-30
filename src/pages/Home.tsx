@@ -163,6 +163,38 @@ const Home = () => {
         console.log('Polling video status...');
         try {
           await supabase.functions.invoke('poll-video-status');
+          
+          // Also check status directly as backup
+          const { data: videoData } = await supabase
+            .from('video_generations')
+            .select('*')
+            .eq('generation_id', genId)
+            .single();
+          
+          if (videoData) {
+            console.log('Direct status check:', videoData);
+            setProgress(videoData.progress || 0);
+            
+            if (videoData.status === 'completed' && videoData.video_url) {
+              setVideoUrl(videoData.video_url);
+              setIsGenerating(false);
+              clearInterval(pollInterval);
+              channel.unsubscribe();
+              toast({
+                title: language === 'sv' ? "Video klar!" : "Video ready!",
+                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
+              });
+            } else if (videoData.status === 'failed') {
+              setIsGenerating(false);
+              clearInterval(pollInterval);
+              channel.unsubscribe();
+              toast({
+                title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
+                description: videoData.error_message || (language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again."),
+                variant: "destructive",
+              });
+            }
+          }
         } catch (error) {
           console.error('Poll error:', error);
         }
