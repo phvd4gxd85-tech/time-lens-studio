@@ -217,6 +217,9 @@ const Home = () => {
       <div className="relative pt-4 pb-32 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
+            <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">
+              Vintage AI
+            </h1>
             <div className="flex justify-center mb-6">
               <svg width="200" height="60" viewBox="0 0 200 60">
                 <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30" 
