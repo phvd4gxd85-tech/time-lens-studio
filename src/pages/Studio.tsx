@@ -134,6 +134,8 @@ const Studio = () => {
     });
   };
 
+  console.log('Studio loaded with tabs');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50 py-8 px-4">
       <div className="max-w-5xl mx-auto">
