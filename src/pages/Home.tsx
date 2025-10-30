@@ -381,20 +381,20 @@ const Home = () => {
                         className="w-full h-full object-contain rounded"
                       />
                     ) : isGenerating ? (
-                      <div className="text-center">
+                      <div className="text-center w-full px-4">
                         <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
-                        <p className="text-amber-300">{t.creatingMagic}</p>
-                        {progress > 0 && (
-                          <div className="mt-4 w-48 mx-auto">
-                            <div className="w-full bg-black/60 rounded-full h-2">
-                              <div 
-                                className="bg-amber-500 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${progress}%` }}
-                              ></div>
+                        <p className="text-amber-300 text-lg font-semibold mb-4">{t.creatingMagic}</p>
+                        <div className="w-full max-w-xs mx-auto">
+                          <div className="w-full bg-black/60 rounded-full h-3 border border-amber-600/30 overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-amber-600 to-amber-400 h-3 rounded-full transition-all duration-500 ease-out shadow-lg shadow-amber-500/50"
+                              style={{ width: `${progress}%` }}
+                            >
+                              <div className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
                             </div>
-                            <p className="text-amber-400 text-sm mt-2">{progress}%</p>
                           </div>
-                        )}
+                          <p className="text-amber-400 font-bold text-base mt-3">{progress}%</p>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center text-amber-400/40">
