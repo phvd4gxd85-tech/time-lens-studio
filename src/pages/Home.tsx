@@ -67,6 +67,47 @@ const Home = () => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!videoUrl) return;
+
+    try {
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'vintage-ai-video.mp4', { type: 'video/mp4' });
+
+      // Check if Web Share API is available (mobile devices)
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: language === 'sv' ? 'Min Vintage AI Video' : 'My Vintage AI Video',
+          text: language === 'sv' ? 'Kolla in den här videon jag skapade!' : 'Check out this video I created!'
+        });
+      } else {
+        // Fallback to traditional download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vintage-ai-video.mp4';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: language === 'sv' ? "Nedladdning startad" : "Download started",
+          description: language === 'sv' ? "Din video laddas ner" : "Your video is downloading",
+        });
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: language === 'sv' ? "Nedladdningsfel" : "Download error",
+        description: language === 'sv' ? "Kunde inte ladda ner videon" : "Could not download the video",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleGenerate = async () => {
     if (!prompt) {
       toast({
@@ -319,14 +360,13 @@ const Home = () => {
                   </div>
 
                    {videoUrl && (
-                    <a
-                      href={videoUrl}
-                      download="vintage-ai-video.mp4"
+                    <button
+                      onClick={handleDownload}
                       className="w-full bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-700/50 flex items-center justify-center gap-2"
                     >
                       <Download className="w-5 h-5" />
                       {language === 'sv' ? 'LADDA NER VIDEO' : 'DOWNLOAD VIDEO'}
-                    </a>
+                    </button>
                   )}
                   
                   <button
