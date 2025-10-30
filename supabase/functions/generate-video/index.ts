@@ -39,6 +39,34 @@ serve(async (req) => {
 
     console.log("Authenticated user:", user.id);
 
+    // Check and deduct tokens BEFORE generating video
+    const { data: tokenData, error: tokenError } = await supabaseClient
+      .from('user_tokens')
+      .select('tokens')
+      .eq('user_id', user.id)
+      .single();
+
+    if (tokenError || !tokenData) {
+      throw new Error("Could not fetch user tokens");
+    }
+
+    if (tokenData.tokens < 1) {
+      throw new Error("Insufficient tokens. Please purchase more tokens to continue.");
+    }
+
+    // Deduct 1 token
+    const { error: updateError } = await supabaseClient
+      .from('user_tokens')
+      .update({ tokens: tokenData.tokens - 1 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error("Failed to deduct token:", updateError);
+      throw new Error("Failed to deduct token");
+    }
+
+    console.log(`Token deducted. User ${user.id} now has ${tokenData.tokens - 1} tokens`);
+
     const { prompt, imageUrl } = await req.json();
 
     if (!prompt) {

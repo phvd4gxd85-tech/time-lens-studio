@@ -146,6 +146,16 @@ const Home = () => {
 
       if (error) {
         console.error('Generate video error:', error);
+        // Check if it's a token error
+        if (error.message?.includes('Insufficient tokens')) {
+          toast({
+            title: language === 'sv' ? "Inte tillräckligt med tokens" : "Insufficient tokens",
+            description: language === 'sv' ? "Du har inte tillräckligt med tokens. Köp fler tokens för att fortsätta." : "You don't have enough tokens. Please purchase more tokens to continue.",
+            variant: "destructive",
+          });
+          setIsGenerating(false);
+          return;
+        }
         throw new Error(error.message || 'Failed to start video generation');
       }
 
