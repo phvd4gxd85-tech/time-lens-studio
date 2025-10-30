@@ -158,6 +158,16 @@ const Home = () => {
       setGenerationId(genId);
       console.log('Video generation started:', genId);
 
+      // Start polling for status updates
+      const pollInterval = setInterval(async () => {
+        console.log('Polling video status...');
+        try {
+          await supabase.functions.invoke('poll-video-status');
+        } catch (error) {
+          console.error('Poll error:', error);
+        }
+      }, 3000); // Poll every 3 seconds
+
       // Subscribe to realtime updates
       const channel = supabase
         .channel('video-generation-updates')
@@ -178,6 +188,7 @@ const Home = () => {
             if (newData.status === 'completed' && newData.video_url) {
               setVideoUrl(newData.video_url);
               setIsGenerating(false);
+              clearInterval(pollInterval);
               channel.unsubscribe();
               toast({
                 title: language === 'sv' ? "Video klar!" : "Video ready!",
@@ -185,6 +196,7 @@ const Home = () => {
               });
             } else if (newData.status === 'failed') {
               setIsGenerating(false);
+              clearInterval(pollInterval);
               channel.unsubscribe();
               toast({
                 title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
@@ -197,9 +209,10 @@ const Home = () => {
         .subscribe();
 
       // Timeout after 10 minutes
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         if (isGenerating) {
           setIsGenerating(false);
+          clearInterval(pollInterval);
           channel.unsubscribe();
           toast({
             title: language === 'sv' ? "Tidsgräns" : "Timeout",
