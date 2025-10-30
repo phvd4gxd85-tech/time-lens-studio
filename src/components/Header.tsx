@@ -19,7 +19,7 @@ export const Header = () => {
             <Button
               variant="ghost"
               onClick={() => setLanguage(language === 'sv' ? 'en' : 'sv')}
-              className="flex items-center gap-2 text-amber-100 hover:text-amber-300 transition-colors font-futura"
+              className="flex items-center gap-2 text-amber-100 hover:text-amber-300 transition-colors font-futura bg-amber-600/20 hover:bg-amber-600/30 backdrop-blur-sm"
             >
               <Globe size={18} />
               <span className="text-sm tracking-wider uppercase">{language === 'sv' ? 'EN' : 'SV'}</span>
