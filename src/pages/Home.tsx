@@ -897,7 +897,7 @@ const Home = () => {
                 price: "$6", 
                 videos: 2,
                 images: 5,
-                color: "from-amber-700 to-amber-900",
+                color: "bg-amber-900",
                 borderColor: "border-amber-600",
                 packageType: "starter" as const
               },
@@ -907,7 +907,7 @@ const Home = () => {
                 price: "$20", 
                 videos: 8,
                 images: 15,
-                color: "from-red-900 to-red-950",
+                color: "bg-red-900",
                 borderColor: "border-red-700",
                 packageType: "classic" as const
               },
@@ -917,13 +917,13 @@ const Home = () => {
                 price: "$55", 
                 videos: 25,
                 images: 40,
-                color: "from-gray-800 to-gray-900",
-                borderColor: "border-gray-600",
+                color: "bg-slate-800",
+                borderColor: "border-slate-600",
                 packageType: "premier" as const
               }
             ].map((pkg, i) => (
               <div key={i} className="relative group">
-                <div className={`relative bg-gradient-to-br ${pkg.color} p-8 border-2 ${pkg.borderColor} rounded-lg hover:scale-105 transition-all duration-300 shadow-2xl h-full flex flex-col`}>
+                <div className={`relative ${pkg.color} p-8 border-2 ${pkg.borderColor} rounded-lg hover:scale-105 transition-all duration-300 shadow-2xl h-full flex flex-col`}>
                   <div className="absolute top-4 right-4 w-8 h-8">
                     <svg viewBox="0 0 20 20" className="w-full h-full opacity-40">
                       <path d="M0,0 L20,0 L20,20 Z" fill="#D4AF37"/>
