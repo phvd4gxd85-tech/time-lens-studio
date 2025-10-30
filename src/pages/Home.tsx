@@ -696,7 +696,7 @@ const Home = () => {
               { 
                 name: t.trial, 
                 subtitle: t.trialDesc,
-                price: "$5", 
+                price: "$7", 
                 videos: 2,
                 color: "from-amber-700 to-amber-900",
                 borderColor: "border-amber-600",
@@ -705,7 +705,7 @@ const Home = () => {
               { 
                 name: t.starter, 
                 subtitle: t.starterDesc,
-                price: "$20", 
+                price: "$25", 
                 videos: 6,
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
@@ -715,7 +715,7 @@ const Home = () => {
               { 
                 name: t.pro, 
                 subtitle: t.proDesc,
-                price: "$40", 
+                price: "$45", 
                 videos: 12,
                 color: "from-gray-800 to-gray-900",
                 borderColor: "border-gray-600",
