@@ -20,8 +20,28 @@ serve(async (req) => {
   try {
     const { priceId, packageType } = await req.json();
     
-    if (!priceId) {
-      throw new Error("Price ID is required");
+    // Validate inputs
+    if (!priceId || typeof priceId !== 'string') {
+      throw new Error("Valid price ID is required");
+    }
+    
+    if (!packageType || typeof packageType !== 'string') {
+      throw new Error("Valid package type is required");
+    }
+
+    // Validate allowed price IDs
+    const ALLOWED_PRICES: Record<string, string> = {
+      'price_1SKbRvQt7FLZjS8hiRIqK4RZ': 'starter',
+      'price_1SKbZhQt7FLZjS8hcsyNqiGM': 'classic',
+      'price_1SKbTIQt7FLZjS8hIee7YD54': 'premier'
+    };
+
+    if (!ALLOWED_PRICES[priceId]) {
+      throw new Error("Invalid price ID");
+    }
+
+    if (ALLOWED_PRICES[priceId] !== packageType) {
+      throw new Error("Price ID does not match package type");
     }
 
     console.log("Creating payment session for price:", priceId, "package:", packageType);

@@ -31,8 +31,26 @@ serve(async (req) => {
 
     const { prompt, imageUrl } = await req.json();
     
-    if (!prompt) {
-      throw new Error("Prompt is required");
+    // Validate prompt
+    if (!prompt || typeof prompt !== 'string') {
+      throw new Error("Valid prompt is required");
+    }
+
+    if (prompt.length < 3) {
+      throw new Error("Prompt must be at least 3 characters");
+    }
+
+    if (prompt.length > 2000) {
+      throw new Error("Prompt must be less than 2000 characters");
+    }
+
+    // Validate imageUrl if provided
+    if (imageUrl && typeof imageUrl !== 'string') {
+      throw new Error("Invalid image URL format");
+    }
+
+    if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('https://')) {
+      throw new Error("Image URL must be HTTPS or base64 data");
     }
 
     console.log("Generating image for user:", user.id, "with prompt:", prompt);

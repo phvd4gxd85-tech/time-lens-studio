@@ -20,11 +20,33 @@ serve(async (req) => {
   try {
     const { session_id } = await req.json();
     
-    if (!session_id) {
-      throw new Error("Session ID is required");
+    if (!session_id || typeof session_id !== 'string') {
+      throw new Error("Valid session ID is required");
     }
 
     console.log("Verifying payment for session:", session_id);
+
+    // Check if this session has already been processed (idempotency)
+    const { data: existingPurchase } = await supabaseClient
+      .from('purchases')
+      .select('id, stripe_session_id')
+      .eq('stripe_session_id', session_id)
+      .single();
+
+    if (existingPurchase) {
+      console.log("Payment already processed for session:", session_id);
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Payment already processed",
+          already_processed: true
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
