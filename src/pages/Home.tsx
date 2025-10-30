@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
+import santaExample from '@/assets/santa-example.mov';
 
 const Home = () => {
   const { toast } = useToast();
@@ -797,6 +798,18 @@ const Home = () => {
                   : '💡 Tip: First upload the image, then write the prompt for best results'}
               </p>
             </div>
+          </div>
+
+          {/* Stomatol Example Video */}
+          <div className="max-w-5xl mx-auto mb-20">
+            <video 
+              src={santaExample} 
+              controls 
+              autoPlay
+              loop
+              playsInline
+              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            />
           </div>
 
           {/* IMAGE Section */}
