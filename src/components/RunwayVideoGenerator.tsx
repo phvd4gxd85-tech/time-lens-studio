@@ -189,13 +189,13 @@ export const RunwayVideoGenerator = () => {
   };
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-purple-950/20 to-pink-950/20">
+    <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Runway Video Generator
+          <h2 className="text-4xl font-bold mb-4 text-amber-100">
+            RUNWAY VIDEO GENERATOR
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-amber-200/80">
             {language === 'sv' 
               ? "Skapa professionella videos med AI-guidning" 
               : "Create professional videos with AI guidance"}
@@ -205,13 +205,13 @@ export const RunwayVideoGenerator = () => {
         {/* Image upload */}
         <div className="mb-8">
           <label className="block w-full cursor-pointer">
-            <div className="border-2 border-dashed border-primary/50 rounded-lg p-8 hover:border-primary transition-colors text-center">
+            <div className="border-2 border-dashed border-amber-600/50 rounded-lg p-8 hover:border-amber-600 transition-colors text-center bg-black/20">
               {uploadedImage ? (
-                <img src={uploadedImage} alt="Uploaded" className="max-h-64 mx-auto rounded" />
+                <img src={uploadedImage} alt="Uploaded" className="max-h-64 mx-auto rounded border-2 border-amber-600/30" />
               ) : (
                 <div className="space-y-2">
-                  <Upload className="w-12 h-12 mx-auto text-primary" />
-                  <p>{language === 'sv' ? "Ladda upp bild" : "Upload image"}</p>
+                  <Upload className="w-12 h-12 mx-auto text-amber-500" />
+                  <p className="text-amber-200">{language === 'sv' ? "Ladda upp bild" : "Upload image"}</p>
                 </div>
               )}
             </div>
@@ -228,13 +228,13 @@ export const RunwayVideoGenerator = () => {
         {uploadedImage && (
           <div className="space-y-6 mb-8">
             <div>
-              <label className="block mb-2 font-medium">
+              <label className="block mb-2 font-medium text-amber-100">
                 {language === 'sv' ? "Från vilket årtionde är bilden?" : "From which decade is the image?"}
               </label>
               <select
                 value={imageDecade}
                 onChange={(e) => setImageDecade(e.target.value)}
-                className="w-full p-3 rounded-lg bg-background border border-input"
+                className="w-full p-3 rounded-lg bg-black/40 border border-amber-600/40 text-amber-100"
               >
                 <option value="">{language === 'sv' ? "Välj..." : "Select..."}</option>
                 <option value="1900-1910">1900-1910</option>
@@ -254,13 +254,13 @@ export const RunwayVideoGenerator = () => {
             </div>
 
             <div>
-              <label className="block mb-2 font-medium">
+              <label className="block mb-2 font-medium text-amber-100">
                 {language === 'sv' ? "Vad är huvudmotivet?" : "What is the main subject?"}
               </label>
               <select
                 value={mainSubject}
                 onChange={(e) => setMainSubject(e.target.value)}
-                className="w-full p-3 rounded-lg bg-background border border-input"
+                className="w-full p-3 rounded-lg bg-black/40 border border-amber-600/40 text-amber-100"
               >
                 <option value="">{language === 'sv' ? "Välj..." : "Select..."}</option>
                 <option value="person">{language === 'sv' ? "En person" : "A person"}</option>
@@ -273,7 +273,7 @@ export const RunwayVideoGenerator = () => {
             </div>
 
             <div>
-              <label className="block mb-2 font-medium">
+              <label className="block mb-2 font-medium text-amber-100">
                 {language === 'sv' ? "Beskriv kort bilden (max 100 tecken)" : "Describe the image briefly (max 100 chars)"}
               </label>
               <Textarea
@@ -281,140 +281,159 @@ export const RunwayVideoGenerator = () => {
                 onChange={(e) => setImageDescription(e.target.value.slice(0, 100))}
                 placeholder={language === 'sv' ? "T.ex. En familj på stranden..." : "E.g. A family at the beach..."}
                 maxLength={100}
-                className="resize-none"
+                className="resize-none bg-black/40 border-amber-600/40 text-amber-100"
               />
-              <p className="text-sm text-muted-foreground mt-1">{imageDescription.length}/100</p>
+              <p className="text-sm text-amber-200/60 mt-1">{imageDescription.length}/100</p>
             </div>
 
             <div>
-              <label className="block mb-2 font-medium">
+              <label className="block mb-2 font-medium text-amber-100">
                 {language === 'sv' ? "Hur ska bilden animeras?" : "How should the image be animated?"}
               </label>
               <div className="space-y-2">
-                <Button
-                  variant={desiredMovement === "subtle" ? "default" : "outline"}
+                <button
                   onClick={() => setDesiredMovement("subtle")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredMovement === "subtle" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Subtil animering" : "Subtle animation"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Subtil animering" : "Subtle animation"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Mjuk, levande känsla" : "Soft, living feeling"}
                   </span>
-                </Button>
-                <Button
-                  variant={desiredMovement === "focus" ? "default" : "outline"}
+                </button>
+                <button
                   onClick={() => setDesiredMovement("focus")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredMovement === "focus" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Fokus på huvudmotiv" : "Focus on main subject"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Fokus på huvudmotiv" : "Focus on main subject"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Huvudmotiv rör sig mer" : "Main subject moves more"}
                   </span>
-                </Button>
-                <Button
-                  variant={desiredMovement === "creative" ? "default" : "outline"}
+                </button>
+                <button
                   onClick={() => setDesiredMovement("creative")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredMovement === "creative" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Kreativ tolkning" : "Creative interpretation"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Kreativ tolkning" : "Creative interpretation"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Mer uttrycksfull rörelse" : "More expressive movement"}
                   </span>
-                </Button>
+                </button>
               </div>
             </div>
 
             <div>
-              <label className="block mb-2 font-medium">
+              <label className="block mb-2 font-medium text-amber-100">
                 {language === 'sv' ? "Vilken stil/känsla?" : "Which style/feeling?"}
               </label>
               <div className="space-y-2">
-                <Button
-                  variant={desiredStyle === "realistic" ? "default" : "outline"}
+                <button
                   onClick={() => setDesiredStyle("realistic")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredStyle === "realistic" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Realistisk/Autentisk" : "Realistic/Authentic"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Realistisk/Autentisk" : "Realistic/Authentic"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Bevara ursprungligt utseende" : "Preserve original appearance"}
                   </span>
-                </Button>
-                <Button
-                  variant={desiredStyle === "artistic" ? "default" : "outline"}
+                </button>
+                <button
                   onClick={() => setDesiredStyle("artistic")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredStyle === "artistic" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Konstnärlig/Målad" : "Artistic/Painted"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Konstnärlig/Målad" : "Artistic/Painted"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Mer konstnärlig känsla" : "More artistic feeling"}
                   </span>
-                </Button>
-                <Button
-                  variant={desiredStyle === "dreamy" ? "default" : "outline"}
+                </button>
+                <button
                   onClick={() => setDesiredStyle("dreamy")}
-                  className="w-full justify-start text-left"
+                  className={`w-full p-4 rounded-lg text-left transition-all ${
+                    desiredStyle === "dreamy" 
+                      ? "bg-amber-600 border-2 border-amber-400" 
+                      : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                  }`}
                 >
-                  <span className="font-semibold">{language === 'sv' ? "Drömlik/Magisk" : "Dreamy/Magical"}:</span>
-                  <span className="ml-2 text-sm opacity-80">
+                  <span className="font-semibold text-amber-100">{language === 'sv' ? "Drömlik/Magisk" : "Dreamy/Magical"}:</span>
+                  <span className="ml-2 text-sm text-amber-200/80">
                     {language === 'sv' ? "Eterisk eller fantasifull touch" : "Ethereal or fantastical touch"}
                   </span>
-                </Button>
+                </button>
               </div>
             </div>
 
-            <Button
+            <button
               onClick={handleGenerate}
               disabled={isGenerating || generationCount >= 3}
-              className="w-full h-12"
+              className="w-full h-12 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isGenerating ? (
                 <>{language === 'sv' ? "Genererar..." : "Generating..."}</>
               ) : (
                 <>
-                  <Sparkles className="mr-2" />
+                  <Sparkles className="w-5 h-5" />
                   {language === 'sv' ? "Generera Video" : "Generate Video"}
                   {generationCount > 0 && ` (${generationCount}/3)`}
                 </>
               )}
-            </Button>
+            </button>
           </div>
         )}
 
         {/* Video result */}
         {videoUrl && (
           <div className="mt-8 space-y-4">
-            <video src={videoUrl} controls className="w-full rounded-lg" />
+            <video src={videoUrl} controls className="w-full rounded-lg border-2 border-amber-600/50" />
             
             <div className="flex gap-2 flex-wrap">
-              <Button onClick={handleDownload} className="flex-1">
-                <Download className="mr-2" />
+              <button 
+                onClick={handleDownload} 
+                className="flex-1 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-amber-50 font-bold py-3 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 flex items-center justify-center gap-2"
+              >
+                <Download className="w-5 h-5" />
                 {language === 'sv' ? "Ladda ner" : "Download"}
-              </Button>
+              </button>
               
               {generationCount < 3 && (
                 <>
-                  <Button
-                    variant="outline"
+                  <button
                     onClick={() => {
                       setShowFeedback(true);
                       setShowStyleQuestions(false);
                     }}
-                    className="flex-1"
+                    className="flex-1 bg-black/40 border-2 border-amber-600/40 hover:border-amber-600 text-amber-100 font-bold py-3 rounded transition-all flex items-center justify-center gap-2"
                   >
-                    <RefreshCw className="mr-2" />
+                    <RefreshCw className="w-5 h-5" />
                     {language === 'sv' ? "Justera videon" : "Adjust video"}
-                  </Button>
+                  </button>
                   
-                  <Button
-                    variant="outline"
+                  <button
                     onClick={() => {
                       setShowStyleQuestions(true);
                       setShowFeedback(false);
                     }}
-                    className="flex-1"
+                    className="flex-1 bg-black/40 border-2 border-amber-600/40 hover:border-amber-600 text-amber-100 font-bold py-3 rounded transition-all flex items-center justify-center gap-2"
                   >
                     {language === 'sv' ? "Prova annan stil" : "Try other style"}
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
@@ -425,77 +444,77 @@ export const RunwayVideoGenerator = () => {
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   placeholder={language === 'sv' ? "Vad vill du ändra?" : "What do you want to change?"}
-                  className="resize-none"
+                  className="resize-none bg-black/40 border-amber-600/40 text-amber-100"
                 />
-                <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
+                <button 
+                  onClick={handleGenerate} 
+                  disabled={isGenerating} 
+                  className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-3 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed"
+                >
                   {language === 'sv' ? "Generera Ny Version" : "Generate New Version"}
-                </Button>
+                </button>
               </div>
             )}
 
             {showStyleQuestions && (
-              <div className="space-y-4">
+              <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-amber-600/30">
                 <div>
-                  <label className="block mb-2 font-medium">
+                  <label className="block mb-2 font-medium text-amber-100">
                     {language === 'sv' ? "Ny rörelse:" : "New movement:"}
                   </label>
                   <div className="space-y-2">
-                    <Button
-                      variant={desiredMovement === "subtle" ? "default" : "outline"}
-                      onClick={() => setDesiredMovement("subtle")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Subtil" : "Subtle"}
-                    </Button>
-                    <Button
-                      variant={desiredMovement === "focus" ? "default" : "outline"}
-                      onClick={() => setDesiredMovement("focus")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Fokus på huvudmotiv" : "Focus on main subject"}
-                    </Button>
-                    <Button
-                      variant={desiredMovement === "creative" ? "default" : "outline"}
-                      onClick={() => setDesiredMovement("creative")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Kreativ" : "Creative"}
-                    </Button>
+                    {["subtle", "focus", "creative"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setDesiredMovement(type)}
+                        className={`w-full p-3 rounded text-left transition-all ${
+                          desiredMovement === type
+                            ? "bg-amber-600 border-2 border-amber-400"
+                            : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                        }`}
+                      >
+                        <span className="text-amber-100 font-semibold">
+                          {type === "subtle" && (language === 'sv' ? "Subtil" : "Subtle")}
+                          {type === "focus" && (language === 'sv' ? "Fokus på huvudmotiv" : "Focus on main subject")}
+                          {type === "creative" && (language === 'sv' ? "Kreativ" : "Creative")}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block mb-2 font-medium">
+                  <label className="block mb-2 font-medium text-amber-100">
                     {language === 'sv' ? "Ny stil:" : "New style:"}
                   </label>
                   <div className="space-y-2">
-                    <Button
-                      variant={desiredStyle === "realistic" ? "default" : "outline"}
-                      onClick={() => setDesiredStyle("realistic")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Realistisk" : "Realistic"}
-                    </Button>
-                    <Button
-                      variant={desiredStyle === "artistic" ? "default" : "outline"}
-                      onClick={() => setDesiredStyle("artistic")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Konstnärlig" : "Artistic"}
-                    </Button>
-                    <Button
-                      variant={desiredStyle === "dreamy" ? "default" : "outline"}
-                      onClick={() => setDesiredStyle("dreamy")}
-                      className="w-full text-left justify-start"
-                    >
-                      {language === 'sv' ? "Drömlik" : "Dreamy"}
-                    </Button>
+                    {["realistic", "artistic", "dreamy"].map((style) => (
+                      <button
+                        key={style}
+                        onClick={() => setDesiredStyle(style)}
+                        className={`w-full p-3 rounded text-left transition-all ${
+                          desiredStyle === style
+                            ? "bg-amber-600 border-2 border-amber-400"
+                            : "bg-black/40 border-2 border-amber-600/40 hover:border-amber-600/60"
+                        }`}
+                      >
+                        <span className="text-amber-100 font-semibold">
+                          {style === "realistic" && (language === 'sv' ? "Realistisk" : "Realistic")}
+                          {style === "artistic" && (language === 'sv' ? "Konstnärlig" : "Artistic")}
+                          {style === "dreamy" && (language === 'sv' ? "Drömlik" : "Dreamy")}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
                 
-                <Button onClick={handleGenerate} disabled={isGenerating} className="w-full">
+                <button 
+                  onClick={handleGenerate} 
+                  disabled={isGenerating} 
+                  className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-3 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed"
+                >
                   {language === 'sv' ? "Generera Ny Version" : "Generate New Version"}
-                </Button>
+                </button>
               </div>
             )}
           </div>

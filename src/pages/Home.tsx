@@ -1020,8 +1020,184 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Runway Video Generator Section */}
-      <RunwayVideoGenerator />
+      {/* Video Examples Section (OLD SECTION - keeping for now) */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center gap-3 mb-16">
+            <Film className="w-10 h-10 text-amber-500" />
+            <h2 className="text-5xl font-bold text-amber-100">
+              {language === 'sv' ? 'SKAPA VIDEOS' : 'CREATE VIDEOS'}
+            </h2>
+          </div>
+
+          {/* Three Ways Section */}
+          <div className="mb-20">
+            <h3 className="text-3xl font-bold text-center mb-12 text-amber-100">
+              {t.threeWays}
+            </h3>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border-2 border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">{t.simpleAnimation}</h4>
+                <p className="text-amber-200/80 mb-4">{t.simpleAnimationDesc}</p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">{language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}</p>
+                  <p className="text-amber-200 italic">"{t.simpleAnimationExample}"</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border-2 border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">{t.addDetails}</h4>
+                <p className="text-amber-200/80 mb-4">{t.addDetailsDesc}</p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">{language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}</p>
+                  <p className="text-amber-200 italic">"{t.addDetailsExample}"</p>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border-2 border-amber-600/40 rounded-lg">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">3</div>
+                <h4 className="text-2xl font-bold text-amber-100 mb-4">{t.createScene}</h4>
+                <p className="text-amber-200/80 mb-4">{t.createSceneDesc}</p>
+                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                  <p className="text-amber-300 text-sm font-bold mb-2">{language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}</p>
+                  <p className="text-amber-200 italic">"{t.createSceneExample}"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Image Example */}
+          <div className="mb-16">
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-amber-50" />
+                </div>
+                <h4 className="text-2xl font-bold text-amber-100">
+                  {language === 'sv' ? 'Exempel-Prompt för Bild' : 'Example Image Prompt'}
+                </h4>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6 items-center">
+                <div>
+                  <div className="bg-black/40 p-6 rounded-lg">
+                    <p className="text-amber-200 text-lg italic leading-relaxed">
+                      "{language === 'sv' 
+                        ? 'En vintage reklamskylt som lyser i neonfärger över snötäckta tak i Stockholm, vintermorgon' 
+                        : 'A vintage neon sign glowing in neon colors over snow-covered rooftops in Stockholm, winter morning'}"
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <img 
+                    src={vintageAiExample} 
+                    alt="Vintage AI Example" 
+                    className="w-full rounded-lg shadow-2xl border-2 border-amber-600/50"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Video Example */}
+          <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg mb-20">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-amber-50" />
+              </div>
+              <h4 className="text-2xl font-bold text-amber-100">
+                {language === 'sv' ? 'Exempel-Prompt för Video' : 'Example Video Prompt'}
+              </h4>
+            </div>
+            
+            <div className="bg-black/40 p-6 rounded-lg mb-4">
+              <p className="text-amber-200 text-lg italic leading-relaxed">
+                "{language === 'sv' 
+                  ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden. Skylten är lite sliten och vintage. Lägg till en subtil vinglans-effekt som rör sig över skylten och få det att kännas levande med lätt rörelse.' 
+                  : 'An old Stomatol advertising sign hanging and swaying slowly in the wind. The sign is slightly worn and vintage. Add a subtle glass reflection effect moving across the sign and make it feel alive with gentle movement.'}"
+              </p>
+            </div>
+            
+            <p className="text-amber-200/70 text-sm">
+              {language === 'sv' 
+                ? '💡 Tips: Ladda först upp bilden, skriv sedan prompten för bästa resultat' 
+                : '💡 Tip: First upload the image, then write the prompt for best results'}
+            </p>
+          </div>
+
+          {/* Stomatol Example Video */}
+          <div className="max-w-5xl mx-auto">
+            <video 
+              src={santaExample} 
+              controls 
+              autoPlay
+              loop
+              playsInline
+              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* IMAGE GENERATION SECTION */}
+      <div className="mb-20">
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <Camera className="w-8 h-8 text-amber-500" />
+          <h3 className="text-4xl font-bold text-amber-100">
+            {language === 'sv' ? 'SKAPA BILDER' : 'CREATE IMAGES'}
+          </h3>
+        </div>
+
+        {/* Rest of image generation section - keeping existing */}
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
+            <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
+            <h4 className="text-2xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Redigera Befintlig Bild' : 'Edit Existing Image'}
+            </h4>
+            <p className="text-amber-200/80 mb-4">
+              {language === 'sv' 
+                ? 'Ladda upp en bild och ändra detaljer - byt färg på kläder, ändra bakgrund, eller lägg till element.' 
+                : 'Upload an image and change details - change clothing colors, alter background, or add elements.'}
+            </p>
+            <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+              <p className="text-amber-300 text-sm font-bold mb-2">
+                {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+              </p>
+              <p className="text-amber-200 italic">
+                "{language === 'sv' 
+                  ? 'Byt ut jackan till en röd färg, behåll allt annat' 
+                  : 'Change the jacket to red color, keep everything else'}"
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
+            <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
+            <h4 className="text-2xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Skapa Helt Ny Scen' : 'Create Brand New Scene'}
+            </h4>
+            <p className="text-amber-200/80 mb-4">
+              {language === 'sv' 
+                ? 'Beskriv en hel scen i text och AI:n skapar en video från grunden.' 
+                : 'Describe an entire scene in text and AI creates a video from scratch.'}
+            </p>
+            <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+              <p className="text-amber-300 text-sm font-bold mb-2">
+                {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
+              </p>
+              <p className="text-amber-200 italic">
+                "{language === 'sv' 
+                  ? 'En vintage reklamskylt som lyser i neonfärger över snötäckta tak i Stockholm, vintermorgon' 
+                  : 'A vintage neon sign glowing over snow-covered rooftops in Stockholm, winter morning'}"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* How It Works Section */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
