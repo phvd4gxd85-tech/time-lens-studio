@@ -117,71 +117,56 @@ const Home = () => {
       setGenerationId(genId);
       console.log('Video generation started:', genId);
 
-      // Poll for status
-      let pollAttempts = 0;
-      const maxPollAttempts = 100; // 100 * 3 seconds = 5 minutes
-      
-      const pollInterval = setInterval(async () => {
-        pollAttempts++;
-        
-        if (pollAttempts > maxPollAttempts) {
-          clearInterval(pollInterval);
+      // Subscribe to realtime updates
+      const channel = supabase
+        .channel('video-generation-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'video_generations',
+            filter: `generation_id=eq.${genId}`
+          },
+          (payload) => {
+            console.log('Realtime update:', payload);
+            const newData = payload.new as any;
+            
+            setProgress(newData.progress || 0);
+            
+            if (newData.status === 'completed' && newData.video_url) {
+              setVideoUrl(newData.video_url);
+              setIsGenerating(false);
+              channel.unsubscribe();
+              toast({
+                title: language === 'sv' ? "Video klar!" : "Video ready!",
+                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
+              });
+            } else if (newData.status === 'failed') {
+              setIsGenerating(false);
+              channel.unsubscribe();
+              toast({
+                title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
+                description: newData.error_message || (language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again."),
+                variant: "destructive",
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      // Timeout after 10 minutes
+      setTimeout(() => {
+        if (isGenerating) {
           setIsGenerating(false);
+          channel.unsubscribe();
           toast({
             title: language === 'sv' ? "Tidsgräns" : "Timeout",
             description: language === 'sv' ? "Videogenereringen tog för lång tid. Försök igen." : "Video generation took too long. Please try again.",
             variant: "destructive",
           });
-          return;
         }
-
-        try {
-          const { data: statusData, error: statusError } = await supabase.functions.invoke('check-video-status', {
-            body: { generation_id: genId }
-          });
-
-          if (statusError) {
-            console.error('Status check error:', statusError);
-            // Don't stop on first error, retry
-            return;
-          }
-
-          if (!statusData) {
-            console.error('No status data received');
-            return;
-          }
-
-          console.log('Video status:', statusData.status, 'Progress:', statusData.progress);
-          
-          const currentProgress = statusData.progress || 0;
-          setProgress(currentProgress);
-
-          if (statusData.status === 'completed') {
-            if (statusData.video_url) {
-              setVideoUrl(statusData.video_url);
-              setIsGenerating(false);
-              clearInterval(pollInterval);
-              toast({
-                title: language === 'sv' ? "Video klar!" : "Video ready!",
-                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
-              });
-            } else {
-              console.error('Completed but no video URL');
-            }
-          } else if (statusData.status === 'failed') {
-            clearInterval(pollInterval);
-            setIsGenerating(false);
-            toast({
-              title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
-              description: language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again.",
-              variant: "destructive",
-            });
-          }
-        } catch (pollError) {
-          console.error('Poll error:', pollError);
-          // Continue polling despite errors
-        }
-      }, 3000); // Check every 3 seconds
+      }, 600000);
 
     } catch (error) {
       console.error('Generate error:', error);

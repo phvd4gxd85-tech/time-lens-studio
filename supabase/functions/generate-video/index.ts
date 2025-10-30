@@ -149,9 +149,27 @@ serve(async (req) => {
       throw new Error(`KIE API error: ${kieData.msg}`);
     }
 
+    const generationId = kieData.data.taskId;
+
+    // Create database record for tracking
+    const { error: dbError } = await supabaseClient
+      .from('video_generations')
+      .insert({
+        user_id: user.id,
+        generation_id: generationId,
+        prompt: prompt,
+        status: 'processing',
+        progress: 0
+      });
+
+    if (dbError) {
+      console.error('Failed to create database record:', dbError);
+      // Don't fail the request, just log
+    }
+
     return new Response(
       JSON.stringify({
-        generation_id: kieData.data.taskId,
+        generation_id: generationId,
         status: "submitted",
       }),
       {

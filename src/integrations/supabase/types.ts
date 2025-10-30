@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      video_generations: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          generation_id: string
+          id: string
+          progress: number
+          prompt: string
+          status: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          generation_id: string
+          id?: string
+          progress?: number
+          prompt: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          generation_id?: string
+          id?: string
+          progress?: number
+          prompt?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
