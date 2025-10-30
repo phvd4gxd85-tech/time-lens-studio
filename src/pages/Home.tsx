@@ -445,7 +445,6 @@ const Home = () => {
                   controls 
                   autoPlay
                   loop
-                  muted
                   playsInline
                   className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
                 />
