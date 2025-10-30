@@ -24,12 +24,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   const refreshTokens = async () => {
-    if (!user) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
     
     const { data } = await supabase
       .from('user_tokens')
       .select('tokens')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
+      .single();
+    
+    if (data) {
+      setTokens(data.tokens);
+    }
+  };
+
+  const fetchTokensForUser = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_tokens')
+      .select('tokens')
+      .eq('user_id', userId)
       .single();
     
     if (data) {
@@ -44,10 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer token fetching
+        // Fetch tokens immediately
         if (session?.user) {
           setTimeout(() => {
-            refreshTokens();
+            fetchTokensForUser(session.user.id);
           }, 0);
         } else {
           setTokens(0);
@@ -63,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         setTimeout(() => {
-          refreshTokens();
+          fetchTokensForUser(session.user.id);
         }, 0);
       }
     });
