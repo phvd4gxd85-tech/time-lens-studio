@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
+import exampleVideo from '@/assets/example-video.mov';
 
 const Home = () => {
   const { toast } = useToast();
@@ -696,6 +697,30 @@ const Home = () => {
               : 'Learn to create magical videos and images with AI'}
           </p>
 
+          {/* Example Video Section */}
+          <div className="mb-16">
+            <div className="max-w-3xl mx-auto">
+              <video 
+                src={exampleVideo} 
+                controls 
+                className="w-full rounded-lg shadow-2xl border-2 border-amber-600/30"
+                poster={vintageAiExample}
+              />
+              <div className="mt-6 bg-gradient-to-br from-amber-900/40 to-red-900/40 p-6 rounded-lg border-2 border-amber-500">
+                <h4 className="font-semibold mb-3 text-xl text-amber-100">
+                  <span className="text-amber-400">
+                    {language === 'sv' ? 'Prompt som användes:' : 'Prompt used:'}
+                  </span>
+                </h4>
+                <p className="text-lg text-amber-200 leading-relaxed italic">
+                  "{language === 'sv' 
+                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden. Skylten är lite sliten och vintage. Lägg till en subtil vinglans-effekt som rör sig över skylten och få det att kännas levande med lätt rörelse.' 
+                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind. The sign is slightly worn and vintage. Add a subtle glass reflection effect moving across the sign and make it feel alive with gentle movement.'}"
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* VIDEO Section */}
           <div className="mb-20">
             <div className="flex items-center justify-center gap-3 mb-12">
@@ -721,11 +746,11 @@ const Home = () => {
                   <p className="text-amber-300 text-sm font-bold mb-2">
                     {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
                   </p>
-                  <p className="text-amber-200 italic">
-                    "{language === 'sv' 
-                      ? 'Få personen att le och blinka, mjuk rörelse' 
-                      : 'Make the person smile and blink, subtle movement'}"
-                  </p>
+                <p className="text-amber-200 italic">
+                  "{language === 'sv' 
+                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden' 
+                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind'}"
+                </p>
                 </div>
               </div>
 
@@ -767,8 +792,8 @@ const Home = () => {
               <div className="bg-black/40 p-6 rounded-lg mb-4">
                 <p className="text-amber-200 text-lg italic leading-relaxed">
                   "{language === 'sv' 
-                    ? 'Ta detta hockeykort av Wayne Gretzky och animera det. Få honom att blinka och le subtilt, vintage känsla, mjuka rörelser som på gamla filmkameror' 
-                    : 'Take this Wayne Gretzky hockey card and animate it. Make him blink and smile subtly, vintage feel, smooth movements like old film cameras'}"
+                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden. Skylten är lite sliten och vintage. Lägg till en subtil vinglans-effekt som rör sig över skylten och få det att kännas levande med lätt rörelse.' 
+                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind. The sign is slightly worn and vintage. Add a subtle glass reflection effect moving across the sign and make it feel alive with gentle movement.'}"
                 </p>
               </div>
               
