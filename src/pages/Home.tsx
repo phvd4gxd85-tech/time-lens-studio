@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
+import santaExample from '@/assets/santa-example.mov';
 
 const Home = () => {
   const { toast } = useToast();
@@ -951,6 +952,33 @@ const Home = () => {
               ? '✨ Ju mer detaljer, desto närmare din vision kommer resultatet ✨' 
               : '✨ The more details, the closer to your vision the result will be ✨'}
           </p>
+        </div>
+      </div>
+
+      {/* Generated Example Video */}
+      <div className="relative py-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Se Resultatet' : 'See the Result'}
+            </h2>
+            <p className="text-amber-200/70 text-lg">
+              {language === 'sv' 
+                ? 'Ett exempel på en genererad video med Vintage AI' 
+                : 'An example of a generated video with Vintage AI'}
+            </p>
+          </div>
+          
+          <div className="max-w-5xl mx-auto">
+            <video 
+              src={santaExample} 
+              controls 
+              autoPlay
+              loop
+              playsInline
+              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            />
+          </div>
         </div>
       </div>
 
