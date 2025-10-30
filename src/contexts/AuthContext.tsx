@@ -6,12 +6,13 @@ import { useNavigate } from 'react-router-dom';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  tokens: number;
+  videos: number;
+  images: number;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  refreshTokens: () => Promise<void>;
+  refreshCredits: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,34 +20,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [tokens, setTokens] = useState(0);
+  const [videos, setVideos] = useState(0);
+  const [images, setImages] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const refreshTokens = async () => {
+  const refreshCredits = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return;
     
     const { data } = await supabase
       .from('user_tokens')
-      .select('tokens')
+      .select('videos, images')
       .eq('user_id', session.user.id)
       .single();
     
     if (data) {
-      setTokens(data.tokens);
+      setVideos(data.videos);
+      setImages(data.images);
     }
   };
 
-  const fetchTokensForUser = async (userId: string) => {
+  const fetchCreditsForUser = async (userId: string) => {
     const { data } = await supabase
       .from('user_tokens')
-      .select('tokens')
+      .select('videos, images')
       .eq('user_id', userId)
       .single();
     
     if (data) {
-      setTokens(data.tokens);
+      setVideos(data.videos);
+      setImages(data.images);
     }
   };
 
@@ -57,13 +61,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Fetch tokens immediately
+        // Fetch credits immediately
         if (session?.user) {
           setTimeout(() => {
-            fetchTokensForUser(session.user.id);
+            fetchCreditsForUser(session.user.id);
           }, 0);
         } else {
-          setTokens(0);
+          setVideos(0);
+          setImages(0);
         }
       }
     );
@@ -76,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         setTimeout(() => {
-          fetchTokensForUser(session.user.id);
+          fetchCreditsForUser(session.user.id);
         }, 0);
       }
     });
@@ -118,12 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setTokens(0);
+    setVideos(0);
+    setImages(0);
     navigate('/');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, tokens, loading, signIn, signUp, signOut, refreshTokens }}>
+    <AuthContext.Provider value={{ user, session, videos, images, loading, signIn, signUp, signOut, refreshCredits }}>
       {children}
     </AuthContext.Provider>
   );

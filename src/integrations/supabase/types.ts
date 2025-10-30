@@ -20,36 +20,42 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          images: number
           package_type: string
           paid: boolean
           stripe_payment_id: string | null
           stripe_session_id: string | null
           tokens: number
           user_id: string | null
+          videos: number
         }
         Insert: {
           amount: number
           created_at?: string
           email: string
           id?: string
+          images?: number
           package_type: string
           paid?: boolean
           stripe_payment_id?: string | null
           stripe_session_id?: string | null
           tokens: number
           user_id?: string | null
+          videos?: number
         }
         Update: {
           amount?: number
           created_at?: string
           email?: string
           id?: string
+          images?: number
           package_type?: string
           paid?: boolean
           stripe_payment_id?: string | null
           stripe_session_id?: string | null
           tokens?: number
           user_id?: string | null
+          videos?: number
         }
         Relationships: []
       }
@@ -75,23 +81,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          images: number
           tokens: number
           updated_at: string
           user_id: string
+          videos: number
         }
         Insert: {
           created_at?: string
           id?: string
+          images?: number
           tokens?: number
           updated_at?: string
           user_id: string
+          videos?: number
         }
         Update: {
           created_at?: string
           id?: string
+          images?: number
           tokens?: number
           updated_at?: string
           user_id?: string
+          videos?: number
         }
         Relationships: []
       }

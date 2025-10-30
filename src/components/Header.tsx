@@ -1,4 +1,4 @@
-import { Globe, LogIn, LogOut, Sparkles } from 'lucide-react';
+import { Globe, LogIn, LogOut, Video, Camera } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 
 export const Header = () => {
   const { language, setLanguage, t } = useLanguage();
-  const { user, tokens, signOut } = useAuth();
+  const { user, videos, images, signOut } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -26,9 +26,15 @@ export const Header = () => {
             </Button>
 
             {user && (
-              <div className="flex items-center gap-2 text-amber-100 font-futura">
-                <Sparkles size={18} className="text-amber-500" />
-                <span className="text-sm tracking-wider">{tokens} {t.tokens}</span>
+              <div className="flex items-center gap-4 text-amber-100 font-futura">
+                <div className="flex items-center gap-2">
+                  <Video size={18} className="text-amber-500" />
+                  <span className="text-sm tracking-wider">{videos} videos</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Camera size={18} className="text-amber-500" />
+                  <span className="text-sm tracking-wider">{images} bilder</span>
+                </div>
               </div>
             )}
 

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Studio = () => {
   const { t } = useLanguage();
-  const { user, tokens } = useAuth();
+  const { user, videos, images } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedPrompt, setSelectedPrompt] = useState('');
@@ -23,11 +23,11 @@ const Studio = () => {
   }
 
   const handleGenerate = () => {
-    if (tokens < 1) {
+    if (videos < 1) {
       toast({
         variant: "destructive",
-        title: "Insufficient tokens",
-        description: "Please purchase more tokens to continue.",
+        title: "Inga videos kvar",
+        description: "Köp fler videos för att fortsätta.",
       });
       return;
     }
