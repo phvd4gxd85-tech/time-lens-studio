@@ -18,9 +18,10 @@ const Home = () => {
   const PRICE_IDS = {
     starter: "price_1SKbRvQt7FLZjS8hiRIqK4RZ",
     classic: "price_1SKbZhQt7FLZjS8hcsyNqiGM",
+    premier: "price_1SKbTIQt7FLZjS8hIee7YD54",
   };
 
-  const handlePurchase = async (packageType: 'starter' | 'classic') => {
+  const handlePurchase = async (packageType: 'starter' | 'classic' | 'premier') => {
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
@@ -690,7 +691,7 @@ const Home = () => {
             {t.pricingSubtitle}
           </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               { 
                 name: t.starter, 
@@ -711,6 +712,16 @@ const Home = () => {
                 color: "from-red-900 to-red-950",
                 borderColor: "border-red-700",
                 packageType: "classic" as const
+              },
+              { 
+                name: t.trial, 
+                subtitle: t.trialDesc,
+                price: "$35", 
+                videos: 15,
+                images: 30,
+                color: "from-gray-800 to-gray-900",
+                borderColor: "border-gray-600",
+                packageType: "premier" as const
               }
             ].map((pkg, i) => (
               <div key={i} className="relative group">
