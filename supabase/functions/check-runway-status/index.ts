@@ -20,7 +20,7 @@ serve(async (req) => {
 
     console.log("Checking Runway status for task:", task_id);
 
-    const response = await fetch(`https://api.runwayml.com/v1/tasks/${task_id}`, {
+    const response = await fetch(`https://api.dev.runwayml.com/v1/tasks/${task_id}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${RUNWAY_API_KEY}`,

@@ -54,7 +54,7 @@ serve(async (req) => {
       const base64Data = imageUrl.split(',')[1];
       const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
 
-      const uploadResponse = await fetch("https://api.runwayml.com/v1/assets", {
+      const uploadResponse = await fetch("https://api.dev.runwayml.com/v1/assets", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${RUNWAY_API_KEY}`,
@@ -75,7 +75,7 @@ serve(async (req) => {
     }
 
     // Generate video
-    const runwayResponse = await fetch("https://api.runwayml.com/v1/image_to_video", {
+    const runwayResponse = await fetch("https://api.dev.runwayml.com/v1/image_to_video", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${RUNWAY_API_KEY}`,
