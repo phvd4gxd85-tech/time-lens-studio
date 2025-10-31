@@ -47,31 +47,62 @@ serve(async (req) => {
 
     let finalAssetId = image_asset_id;
 
-    // If imageUrl is provided (base64), upload to Runway first
+    // If imageUrl is provided (base64), upload to Supabase Storage first, then use URL
     if (imageUrl && imageUrl.startsWith('data:image')) {
-      console.log("Uploading base64 image to Runway...");
+      console.log("Uploading base64 image to Supabase Storage...");
       
-      const base64Data = imageUrl.split(',')[1];
-      const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      try {
+        const base64Data = imageUrl.split(',')[1];
+        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        
+        // Upload to Supabase Storage
+        const fileName = `runway/${user.id}/${Date.now()}.png`;
+        const { error: uploadError } = await supabase
+          .storage
+          .from('videos')
+          .upload(fileName, imageBuffer, {
+            contentType: 'image/png',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error("Supabase storage upload error:", uploadError);
+          throw new Error(`Failed to upload image: ${uploadError.message}`);
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase
+          .storage
+          .from('videos')
+          .getPublicUrl(fileName);
+        
+        console.log("Image uploaded to Supabase Storage:", publicUrl);
+        
+        // Now upload to Runway using the public URL
+        const uploadResponse = await fetch("https://api.dev.runwayml.com/v1/assets", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${RUNWAY_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: publicUrl,
+          }),
+        });
 
-      const uploadResponse = await fetch("https://api.dev.runwayml.com/v1/assets", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${RUNWAY_API_KEY}`,
-          "Content-Type": "image/png",
-        },
-        body: imageBuffer,
-      });
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error("Runway upload error:", uploadResponse.status, errorText);
+          throw new Error(`Image upload to Runway failed: ${uploadResponse.status}`);
+        }
 
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error("Runway upload error:", uploadResponse.status, errorText);
-        throw new Error(`Image upload failed: ${uploadResponse.status}`);
+        const uploadData = await uploadResponse.json();
+        finalAssetId = uploadData.id;
+        console.log("Image uploaded to Runway, assetId:", finalAssetId);
+      } catch (err) {
+        console.error("Error in image upload process:", err);
+        throw err;
       }
-
-      const uploadData = await uploadResponse.json();
-      finalAssetId = uploadData.id;
-      console.log("Image uploaded to Runway, assetId:", finalAssetId);
     }
 
     // Generate video
