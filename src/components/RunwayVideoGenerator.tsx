@@ -51,7 +51,10 @@ export const RunwayVideoGenerator = () => {
   };
 
   const handleGenerate = async () => {
+    console.log("handleGenerate called");
+    
     if (!uploadedImage) {
+      console.log("No uploaded image");
       toast({
         title: language === 'sv' ? "Ingen bild" : "No image",
         description: language === 'sv' ? "Ladda upp en bild först" : "Upload an image first",
@@ -61,6 +64,7 @@ export const RunwayVideoGenerator = () => {
     }
 
     if (!imageDecade || !mainSubject || !imageDescription || !desiredMovement || !desiredStyle) {
+      console.log("Missing required fields");
       toast({
         title: language === 'sv' ? "Ofullständig information" : "Incomplete information",
         description: language === 'sv' ? "Vänligen svara på alla frågor" : "Please answer all questions",
@@ -70,6 +74,7 @@ export const RunwayVideoGenerator = () => {
     }
 
     if (generationCount >= 3) {
+      console.log("Max attempts reached");
       toast({
         title: language === 'sv' ? "Max antal försök" : "Max attempts reached",
         description: language === 'sv' ? "Du har använt alla 3 försök. Ladda upp en ny bild." : "You've used all 3 attempts. Upload a new image.",
@@ -79,9 +84,11 @@ export const RunwayVideoGenerator = () => {
     }
 
     setIsGenerating(true);
+    console.log("Starting generation process...");
 
     try {
       // Step 1: Generate prompt
+      console.log("Step 1: Calling generate-runway-prompt");
       const { data: promptData, error: promptError } = await supabase.functions.invoke('generate-runway-prompt', {
         body: {
           image_decade: imageDecade,
@@ -93,11 +100,20 @@ export const RunwayVideoGenerator = () => {
         }
       });
 
-      if (promptError) throw promptError;
+      if (promptError) {
+        console.error("Prompt generation error:", promptError);
+        throw new Error(`Prompt generation failed: ${promptError.message}`);
+      }
+
+      if (!promptData?.generated_prompt) {
+        console.error("No prompt returned:", promptData);
+        throw new Error("No prompt was generated");
+      }
 
       console.log("Generated prompt:", promptData.generated_prompt);
 
       // Step 2: Generate video
+      console.log("Step 2: Calling generate-runway-video");
       const { data: videoData, error: videoError } = await supabase.functions.invoke('generate-runway-video', {
         body: {
           imageUrl: uploadedImage,
@@ -106,9 +122,17 @@ export const RunwayVideoGenerator = () => {
         }
       });
 
-      if (videoError) throw videoError;
+      if (videoError) {
+        console.error("Video generation error:", videoError);
+        throw new Error(`Video generation failed: ${videoError.message}`);
+      }
 
-      console.log("Video generation started:", videoData.task_id);
+      if (!videoData?.task_id) {
+        console.error("No task_id returned:", videoData);
+        throw new Error("No task ID was returned");
+      }
+
+      console.log("Video generation started, task_id:", videoData.task_id);
 
       // Step 3: Poll for status
       const taskId = videoData.task_id;
@@ -117,19 +141,25 @@ export const RunwayVideoGenerator = () => {
 
       const pollStatus = setInterval(async () => {
         attempts++;
+        console.log(`Polling status attempt ${attempts}/${maxAttempts}`);
         
         try {
           const { data: statusData, error: statusError } = await supabase.functions.invoke('check-runway-status', {
             body: { task_id: taskId }
           });
 
-          if (statusError) throw statusError;
+          if (statusError) {
+            console.error("Status check error:", statusError);
+            throw statusError;
+          }
 
-          console.log("Status:", statusData.status);
+          console.log("Status:", statusData?.status, "Output:", statusData?.output);
 
           if (statusData.status === 'SUCCEEDED') {
             clearInterval(pollStatus);
-            setVideoUrl(statusData.output?.[0] || null);
+            const outputUrl = statusData.output?.[0];
+            console.log("Video completed! URL:", outputUrl);
+            setVideoUrl(outputUrl || null);
             setGenerationCount(prev => prev + 1);
             setIsGenerating(false);
             toast({
@@ -139,26 +169,29 @@ export const RunwayVideoGenerator = () => {
           } else if (statusData.status === 'FAILED') {
             clearInterval(pollStatus);
             setIsGenerating(false);
+            console.error("Video generation failed");
             throw new Error("Video generation failed");
           }
 
           if (attempts >= maxAttempts) {
             clearInterval(pollStatus);
             setIsGenerating(false);
+            console.error("Timeout waiting for video");
             throw new Error("Timeout waiting for video");
           }
         } catch (err) {
           clearInterval(pollStatus);
           setIsGenerating(false);
+          console.error("Poll error:", err);
           throw err;
         }
       }, 5000);
 
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Generation error:", error);
       toast({
         title: language === 'sv' ? "Fel" : "Error",
-        description: error.message || "Something went wrong",
+        description: error?.message || "Something went wrong",
         variant: "destructive",
       });
       setIsGenerating(false);
