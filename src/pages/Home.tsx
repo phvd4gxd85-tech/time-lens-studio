@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
-import { RunwayVideoGenerator } from '@/components/RunwayVideoGenerator';
 import { VEO3VideoGenerator } from '@/components/VEO3VideoGenerator';
 
 const Home = () => {
@@ -513,13 +512,6 @@ const Home = () => {
       <div className="relative py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <VEO3VideoGenerator />
-        </div>
-      </div>
-
-      {/* Runway Video Generator Section */}
-      <div className="relative py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <RunwayVideoGenerator />
         </div>
       </div>
 

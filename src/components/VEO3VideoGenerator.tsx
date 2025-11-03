@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Upload, Sparkles, Download, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -303,61 +303,77 @@ export const VEO3VideoGenerator = () => {
         <div className="space-y-6 mb-8">
           <div>
             <Label className="text-amber-200 mb-2 block">
-              {language === 'sv' ? '1. Kameravinkel & Rörelse' : '1. Camera Angle & Movement'}
+              {language === 'sv' ? '1. Kameravinkel' : '1. Camera Angle'}
             </Label>
-            <Input
-              value={cameraAngle}
-              onChange={(e) => setCameraAngle(e.target.value)}
-              placeholder={language === 'sv' ? "T.ex: Handheld selfie-stick view, kameran pekar tillbaka mot personen" : "E.g: Handheld selfie-stick view, camera pointed back at person"}
-              className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40"
-            />
+            <Select value={cameraAngle} onValueChange={setCameraAngle}>
+              <SelectTrigger className="bg-black/40 border-amber-600/50 text-amber-100">
+                <SelectValue placeholder={language === 'sv' ? "Välj kameravinkel..." : "Select camera angle..."} />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f172a] border-amber-600/50">
+                <SelectItem value="close-up" className="text-amber-100">
+                  {language === 'sv' ? 'Närbild på ansiktet' : 'Close-up on face'}
+                </SelectItem>
+                <SelectItem value="waist-up" className="text-amber-100">
+                  {language === 'sv' ? 'Från midjan och upp' : 'From waist up'}
+                </SelectItem>
+                <SelectItem value="full-body" className="text-amber-100">
+                  {language === 'sv' ? 'Helbild' : 'Full body'}
+                </SelectItem>
+                <SelectItem value="over-shoulder" className="text-amber-100">
+                  {language === 'sv' ? 'Över axeln' : 'Over the shoulder'}
+                </SelectItem>
+                <SelectItem value="side-profile" className="text-amber-100">
+                  {language === 'sv' ? 'Från sidan' : 'Side profile'}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
             <Label className="text-amber-200 mb-2 block">
-              {language === 'sv' ? '2. Miljö & Känsla' : '2. Setting & Mood'}
+              {language === 'sv' ? '2. Var är du? Vad känns runt dig?' : '2. Where are you? What feels around you?'}
             </Label>
             <Textarea
               value={settingDescription}
               onChange={(e) => setSettingDescription(e.target.value)}
-              placeholder={language === 'sv' ? "T.ex: Inomhus, mörk fängelsekorridor: flimrande lampor, rostfläckad betong, avlägsna cellrassel" : "E.g: Interior, dim prison corridor: flickering bulbs, rust-stained concrete, distant cell clanging"}
+              placeholder={language === 'sv' ? "T.ex: Utomhus i en solig trädgård, blommor i bakgrunden, mjukt ljus, sommarvärme" : "E.g: Outdoors in a sunny garden, flowers in background, soft light, summer warmth"}
               className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[80px]"
             />
           </div>
 
           <div>
             <Label className="text-amber-200 mb-2 block">
-              {language === 'sv' ? '3. Personbeskrivning' : '3. Character Description'}
+              {language === 'sv' ? '3. Hur ser du ut?' : '3. How do you look?'}
             </Label>
             <Textarea
               value={characterDescription}
               onChange={(e) => setCharacterDescription(e.target.value)}
-              placeholder={language === 'sv' ? "T.ex: Extremt lång man, ansiktslös vit mask, svart kostym, röd slips" : "E.g: Extremely tall man, faceless white mask, black suit, red tie"}
+              placeholder={language === 'sv' ? "T.ex: Kvinna i 30-årsåldern, blont hår, blå klänning, vänligt leende" : "E.g: Woman in her 30s, blonde hair, blue dress, friendly smile"}
               className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[80px]"
             />
           </div>
 
           <div>
             <Label className="text-amber-200 mb-2 block">
-              {language === 'sv' ? '4. Dialog & Handling' : '4. Dialogue & Action'}
+              {language === 'sv' ? '4. Vad gör du?' : '4. What are you doing?'}
             </Label>
             <Textarea
               value={dialogueAction}
               onChange={(e) => setDialogueAction(e.target.value)}
-              placeholder={language === 'sv' ? 'T.ex: "hej, kolla vad jag hittade..." - personen går framåt och pekar' : 'E.g: "hey, look what I found..." - person walks forward and points'}
+              placeholder={language === 'sv' ? 'T.ex: Vinkar mot kameran, går sakta framåt, ler brett' : 'E.g: Waving at camera, walking slowly forward, smiling widely'}
               className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[80px]"
             />
           </div>
 
           <div>
             <Label className="text-amber-200 mb-2 block">
-              {language === 'sv' ? '5. Ljudkontext' : '5. Ambient Sound'}
+              {language === 'sv' ? '5. Vilka ljud hörs?' : '5. What sounds are heard?'}
             </Label>
-            <Input
+            <Textarea
               value={ambientSound}
               onChange={(e) => setAmbientSound(e.target.value)}
-              placeholder={language === 'sv' ? "T.ex: Ingen musik - bara fluorescerande brumning och avlägset prassel" : "E.g: No music - just fluorescent buzz and distant chatter"}
-              className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40"
+              placeholder={language === 'sv' ? "T.ex: Fåglar kvittrar, mjukt vindbruk, avlägset skratt" : "E.g: Birds chirping, gentle wind, distant laughter"}
+              className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[60px]"
             />
           </div>
         </div>
