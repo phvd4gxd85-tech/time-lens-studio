@@ -336,8 +336,8 @@ export const VEO3VideoGenerator = () => {
               {language === 'sv' ? '2. Egen prompt:' : '2. Custom prompt:'}
             </strong>{' '}
             {language === 'sv' 
-              ? 'Skriv en detaljerad beskrivning själv om du vill ha full kontroll. Inkludera kameravinkel, miljö, karaktär, handling och ljud för bästa resultat.' 
-              : 'Write a detailed description yourself if you want full control. Include camera angle, setting, character, action, and sound for best results.'}
+              ? 'Skriv en detaljerad beskrivning själv om du vill ha full kontroll. Inkludera kameravinkel, miljö, karaktär, handling och ljud för bästa resultat. Tips: Berätta också vad AI:n inte får göra - till exempel "förändra inte bildens bakgrund" eller "lägg inte till nya objekt".' 
+              : 'Write a detailed description yourself if you want full control. Include camera angle, setting, character, action, and sound for best results. Tip: Also tell the AI what it should not do - for example "don\'t change the background" or "don\'t add new objects".'}
           </li>
         </ul>
       </div>
