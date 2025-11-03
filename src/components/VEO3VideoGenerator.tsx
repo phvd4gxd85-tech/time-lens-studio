@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,6 +13,8 @@ export const VEO3VideoGenerator = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string>("");
   
   // Question states for VEO3 Base-5 Prompt Architecture
   const [cameraAngle, setCameraAngle] = useState<string>("");
@@ -46,13 +49,24 @@ export const VEO3VideoGenerator = () => {
       return;
     }
 
-    if (!cameraAngle || !settingDescription || !characterDescription || !dialogueAction || !ambientSound) {
-      toast({
-        title: language === 'sv' ? "Alla fält krävs" : "All fields required",
-        description: language === 'sv' ? "Fyll i alla fält för bästa resultat" : "Fill in all fields for best results",
-        variant: "destructive"
-      });
-      return;
+    if (useCustomPrompt) {
+      if (!customPrompt.trim()) {
+        toast({
+          title: language === 'sv' ? "Prompt krävs" : "Prompt required",
+          description: language === 'sv' ? "Skriv en prompt för bästa resultat" : "Write a prompt for best results",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!cameraAngle || !settingDescription || !characterDescription || !dialogueAction || !ambientSound) {
+        toast({
+          title: language === 'sv' ? "Alla fält krävs" : "All fields required",
+          description: language === 'sv' ? "Fyll i alla fält för bästa resultat" : "Fill in all fields for best results",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     setIsGenerating(true);
@@ -72,38 +86,47 @@ export const VEO3VideoGenerator = () => {
         return;
       }
 
-      // Step 1: Generate VEO3 prompt using AI
-      console.log("Step 1: Generating VEO3 prompt with AI");
-      const { data: promptData, error: promptError } = await supabase.functions.invoke('generate-veo3-prompt', {
-        body: {
-          camera_angle: cameraAngle,
-          setting_description: settingDescription,
-          character_description: characterDescription,
-          dialogue_action: dialogueAction,
-          ambient_sound: ambientSound
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
+      let finalPrompt: string;
+      
+      if (useCustomPrompt) {
+        // Use custom prompt directly
+        finalPrompt = customPrompt;
+        console.log("Using custom prompt:", finalPrompt);
+      } else {
+        // Step 1: Generate VEO3 prompt using AI
+        console.log("Step 1: Generating VEO3 prompt with AI");
+        const { data: promptData, error: promptError } = await supabase.functions.invoke('generate-veo3-prompt', {
+          body: {
+            camera_angle: cameraAngle,
+            setting_description: settingDescription,
+            character_description: characterDescription,
+            dialogue_action: dialogueAction,
+            ambient_sound: ambientSound
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+
+        if (promptError) {
+          console.error("Prompt generation error:", promptError);
+          throw new Error(promptError.message || "Failed to generate prompt");
         }
-      });
 
-      if (promptError) {
-        console.error("Prompt generation error:", promptError);
-        throw new Error(promptError.message || "Failed to generate prompt");
+        if (!promptData?.generated_prompt) {
+          console.error("No prompt returned:", promptData);
+          throw new Error("No prompt was generated");
+        }
+
+        finalPrompt = promptData.generated_prompt;
+        console.log("Generated VEO3 prompt:", finalPrompt);
       }
-
-      if (!promptData?.generated_prompt) {
-        console.error("No prompt returned:", promptData);
-        throw new Error("No prompt was generated");
-      }
-
-      console.log("Generated VEO3 prompt:", promptData.generated_prompt);
 
       // Step 2: Generate video with VEO3
       console.log("Step 2: Calling generate-video with VEO3 prompt");
       const { data: videoData, error: videoError } = await supabase.functions.invoke('generate-video', {
         body: {
-          prompt: promptData.generated_prompt,
+          prompt: finalPrompt,
           imageUrl: uploadedImage
         },
         headers: {
@@ -298,8 +321,38 @@ export const VEO3VideoGenerator = () => {
         </div>
       </div>
 
-      {/* Questions based on VEO3 Base-5 Prompt Architecture */}
+      {/* Toggle between custom prompt and questions */}
       {uploadedImage && (
+        <div className="mb-6 flex items-center justify-center gap-4 bg-black/30 p-4 rounded-lg">
+          <Label className="text-amber-200">
+            {language === 'sv' ? 'Använd egna frågor' : 'Use guided questions'}
+          </Label>
+          <Switch
+            checked={useCustomPrompt}
+            onCheckedChange={setUseCustomPrompt}
+          />
+          <Label className="text-amber-200">
+            {language === 'sv' ? 'Skriv egen prompt' : 'Write custom prompt'}
+          </Label>
+        </div>
+      )}
+
+      {/* Custom prompt or Questions based on VEO3 Base-5 Prompt Architecture */}
+      {uploadedImage && useCustomPrompt && (
+        <div className="mb-8">
+          <Label className="text-amber-200 mb-2 block">
+            {language === 'sv' ? 'Din egen prompt' : 'Your custom prompt'}
+          </Label>
+          <Textarea
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder={language === 'sv' ? "Beskriv exakt vad du vill att videon ska visa..." : "Describe exactly what you want the video to show..."}
+            className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[150px]"
+          />
+        </div>
+      )}
+
+      {uploadedImage && !useCustomPrompt && (
         <div className="space-y-6 mb-8">
           <div>
             <Label className="text-amber-200 mb-2 block">
