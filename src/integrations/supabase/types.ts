@@ -59,24 +59,6 @@ export type Database = {
         }
         Relationships: []
       }
-      trial_ips: {
-        Row: {
-          id: string
-          ip_address: string
-          used_at: string
-        }
-        Insert: {
-          id?: string
-          ip_address: string
-          used_at?: string
-        }
-        Update: {
-          id?: string
-          ip_address?: string
-          used_at?: string
-        }
-        Relationships: []
-      }
       user_tokens: {
         Row: {
           created_at: string
@@ -151,10 +133,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_add_credits: {
-        Args: { add_images: number; add_videos: number; target_user_id: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
