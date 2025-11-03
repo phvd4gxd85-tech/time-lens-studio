@@ -824,97 +824,93 @@ const Home = () => {
           {/* How to Build a Great Prompt */}
           <div className="mb-16 max-w-4xl mx-auto">
             <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">
-              {language === 'sv' ? 'Hur Bygger Man En Bra Prompt?' : 'How to Build a Great Prompt?'}
+              {language === 'sv' ? 'Vad är en prompt?' : 'What is a prompt?'}
             </h3>
             
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
-                <div className="flex items-center gap-3 mb-3">
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">
-                    {language === 'sv' ? 'Grund-Nivå' : 'Basic Level'}
-                  </h4>
-                </div>
-                <ul className="text-amber-200/80 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Vad händer i bilden/videon?' : 'What happens in the image/video?'}</span>
+            <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border border-amber-600/40 rounded-lg space-y-6">
+              <p className="text-amber-200/90 text-lg leading-relaxed">
+                {language === 'sv' 
+                  ? 'En prompt är den instruktion du ger till en AI, ungefär som en filmregissör beskriver en scen för sitt team. Du berättar vad som ska synas, kännas och hända så att AI:n förstår din vision. Om du lämnar delar otydliga kommer AI:n att försöka fylla luckorna själv, och resultatet blir ofta något du inte hade tänkt dig. Ju tydligare du beskriver miljö, stil, ljus, perspektiv och stämning, desto mer exakt blir tolkningen.'
+                  : 'A prompt is the instruction you give to an AI, similar to how a film director describes a scene to their team. You tell what should be seen, felt, and happen so that the AI understands your vision. If you leave parts unclear, the AI will try to fill in the gaps itself, and the result often becomes something you didn\'t imagine. The clearer you describe environment, style, light, perspective, and mood, the more accurate the interpretation will be.'}
+              </p>
+
+              <p className="text-amber-200/90 text-lg leading-relaxed">
+                {language === 'sv' 
+                  ? 'När du skriver en prompt, tänk på att AI:n inte vet vad du menar förrän du berättar det. Om du till exempel skriver att du vill ha en röd fågel, vet den inte om det är en liten fågel i en svensk skog eller en tropisk papegoja i Sydamerika. Därför behöver du specificera allt som påverkar hur bilden eller videon ska se ut.'
+                  : 'When you write a prompt, keep in mind that the AI doesn\'t know what you mean until you tell it. For example, if you write that you want a red bird, it doesn\'t know if it\'s a small bird in a Swedish forest or a tropical parrot in South America. Therefore, you need to specify everything that affects how the image or video should look.'}
+              </p>
+
+              <div className="pt-4">
+                <h4 className="text-xl font-bold text-amber-100 mb-4">
+                  {language === 'sv' ? 'Du kan beskriva:' : 'You can describe:'}
+                </h4>
+                <ul className="space-y-3 text-amber-200/90">
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>
+                      <strong className="text-amber-100">{language === 'sv' ? 'Kamera eller perspektiv:' : 'Camera or perspective:'}</strong>{' '}
+                      {language === 'sv' 
+                        ? 'Är det en närbild, helbild eller fågelperspektiv? Du kan till och med ange vilken kameralins eller kameramodell som används, till exempel Canon EOS R5, Nikon D850 eller Hasselblad, för att styra stil och skärpedjup.'
+                        : 'Is it a close-up, full shot, or bird\'s eye view? You can even specify which camera lens or camera model is used, such as Canon EOS R5, Nikon D850, or Hasselblad, to control style and depth of field.'}
+                    </span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Var utspelar det sig?' : 'Where does it take place?'}</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>
+                      <strong className="text-amber-100">{language === 'sv' ? 'Miljö och tid:' : 'Environment and time:'}</strong>{' '}
+                      {language === 'sv' 
+                        ? 'Beskriv var och när scenen utspelar sig, till exempel utomhus på 1980-talet, inomhus i ett futuristiskt laboratorium eller på en kuststad på morgonen.'
+                        : 'Describe where and when the scene takes place, for example outdoors in the 1980s, indoors in a futuristic laboratory, or in a coastal town in the morning.'}
+                    </span>
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'När på dagen?' : 'What time of day?'}</span>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>
+                      <strong className="text-amber-100">{language === 'sv' ? 'Karaktärer och objekt:' : 'Characters and objects:'}</strong>{' '}
+                      {language === 'sv' 
+                        ? 'Vilka personer, djur eller föremål ska synas? Hur ser de ut, hur är de klädda, vad gör de?'
+                        : 'Which people, animals, or objects should be visible? How do they look, how are they dressed, what are they doing?'}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>
+                      <strong className="text-amber-100">{language === 'sv' ? 'Handling eller rörelse:' : 'Action or movement:'}</strong>{' '}
+                      {language === 'sv' 
+                        ? 'Vad sker i bilden eller videon? Är det ett stilla ögonblick, eller händer något i scenen?'
+                        : 'What happens in the image or video? Is it a still moment, or is something happening in the scene?'}
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-amber-500 font-bold">•</span>
+                    <span>
+                      <strong className="text-amber-100">{language === 'sv' ? 'Färg, ljus och känsla:' : 'Color, light, and feeling:'}</strong>{' '}
+                      {language === 'sv' 
+                        ? 'Beskriv ljuset och stämningen med konkreta termer, till exempel dagsljus, soligt, golden hour, kvällsljus, dimma eller neonlysande.'
+                        : 'Describe the light and mood with concrete terms, such as daylight, sunny, golden hour, evening light, fog, or neon-lit.'}
+                    </span>
                   </li>
                 </ul>
               </div>
 
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
-                <div className="flex items-center gap-3 mb-3">
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">
-                    {language === 'sv' ? 'Mellan-Nivå' : 'Medium Level'}
-                  </h4>
-                </div>
-                <ul className="text-amber-200/80 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Känslor och stämning' : 'Emotions and mood'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Ljussättning (varmt, kallt, dramatiskt)' : 'Lighting (warm, cold, dramatic)'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Rörelser (mjuka, snabba, subtila)' : 'Movements (smooth, fast, subtle)'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Väder och atmosfär' : 'Weather and atmosphere'}</span>
-                  </li>
-                </ul>
-              </div>
+              <p className="text-amber-200/90 text-lg leading-relaxed pt-4">
+                {language === 'sv' 
+                  ? 'Ju mer exakt du formulerar din vision, desto närmare kommer AI:n att komma din idé. En bra prompt fungerar som ett manus – tydligt, detaljerat och med en känsla för vad som gör bilden eller scenen levande.'
+                  : 'The more precisely you formulate your vision, the closer the AI will come to your idea. A good prompt works like a script – clear, detailed, and with a sense of what makes the image or scene come alive.'}
+              </p>
 
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-6 border border-amber-600/40 rounded-lg">
-                <div className="flex items-center gap-3 mb-3">
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <Zap className="w-6 h-6 text-amber-500" />
-                  <h4 className="text-xl font-bold text-amber-100">
-                    {language === 'sv' ? 'Avancerad-Nivå' : 'Advanced Level'}
-                  </h4>
-                </div>
-                <ul className="text-amber-200/80 space-y-2">
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Kamerarörelser (zoom, pan, statisk)' : 'Camera movements (zoom, pan, static)'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Filmstil (vintage, modern, noir)' : 'Film style (vintage, modern, noir)'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Kameravinkel (fågelperspektiv, grodperspektiv)' : 'Camera angle (bird\'s eye, worm\'s eye)'}</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-amber-500">•</span>
-                    <span>{language === 'sv' ? 'Specifika filmreferenser' : 'Specific film references'}</span>
-                  </li>
-                </ul>
+              <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+                <p className="text-amber-300 font-bold mb-2">
+                  💡 {language === 'sv' ? 'Tips:' : 'Tip:'}
+                </p>
+                <p className="text-amber-200/90">
+                  {language === 'sv' 
+                    ? 'Ibland kan det också vara viktigt att ange vad AI:n inte får göra. Till exempel kan du skriva "ändra inte bakgrunden" eller "lägg inte till nya objekt". Det gör att AI:n inte tolkar din vision på fel sätt och behåller det du faktiskt vill ha i scenen.'
+                    : 'Sometimes it can also be important to specify what the AI must not do. For example, you can write "don\'t change the background" or "don\'t add new objects". This ensures that the AI doesn\'t misinterpret your vision and keeps what you actually want in the scene.'}
+                </p>
               </div>
             </div>
           </div>
-
-          <p className="text-center text-amber-200 text-xl mt-12 font-bold">
-            {language === 'sv' 
-              ? '✨ Ju mer detaljer, desto närmare din vision kommer resultatet ✨' 
-              : '✨ The more details, the closer to your vision the result will be ✨'}
-          </p>
         </div>
       </div>
 
