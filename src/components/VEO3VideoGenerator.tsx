@@ -302,8 +302,8 @@ export const VEO3VideoGenerator = () => {
         </h3>
         <p className="text-amber-200/80 mb-3 leading-relaxed">
           {language === 'sv' 
-            ? 'En prompt är en instruktion till AI:n för att den lättare ska förstå vad du vill. Den beskriver vad det är för bild du har och vad som ska hända med bilden. Ju mer specifik du är, desto närmare kommer du din egen vision!' 
-            : 'A prompt is an instruction to the AI to help it better understand what you want. It describes what kind of image you have and what should happen with it. The more specific you are, the closer you get to your own vision!'}
+            ? 'När du ska göra en video är det viktigt att ge AI:n rätt instruktioner. Ju mer detaljerad du är, desto bättre blir resultatet. Dessa instruktioner kallas för prompts - det är din beskrivning av vad som ska hända i videon.' 
+            : 'When creating a video, it\'s important to give the AI the right instructions. The more detailed you are, the better the result. These instructions are called prompts - it\'s your description of what should happen in the video.'}
         </p>
         <p className="text-amber-200/70 leading-relaxed">
           {language === 'sv' 
