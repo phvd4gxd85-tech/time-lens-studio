@@ -27,3 +27,6 @@ verify_jwt = true
 [functions.verify-payment]
 verify_jwt = false
 
+[functions.chat-assistant]
+verify_jwt = false
+

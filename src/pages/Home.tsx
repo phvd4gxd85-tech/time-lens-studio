@@ -8,6 +8,7 @@ import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
 import { VEO3VideoGenerator } from '@/components/VEO3VideoGenerator';
+import { PromptAssistant } from '@/components/PromptAssistant';
 
 const Home = () => {
   const { toast } = useToast();
@@ -1035,6 +1036,9 @@ const Home = () => {
           <p className="text-amber-300/60">© 2024 Vintage AI • {t.footer}</p>
         </div>
       </div>
+
+      {/* Prompt Assistant */}
+      <PromptAssistant />
     </div>
   );
 };
