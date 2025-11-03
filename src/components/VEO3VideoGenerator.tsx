@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Upload, Sparkles, Download, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -305,28 +305,12 @@ export const VEO3VideoGenerator = () => {
             <Label className="text-amber-200 mb-2 block">
               {language === 'sv' ? '1. Kameravinkel' : '1. Camera Angle'}
             </Label>
-            <Select value={cameraAngle} onValueChange={setCameraAngle}>
-              <SelectTrigger className="bg-black/40 border-amber-600/50 text-amber-100">
-                <SelectValue placeholder={language === 'sv' ? "Välj kameravinkel..." : "Select camera angle..."} />
-              </SelectTrigger>
-              <SelectContent className="bg-[#0f172a] border-amber-600/50">
-                <SelectItem value="close-up" className="text-amber-100">
-                  {language === 'sv' ? 'Närbild på ansiktet' : 'Close-up on face'}
-                </SelectItem>
-                <SelectItem value="waist-up" className="text-amber-100">
-                  {language === 'sv' ? 'Från midjan och upp' : 'From waist up'}
-                </SelectItem>
-                <SelectItem value="full-body" className="text-amber-100">
-                  {language === 'sv' ? 'Helbild' : 'Full body'}
-                </SelectItem>
-                <SelectItem value="over-shoulder" className="text-amber-100">
-                  {language === 'sv' ? 'Över axeln' : 'Over the shoulder'}
-                </SelectItem>
-                <SelectItem value="side-profile" className="text-amber-100">
-                  {language === 'sv' ? 'Från sidan' : 'Side profile'}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              value={cameraAngle}
+              onChange={(e) => setCameraAngle(e.target.value)}
+              placeholder={language === 'sv' ? "T.ex: Närbild på ansiktet, från midjan och upp, helbild" : "E.g: Close-up on face, from waist up, full body"}
+              className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40"
+            />
           </div>
 
           <div>
