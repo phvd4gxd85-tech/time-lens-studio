@@ -40,15 +40,6 @@ export const VEO3VideoGenerator = () => {
   };
 
   const handleGenerate = async () => {
-    if (!uploadedImage) {
-      toast({
-        title: language === 'sv' ? "Bild krävs" : "Image required",
-        description: language === 'sv' ? "Ladda upp en bild först" : "Please upload an image first",
-        variant: "destructive"
-      });
-      return;
-    }
-
     if (useCustomPrompt) {
       if (!customPrompt.trim()) {
         toast({
@@ -127,7 +118,7 @@ export const VEO3VideoGenerator = () => {
       const { data: videoData, error: videoError } = await supabase.functions.invoke('generate-video', {
         body: {
           prompt: finalPrompt,
-          imageUrl: uploadedImage
+          imageUrl: uploadedImage || null
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -345,7 +336,7 @@ export const VEO3VideoGenerator = () => {
       {/* Image upload */}
       <div className="mb-8">
         <Label className="text-amber-200 mb-2 block">
-          {language === 'sv' ? 'Ladda upp bild' : 'Upload image'}
+          {language === 'sv' ? 'Ladda upp bild (valfritt)' : 'Upload image (optional)'}
         </Label>
         <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
           <input
@@ -369,8 +360,7 @@ export const VEO3VideoGenerator = () => {
       </div>
 
       {/* Toggle between custom prompt and questions */}
-      {uploadedImage && (
-        <div className="mb-6 flex items-center justify-center gap-4 bg-black/30 p-4 rounded-lg">
+      <div className="mb-6 flex items-center justify-center gap-4 bg-black/30 p-4 rounded-lg">
           <Label className="text-amber-200">
             {language === 'sv' ? 'Använd egna frågor' : 'Use guided questions'}
           </Label>
@@ -382,10 +372,9 @@ export const VEO3VideoGenerator = () => {
             {language === 'sv' ? 'Skriv egen prompt' : 'Write custom prompt'}
           </Label>
         </div>
-      )}
 
       {/* Custom prompt or Questions based on VEO3 Base-5 Prompt Architecture */}
-      {uploadedImage && useCustomPrompt && (
+      {useCustomPrompt && (
         <div className="mb-8">
           <Label className="text-amber-200 mb-2 block">
             {language === 'sv' ? 'Din egen prompt' : 'Your custom prompt'}
@@ -401,7 +390,7 @@ export const VEO3VideoGenerator = () => {
         </div>
       )}
 
-      {uploadedImage && !useCustomPrompt && (
+      {!useCustomPrompt && (
         <div className="space-y-6 mb-8">
           <div>
             <Label className="text-amber-200 mb-2 block">
