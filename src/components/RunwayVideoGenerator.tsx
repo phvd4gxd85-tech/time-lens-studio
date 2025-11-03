@@ -124,6 +124,15 @@ export const RunwayVideoGenerator = () => {
 
       if (videoError) {
         console.error("Video generation error:", videoError);
+        if (videoError.message?.includes('Insufficient video credits')) {
+          toast({
+            title: language === 'sv' ? "Inte tillräckligt med video-credits" : "Insufficient video credits",
+            description: language === 'sv' ? "Du har inte tillräckligt med video-credits. Köp fler för att fortsätta." : "You don't have enough video credits. Please purchase more to continue.",
+            variant: "destructive",
+          });
+          setIsGenerating(false);
+          return;
+        }
         throw new Error(`Video generation failed: ${videoError.message}`);
       }
 

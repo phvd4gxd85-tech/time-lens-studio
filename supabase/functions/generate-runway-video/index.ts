@@ -36,6 +36,42 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    console.log("Authenticated user:", user.id);
+
+    // Check and deduct video credit BEFORE generating video
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
+
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
+      .from('user_tokens')
+      .select('videos')
+      .eq('user_id', user.id)
+      .single();
+
+    if (tokenError || !tokenData) {
+      throw new Error("Could not fetch user video credits");
+    }
+
+    if (tokenData.videos < 1) {
+      throw new Error("Insufficient video credits. Please purchase more to continue.");
+    }
+
+    // Deduct 1 video credit
+    const { error: updateError } = await supabaseAdmin
+      .from('user_tokens')
+      .update({ videos: tokenData.videos - 1 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error("Failed to deduct video credit:", updateError);
+      throw new Error("Failed to deduct video credit");
+    }
+
+    console.log(`Video credit deducted. User ${user.id} now has ${tokenData.videos - 1} videos`);
+
     const { image_asset_id, text_prompt, aspect_ratio, imageUrl } = await req.json();
 
     console.log("Runway video generation request:", { 
