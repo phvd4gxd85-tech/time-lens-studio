@@ -12,15 +12,6 @@ verify_jwt = true
 [functions.poll-video-status]
 verify_jwt = false
 
-[functions.generate-runway-prompt]
-verify_jwt = false
-
-[functions.generate-runway-video]
-verify_jwt = true
-
-[functions.check-runway-status]
-verify_jwt = false
-
 [functions.generate-veo3-prompt]
 verify_jwt = true
 

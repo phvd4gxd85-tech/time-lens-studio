@@ -39,7 +39,7 @@ serve(async (req) => {
 
     console.log("Authenticated user:", user.id);
 
-    // Check and deduct video credit BEFORE generating video
+    // Check user has credits BEFORE generating (but don't deduct yet!)
     const { data: tokenData, error: tokenError } = await supabaseClient
       .from('user_tokens')
       .select('videos')
@@ -54,18 +54,7 @@ serve(async (req) => {
       throw new Error("Insufficient video credits. Please purchase more to continue.");
     }
 
-    // Deduct 1 video credit
-    const { error: updateError } = await supabaseClient
-      .from('user_tokens')
-      .update({ videos: tokenData.videos - 1 })
-      .eq('user_id', user.id);
-
-    if (updateError) {
-      console.error("Failed to deduct video credit:", updateError);
-      throw new Error("Failed to deduct video credit");
-    }
-
-    console.log(`Video credit deducted. User ${user.id} now has ${tokenData.videos - 1} videos`);
+    console.log(`User ${user.id} has ${tokenData.videos} video credits`);
 
     const { prompt, imageUrl } = await req.json();
 
@@ -196,6 +185,18 @@ serve(async (req) => {
     }
 
     const generationId = kieData.data.taskId;
+
+    // NOW deduct credit since generation started successfully
+    const { error: updateError } = await supabaseClient
+      .from('user_tokens')
+      .update({ videos: tokenData.videos - 1 })
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      console.error("Failed to deduct video credit:", updateError);
+    } else {
+      console.log(`Video credit deducted. User ${user.id} now has ${tokenData.videos - 1} videos`);
+    }
 
     // Create database record for tracking
     const { error: dbError } = await supabaseClient

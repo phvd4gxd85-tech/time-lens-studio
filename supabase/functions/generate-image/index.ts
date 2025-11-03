@@ -55,7 +55,7 @@ serve(async (req) => {
 
     console.log("Generating image for user:", user.id, "with prompt:", prompt);
 
-    // Check if user has enough images
+    // Check if user has enough images (but don't deduct yet!)
     const { data: tokensData, error: tokensError } = await supabaseClient
       .from('user_tokens')
       .select('images')
@@ -65,6 +65,8 @@ serve(async (req) => {
     if (tokensError || !tokensData || tokensData.images < 1) {
       throw new Error("Insufficient images credits");
     }
+
+    console.log(`User ${user.id} has ${tokensData.images} image credits`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -121,7 +123,7 @@ serve(async (req) => {
 
     console.log("Image generated successfully");
 
-    // Deduct one image credit
+    // NOW deduct one image credit since generation was successful
     const { error: updateError } = await supabaseClient
       .from('user_tokens')
       .update({ images: tokensData.images - 1 })
@@ -129,6 +131,8 @@ serve(async (req) => {
 
     if (updateError) {
       console.error("Error updating image credits:", updateError);
+    } else {
+      console.log(`Image credit deducted. User ${user.id} now has ${tokensData.images - 1} images`);
     }
 
     return new Response(
