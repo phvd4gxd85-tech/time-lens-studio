@@ -295,6 +295,53 @@ export const VEO3VideoGenerator = () => {
         {language === 'sv' ? 'Google Veo - Professionell Videogenerering' : 'Google Veo - Professional Video Generation'}
       </p>
 
+      {/* Introduction - What is a prompt */}
+      <div className="mb-8 bg-black/20 p-6 rounded-lg border border-amber-600/20">
+        <h3 className="text-xl font-semibold text-amber-100 mb-4">
+          {language === 'sv' ? 'Välkommen till VEO3 Video!' : 'Welcome to VEO3 Video!'}
+        </h3>
+        <p className="text-amber-200/80 mb-3 leading-relaxed">
+          {language === 'sv' 
+            ? 'En prompt är en instruktion till AI:n för att den lättare ska förstå vad du vill. Den beskriver vad det är för bild du har och vad som ska hända med bilden. Ju mer specifik du är, desto närmare kommer du din egen vision!' 
+            : 'A prompt is an instruction to the AI to help it better understand what you want. It describes what kind of image you have and what should happen with it. The more specific you are, the closer you get to your own vision!'}
+        </p>
+        <p className="text-amber-200/70 leading-relaxed">
+          {language === 'sv' 
+            ? 'Med VEO3 har du två val: antingen svarar du på de guidade frågorna som vi har lagt in för att göra det enklare för dig, eller så skriver du din egen prompt. När du känner dig mer bekväm kan du gå över till att skriva egna prompts och testa dig fram.' 
+            : 'With VEO3 you have two choices: either answer the guided questions we\'ve included to make it easier for you, or write your own prompt. When you feel more comfortable, you can move on to writing your own prompts and experiment.'}
+        </p>
+      </div>
+
+      {/* Instructions */}
+      <div className="mb-8 bg-black/30 p-6 rounded-lg border border-amber-600/30">
+        <h3 className="text-xl font-semibold text-amber-100 mb-3">
+          {language === 'sv' ? 'Hur fungerar det?' : 'How does it work?'}
+        </h3>
+        <p className="text-amber-200/80 mb-2">
+          {language === 'sv' 
+            ? 'Du har två sätt att skapa din video:' 
+            : 'You have two ways to create your video:'}
+        </p>
+        <ul className="text-amber-200/70 space-y-2 ml-4">
+          <li>
+            <strong className="text-amber-100">
+              {language === 'sv' ? '1. Guidade frågor:' : '1. Guided questions:'}
+            </strong>{' '}
+            {language === 'sv' 
+              ? 'Svara på 5 enkla frågor och AI:n skapar en professionell prompt åt dig. Perfekt om du är osäker på hur du ska formulera dig.' 
+              : 'Answer 5 simple questions and the AI creates a professional prompt for you. Perfect if you\'re unsure how to phrase it.'}
+          </li>
+          <li>
+            <strong className="text-amber-100">
+              {language === 'sv' ? '2. Egen prompt:' : '2. Custom prompt:'}
+            </strong>{' '}
+            {language === 'sv' 
+              ? 'Skriv en detaljerad beskrivning själv om du vill ha full kontroll. Inkludera kameravinkel, miljö, karaktär, handling och ljud för bästa resultat.' 
+              : 'Write a detailed description yourself if you want full control. Include camera angle, setting, character, action, and sound for best results.'}
+          </li>
+        </ul>
+      </div>
+
       {/* Image upload */}
       <div className="mb-8">
         <Label className="text-amber-200 mb-2 block">
@@ -346,7 +393,9 @@ export const VEO3VideoGenerator = () => {
           <Textarea
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder={language === 'sv' ? "Beskriv exakt vad du vill att videon ska visa..." : "Describe exactly what you want the video to show..."}
+            placeholder={language === 'sv' 
+              ? "Närbild dynamisk tagning från midjan och upp, kamera lätt vinklad för att fånga rörelse, fast position.\nUtomhus, fridfull gräsplan under mulen himmel: mjukt naturligt dagsljus, avlägsna träd suddiga i bakgrunden, nostalgisk 1980-talskänsla med vintage färggradering.\nUng man ungefär 1,70 m lång — ljus hy, blont hår kammat bakåt prydligt, subtilt leende med lätt öppnade läppar, iklädd ljusblå knäppt skjorta över svart polotröja — centrerad i bilden, kroppen naturligt poserad.\nSparkar en klassisk svartvit fotboll framåt med höger fot, mitt i rörelsen när bollen lämnar tån." 
+              : "Close-up dynamic shot from waist up, camera slightly angled to capture motion, fixed position.\nExterior, serene grassy field under overcast sky: soft natural daylight, distant trees blurring in the background, nostalgic 1980s vibe with vintage color grading.\nYoung man approximately 1.70 m tall — fair skin, blonde hair slicked back neatly, subtle smile with slight lip part, wearing a light blue button-up shirt over a black turtleneck — centered in frame, body posed naturally.\nKicking a classic black-and-white soccer ball forward with his right foot, mid-motion as the ball leaves his toe."}
             className="bg-black/40 border-amber-600/50 text-amber-100 placeholder-amber-400/40 min-h-[150px]"
           />
         </div>
