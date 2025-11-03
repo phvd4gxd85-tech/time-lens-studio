@@ -661,10 +661,19 @@ const Home = () => {
               {language === 'sv' ? 'Så Här Använder Du Vintage AI' : 'How to Use Vintage AI'}
             </h2>
           </div>
-          <p className="text-center text-amber-200/70 mb-16 text-xl">
+          <p className="text-center text-amber-200/70 mb-16 text-xl max-w-4xl mx-auto leading-relaxed">
             {language === 'sv' 
-              ? 'Lär dig skapa magiska videos och bilder med AI' 
-              : 'Learn to create magical videos and images with AI'}
+              ? (
+                <>
+                  Välkommen till VEO3 Video! Här kan du skapa fantastiska videor direkt med AI – allt från realistiska scener till fantasifulla världar, precis som du föreställer dig dem. För att resultatet ska bli så bra som möjligt behöver AI:n tydliga instruktioner. Ju mer detaljerad du är, desto närmare din vision kommer videon. Dessa instruktioner kallas för prompts – det är din beskrivning av vad som ska hända i videon.
+                  <br/><br/>
+                  Med VEO3 har du två sätt att börja: antingen svarar du på våra guidade frågor som gör det enkelt att skapa en professionell prompt, eller så skriver du din egen detaljerade prompt och får full kontroll. När du känner dig mer bekväm kan du experimentera fritt och låta kreativiteten styra.
+                  <br/><br/>
+                  Behöver du hjälp med din prompt finns en AI-chatt i det högra hörnet. Där kan du diskutera idéer, finslipa beskrivningar och få konkreta tips för att skapa exakt den scen eller bild du vill ha.
+                </>
+              )
+              : 'Learn to create magical videos and images with AI'
+            }
           </p>
 
 
