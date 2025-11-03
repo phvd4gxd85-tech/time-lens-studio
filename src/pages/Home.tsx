@@ -8,6 +8,7 @@ import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
 import { RunwayVideoGenerator } from '@/components/RunwayVideoGenerator';
+import { VEO3VideoGenerator } from '@/components/VEO3VideoGenerator';
 
 const Home = () => {
   const { toast } = useToast();
@@ -511,106 +512,7 @@ const Home = () => {
       {/* VEO3 Video Generator Section */}
       <div className="relative py-24 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="max-w-4xl mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
-            <div className="relative bg-[#0f172a] p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
-              <div className="flex justify-center mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-                  <Video className="w-8 h-8 text-amber-500" />
-                  <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
-                </div>
-              </div>
-
-              <h2 className="text-3xl md:text-4xl font-bold mb-2 text-center text-amber-100">
-                {language === 'sv' ? 'Skapa Videos med VEO3' : 'Create Videos with VEO3'}
-              </h2>
-              <p className="text-center text-amber-200/60 mb-8">
-                {language === 'sv' ? 'Google Veo - Professionell Videogenerering' : 'Google Veo - Professional Video Generation'}
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <label className="block">
-                    <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      {uploadedImage ? (
-                        <img src={uploadedImage} alt="Uploaded" className="w-full h-48 object-cover rounded" />
-                      ) : (
-                        <div className="text-center">
-                          <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
-                          <p className="text-amber-200 text-lg">{language === 'sv' ? 'Ladda upp bild' : 'Upload image'}</p>
-                          <p className="text-amber-400/60 text-sm mt-2">{language === 'sv' ? 'Valfritt - för video från bild' : 'Optional - for video from image'}</p>
-                        </div>
-                      )}
-                    </div>
-                  </label>
-
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder={language === 'sv' ? examplePrompt : 'Wayne Gretzky skating forward towards camera, Edmonton Oilers jersey, takes shot at goal, ice sprays up as he brakes, arena lights reflecting in ice, 80s grainy VHS feeling, slow motion, crowd blurred in background'}
-                    className="w-full p-4 bg-black/40 border border-amber-600/50 rounded text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-amber-500 h-32"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center overflow-hidden">
-                    {videoUrl ? (
-                      <video src={videoUrl} controls className="w-full h-full object-contain rounded" />
-                    ) : isGenerating ? (
-                      <div className="text-center">
-                        <Film className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
-                        <p className="text-amber-300 text-lg font-semibold">{language === 'sv' ? 'Skapar video...' : 'Creating video...'}</p>
-                        {progress > 0 && (
-                          <div className="mt-4 w-full bg-gray-700 rounded-full h-2">
-                            <div className="bg-amber-600 h-2 rounded-full transition-all" style={{width: `${progress}%`}}></div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center text-amber-400/40">
-                        <Film className="w-16 h-16 mx-auto mb-4" />
-                        <p>{language === 'sv' ? 'Din video här' : 'Your video here'}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {videoUrl && (
-                    <button
-                      onClick={handleDownload}
-                      className="w-full bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-700/50 flex items-center justify-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      {language === 'sv' ? 'LADDA NER VIDEO' : 'DOWNLOAD VIDEO'}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleGenerate}
-                    disabled={!prompt || isGenerating}
-                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    {isGenerating ? (language === 'sv' ? 'GENERERAR...' : 'GENERATING...') : (language === 'sv' ? 'GENERERA VIDEO' : 'GENERATE VIDEO')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-center mt-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-24 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-                  <div className="w-2 h-2 bg-amber-600 rotate-45"></div>
-                  <div className="w-24 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <VEO3VideoGenerator />
         </div>
       </div>
 

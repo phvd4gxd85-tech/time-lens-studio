@@ -21,6 +21,9 @@ verify_jwt = true
 [functions.check-runway-status]
 verify_jwt = false
 
+[functions.generate-veo3-prompt]
+verify_jwt = true
+
 [functions.verify-payment]
 verify_jwt = false
 
