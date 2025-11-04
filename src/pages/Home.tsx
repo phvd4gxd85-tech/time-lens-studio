@@ -534,6 +534,22 @@ const Home = () => {
                 {language === 'sv' ? 'Skapa Bilder' : 'Create Images'}
               </h2>
 
+              <div className="bg-amber-900/30 p-6 rounded-lg border border-amber-500/50 mb-8">
+                <div className="flex items-start gap-3">
+                  <MessageCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <h4 className="text-xl font-bold text-amber-100 mb-2">
+                      {language === 'sv' ? 'Behöver du hjälp med prompten?' : 'Need help with your prompt?'}
+                    </h4>
+                    <p className="text-amber-200/90">
+                      {language === 'sv' 
+                        ? 'Du kan alltid diskutera med Chatbotten nere i högra hörnet först. Chatbotten kan hjälpa dig att formulera en perfekt prompt för just din vision! (Läs mer om hur du skriver en bra prompt längre ner på sidan.)' 
+                        : 'You can always discuss with the Chatbot in the bottom right corner first. The Chatbot can help you formulate a perfect prompt for your specific vision! (Read more about how to write a good prompt further down the page.)'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <label className="block">
