@@ -429,7 +429,7 @@ const Home = () => {
     }
   };
 
-  const examplePrompt = "Wayne Gretzky åker framåt mot kameran, Edmonton Oilers tröja, tar skottet mot mål, is sprayas upp när han bromsar, arenaljus reflekterar i isen, 80-talets kornig VHS-känsla, slow motion, publiken suddig i bakgrunden";
+  const examplePrompt = "En ung kvinna i solglasögon sitter i en cabriolet som kör längs en kustväg, vinden blåser i hennes hår, solnedgången bakom henne färgar himlen rosa och orange, 70-talets filmkvalitet med kornighet och varma toner, drömsk och nostalgisk känsla";
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -534,7 +534,7 @@ const Home = () => {
                 {language === 'sv' ? 'Skapa Bilder' : 'Create Images'}
               </h2>
 
-              <div className="bg-amber-900/30 p-6 rounded-lg border border-amber-500/50 mb-8">
+              <div className="bg-blue-900/30 p-6 rounded-lg border border-blue-500/50 mb-8">
                 <div className="space-y-4">
                   <p className="text-amber-200/90 leading-relaxed">
                     {language === 'sv' 
