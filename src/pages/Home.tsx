@@ -786,32 +786,6 @@ const Home = () => {
                 </div>
               </div>
             </div>
-
-            {/* Video Example with actual prompt */}
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-amber-900/40 to-red-900/40 p-8 border-2 border-amber-500 rounded-lg">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-amber-50" />
-                </div>
-                <h4 className="text-2xl font-bold text-amber-100">
-                  {language === 'sv' ? 'Exempel-Prompt för Video' : 'Example Video Prompt'}
-                </h4>
-              </div>
-              
-              <div className="bg-black/40 p-6 rounded-lg mb-4">
-                <p className="text-amber-200 text-lg italic leading-relaxed">
-                  "{language === 'sv' 
-                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden. Skylten är lite sliten och vintage. Lägg till en subtil vinglans-effekt som rör sig över skylten och få det att kännas levande med lätt rörelse.' 
-                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind. The sign is slightly worn and vintage. Add a subtle glass reflection effect moving across the sign and make it feel alive with gentle movement.'}"
-                </p>
-              </div>
-              
-              <p className="text-amber-200/70 text-sm">
-                {language === 'sv' 
-                  ? '💡 Tips: Ladda först upp bilden, skriv sedan prompten för bästa resultat' 
-                  : '💡 Tip: First upload the image, then write the prompt for best results'}
-              </p>
-            </div>
           </div>
 
           {/* Stomatol Example Video */}
