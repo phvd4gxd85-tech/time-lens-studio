@@ -535,13 +535,52 @@ const Home = () => {
               </h2>
 
               <div className="bg-amber-900/30 p-6 rounded-lg border border-amber-500/50 mb-8">
-                <div className="flex items-start gap-3">
-                  <MessageCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
-                  <div>
-                    <h4 className="text-xl font-bold text-amber-100 mb-2">
+                <div className="space-y-4">
+                  <p className="text-amber-200/90 leading-relaxed">
+                    {language === 'sv' 
+                      ? 'Med detta verktyg kan du enkelt förvandla dina idéer till bilder. Du kan antingen skapa en helt ny bild, eller redigera ett befintligt foto genom att ge AI:n tydliga instruktioner – så kallade prompts.' 
+                      : 'With this tool, you can easily transform your ideas into images. You can either create a brand new image or edit an existing photo by giving the AI clear instructions – so-called prompts.'}
+                  </p>
+                  
+                  <h4 className="text-xl font-bold text-amber-100">
+                    {language === 'sv' ? 'Hur fungerar det?' : 'How does it work?'}
+                  </h4>
+                  
+                  <p className="text-amber-200/90">
+                    {language === 'sv' 
+                      ? 'Du har två kraftfulla sätt att använda tjänsten:' 
+                      : 'You have two powerful ways to use the service:'}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-amber-100 font-semibold">
+                        {language === 'sv' ? '1. Ändra din befintliga bild (Bildredigering)' : '1. Edit Your Existing Image (Image Editing)'}
+                      </p>
+                      <p className="text-amber-200/80 text-sm mt-1">
+                        {language === 'sv' 
+                          ? 'Ladda upp en bild (valfritt) och beskriv i prompten vad du vill ändra. Exempelvis: "Byt bakgrunden till en tropisk strand" eller "Måla bilen röd".' 
+                          : 'Upload an image (optional) and describe in the prompt what you want to change. For example: "Change the background to a tropical beach" or "Paint the car red".'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-amber-100 font-semibold">
+                        {language === 'sv' ? '2. Skapa en helt ny bild (Generering)' : '2. Create a Brand New Image (Generation)'}
+                      </p>
+                      <p className="text-amber-200/80 text-sm mt-1">
+                        {language === 'sv' 
+                          ? 'Skriv din prompt som beskriver motivet, stilen och känslan du vill ha.' 
+                          : 'Write your prompt describing the subject, style, and feeling you want.'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-amber-600/30">
+                    <p className="text-amber-100 font-semibold mb-2">
                       {language === 'sv' ? 'Behöver du hjälp med prompten?' : 'Need help with your prompt?'}
-                    </h4>
-                    <p className="text-amber-200/90">
+                    </p>
+                    <p className="text-amber-200/90 text-sm">
                       {language === 'sv' 
                         ? 'Du kan alltid diskutera med Chatbotten nere i högra hörnet först. Chatbotten kan hjälpa dig att formulera en perfekt prompt för just din vision! (Läs mer om hur du skriver en bra prompt längre ner på sidan.)' 
                         : 'You can always discuss with the Chatbot in the bottom right corner first. The Chatbot can help you formulate a perfect prompt for your specific vision! (Read more about how to write a good prompt further down the page.)'}
