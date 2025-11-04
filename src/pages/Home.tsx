@@ -837,7 +837,7 @@ const Home = () => {
               </div>
               <p className="text-amber-200/90 leading-relaxed">
                 {language === 'sv' 
-                  ? 'Du kan alltid diskutera med Chatbotten i det högra hörnet först. Chatbotten kan hjälpa dig att formulera en perfekt prompt för just din vision! (Läs mer om hur du skriver en bra prompt längre ner på sidan.)' 
+                  ? 'Du kan alltid diskutera med Chatbotten nere i högra hörnet först. Chatbotten kan hjälpa dig att formulera en perfekt prompt för just din vision! (Läs mer om hur du skriver en bra prompt längre ner på sidan.)' 
                   : 'You can always discuss with the Chatbot in the right corner first. The Chatbot can help you formulate a perfect prompt for your specific vision! (Read more about how to write a good prompt further down the page.)'}
               </p>
             </div>
