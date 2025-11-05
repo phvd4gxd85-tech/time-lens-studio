@@ -705,90 +705,9 @@ const Home = () => {
         </div>
       </div>
 
-      {/* How to Use Guide */}
+      {/* Stomatol Example Video */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <Lightbulb className="w-10 h-10 text-amber-500" />
-            <h2 className="text-5xl font-bold text-center text-amber-100">
-              {language === 'sv' ? 'Så Här Använder Du Vintage AI' : 'How to Use Vintage AI'}
-            </h2>
-          </div>
-          <p className="text-center text-amber-200/70 mb-16 text-xl max-w-4xl mx-auto leading-relaxed">
-            {language === 'sv' 
-              ? (
-                <>
-                  Välkommen till VEO3 Video! Här kan du skapa fantastiska videor direkt med AI – allt från realistiska scener till fantasifulla världar, precis som du föreställer dig dem. För att resultatet ska bli så bra som möjligt behöver AI:n tydliga instruktioner. Ju mer detaljerad du är, desto närmare din vision kommer videon. Dessa instruktioner kallas för prompts – det är din beskrivning av vad som ska hända i videon.
-                  <br/><br/>
-                  Med VEO3 har du två sätt att börja: antingen svarar du på våra guidade frågor som gör det enkelt att skapa en professionell prompt, eller så skriver du din egen detaljerade prompt och får full kontroll. När du känner dig mer bekväm kan du experimentera fritt och låta kreativiteten styra.
-                  <br/><br/>
-                  Behöver du hjälp med din prompt finns en AI-chatt i det högra hörnet. Där kan du diskutera idéer, finslipa beskrivningar och få konkreta tips för att skapa exakt den scen eller bild du vill ha.
-                </>
-              )
-              : 'Learn to create magical videos and images with AI'
-            }
-          </p>
-
-
-          {/* VIDEO Section */}
-          <div className="mb-20">
-            <div className="flex items-center justify-center gap-3 mb-12">
-              <Film className="w-8 h-8 text-amber-500" />
-              <h3 className="text-4xl font-bold text-amber-100">
-                {language === 'sv' ? 'SKAPA VIDEOS' : 'CREATE VIDEOS'}
-              </h3>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 mb-12">
-              {/* Option 1: Animate existing image */}
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
-                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">1</div>
-                <h4 className="text-2xl font-bold text-amber-100 mb-4">
-                  {language === 'sv' ? 'Gör Bilder Levande' : 'Bring Images to Life'}
-                </h4>
-                <p className="text-amber-200/80 mb-4">
-                  {language === 'sv' 
-                    ? 'Ladda upp en befintlig bild och få den att röra sig! Perfekt för att få personer att le, röra på sig, eller skapa subtila rörelser.' 
-                    : 'Upload an existing image and make it move! Perfect for making people smile, move, or create subtle movements.'}
-                </p>
-                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
-                  <p className="text-amber-300 text-sm font-bold mb-2">
-                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
-                  </p>
-                <p className="text-amber-200 italic">
-                  "{language === 'sv' 
-                    ? 'En gammal Stomatol reklamskylt som hänger och svänger sakta i vinden' 
-                    : 'An old Stomatol advertising sign hanging and swaying slowly in the wind'}"
-                </p>
-                </div>
-              </div>
-
-              {/* Option 2: Create from scratch */}
-              <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border-2 border-amber-600/40 rounded-lg">
-                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-2xl font-bold mb-4">2</div>
-                <h4 className="text-2xl font-bold text-amber-100 mb-4">
-                  {language === 'sv' ? 'Skapa Helt Ny Scen' : 'Create Brand New Scene'}
-                </h4>
-                <p className="text-amber-200/80 mb-4">
-                  {language === 'sv' 
-                    ? 'Beskriv en hel scen i text och AI:n skapar en video från grunden.' 
-                    : 'Describe an entire scene in text and AI creates a video from scratch.'}
-                </p>
-                <div className="bg-black/30 p-4 rounded border border-amber-600/30">
-                  <p className="text-amber-300 text-sm font-bold mb-2">
-                    {language === 'sv' ? 'EXEMPEL:' : 'EXAMPLE:'}
-                  </p>
-                  <p className="text-amber-200 italic">
-                    "{language === 'sv' 
-                      ? 'En vintage reklamskylt som lyser i neonfärger över snötäckta tak i Stockholm, vintermorgon' 
-                      : 'A vintage neon sign glowing over snow-covered rooftops in Stockholm, winter morning'}"
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stomatol Example Video */}
           <div className="max-w-5xl mx-auto mb-20">
             <video 
               src={santaExample} 
@@ -894,33 +813,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* How It Works Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl font-bold text-center mb-16 text-amber-100">
-            {t.howItWorksTitle}
-          </h2>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { num: "1", title: t.step1Title, desc: t.step1Desc },
-              { num: "2", title: t.step2Title, desc: t.step2Desc },
-              { num: "3", title: t.step3Title, desc: t.step3Desc }
-            ].map((step, i) => (
-              <div key={i} className="text-center group">
-                <div className="relative inline-block mb-6">
-                  <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center text-4xl font-bold text-amber-50 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-amber-600/30">
-                    {step.num}
-                  </div>
-                  <div className="absolute inset-0 bg-amber-500 rounded-full blur-xl opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                </div>
-                <h3 className="text-2xl font-bold mb-3 text-amber-100">{step.title}</h3>
-                <p className="text-amber-200/80">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Pricing Section */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
