@@ -8,31 +8,19 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 
 const Login = () => {
-  const { t } = useLanguage();
-  const { signIn, signUp } = useAuth();
+  const { t, language } = useLanguage();
+  const { signIn } = useAuth();
   const { toast } = useToast();
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isSignUp && password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: t.passwordsDontMatch,
-      });
-      return;
-    }
-    
     setLoading(true);
 
-    const { error } = isSignUp 
-      ? await signUp(email, password)
-      : await signIn(email, password);
+    const { error } = await signIn(email, password);
     
     if (error) {
       toast({
@@ -40,14 +28,6 @@ const Login = () => {
         title: t.loginError,
         description: error,
       });
-    } else if (isSignUp) {
-      toast({
-        title: t.signupSuccess,
-      });
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setIsSignUp(false);
     }
     
     setLoading(false);
@@ -101,13 +81,15 @@ const Login = () => {
             </div>
 
             <h2 className="text-3xl text-center text-amber-100 tracking-[0.15em] uppercase mb-8 font-bold">
-              {isSignUp ? t.signupTitle : t.loginTitle}
+              {t.loginTitle}
             </h2>
 
             <Alert className="bg-black/40 border-amber-600/30">
               <Info className="h-4 w-4 text-amber-500" />
               <AlertDescription className="text-sm text-amber-200/80">
-                {t.accountCreationNote}
+                {language === 'sv' 
+                  ? 'För att använda tjänsten måste du först köpa ett paket. Efter köpet får du ett konto automatiskt.'
+                  : 'To use the service, you must first purchase a package. After purchase, you will automatically receive an account.'}
               </AlertDescription>
             </Alert>
 
@@ -128,44 +110,15 @@ const Login = () => {
                 required
                 className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
               />
-              
-              {isSignUp && (
-                <Input
-                  type="password"
-                  placeholder={t.confirmPassword}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
-                />
-              )}
 
               <Button 
                 type="submit"
                 disabled={loading}
                 className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white hover:text-gray-900 py-6 font-bold tracking-[0.15em] uppercase transition-all duration-300"
               >
-                <span className="relative">{loading ? '...' : (isSignUp ? t.signupButton : t.loginButton)}</span>
+                <span className="relative">{loading ? '...' : t.loginButton}</span>
               </Button>
             </form>
-
-            <div className="text-center space-y-2">
-              <p className="text-sm text-amber-300/60 italic">
-                {isSignUp ? t.alreadyHaveAccount : t.noAccountYet}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setEmail('');
-                  setPassword('');
-                  setConfirmPassword('');
-                }}
-                className="text-amber-400 hover:text-amber-300 underline text-sm font-semibold"
-              >
-                {isSignUp ? t.switchToLogin : t.switchToSignup}
-              </button>
-            </div>
           </div>
         </div>
       </div>

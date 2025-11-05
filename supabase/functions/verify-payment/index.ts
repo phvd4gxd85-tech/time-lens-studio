@@ -82,44 +82,90 @@ serve(async (req) => {
       throw new Error(`Unknown package type: ${packageType}`);
     }
 
-    // Find user by email
-    const { data: userData, error: userError } = await supabaseClient
-      .from('user_tokens')
-      .select('user_id, videos, images')
-      .eq('user_id', (await supabaseClient.auth.admin.listUsers()).data.users.find(u => u.email === email)?.id)
-      .single();
-
-    // If no user found, this might be a guest purchase - we'll still record it
+    // Find or create user by email
     let userId = null;
     const users = (await supabaseClient.auth.admin.listUsers()).data.users;
     const matchingUser = users.find(u => u.email === email);
     
     if (matchingUser) {
+      // Existing user
       userId = matchingUser.id;
+      console.log("Found existing user:", userId);
+    } else {
+      // Create new user automatically after payment
+      console.log("Creating new user account for:", email);
       
-      // Update user credits
-      const { data: currentCredits } = await supabaseClient
-        .from('user_tokens')
-        .select('videos, images')
-        .eq('user_id', userId)
-        .single();
-
-      if (currentCredits) {
-        const { error: updateError } = await supabaseClient
-          .from('user_tokens')
-          .update({
-            videos: currentCredits.videos + credits.videos,
-            images: currentCredits.images + credits.images
-          })
-          .eq('user_id', userId);
-
-        if (updateError) {
-          console.error("Error updating credits:", updateError);
-          throw new Error("Failed to add credits");
+      const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: { 
+          created_via: 'payment',
+          package_type: packageType 
         }
+      });
 
-        console.log(`Added ${credits.videos} videos and ${credits.images} images to user ${userId}`);
+      if (createError || !newUser.user) {
+        console.error("Error creating user:", createError);
+        throw new Error("Failed to create user account");
       }
+
+      userId = newUser.user.id;
+      console.log("New user created:", userId);
+
+      // Send password reset email so user can set their password
+      const { error: resetError } = await supabaseClient.auth.admin.generateLink({
+        type: 'recovery',
+        email: email
+      });
+
+      if (resetError) {
+        console.error("Error sending password reset:", resetError);
+        // Don't fail if reset email fails, user can request it later
+      }
+    }
+
+    // Update or create user credits
+    const { data: currentCredits } = await supabaseClient
+      .from('user_tokens')
+      .select('videos, images')
+      .eq('user_id', userId)
+      .single();
+
+    if (currentCredits) {
+      // User already has credits, add more
+      const { error: updateError } = await supabaseClient
+        .from('user_tokens')
+        .update({
+          videos: currentCredits.videos + credits.videos,
+          images: currentCredits.images + credits.images
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error("Error updating credits:", updateError);
+        throw new Error("Failed to add credits");
+      }
+
+      console.log(`Added ${credits.videos} videos and ${credits.images} images to user ${userId}`);
+    } else {
+      // New user, credits will be set by trigger (handle_new_user) then we update
+      // Wait a moment for trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const { error: updateError } = await supabaseClient
+        .from('user_tokens')
+        .update({
+          videos: credits.videos,
+          images: credits.images
+        })
+        .eq('user_id', userId);
+
+      if (updateError) {
+        console.error("Error setting initial credits:", updateError);
+        throw new Error("Failed to set credits");
+      }
+
+      console.log(`Set initial ${credits.videos} videos and ${credits.images} images for new user ${userId}`);
     }
 
     // Record the purchase
@@ -147,9 +193,10 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         credits_added: credits,
-        message: userId 
+        user_created: !matchingUser,
+        message: matchingUser 
           ? "Payment verified and credits added" 
-          : "Payment verified but no user account found"
+          : "Payment verified, account created, and credits added. Check your email to set your password."
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
