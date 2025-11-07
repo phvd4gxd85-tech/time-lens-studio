@@ -840,7 +840,7 @@ const Home = () => {
                 name: t.pro, 
                 subtitle: t.proDesc,
                 price: "$20", 
-                videos: 8,
+                videos: 10,
                 images: 15,
                 color: "bg-red-900",
                 borderColor: "border-red-700",
