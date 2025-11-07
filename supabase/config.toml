@@ -21,3 +21,12 @@ verify_jwt = false
 [functions.chat-assistant]
 verify_jwt = false
 
+[functions.create-special-user]
+verify_jwt = false
+
+[functions.setup-art-user]
+verify_jwt = false
+
+[functions.admin-setup]
+verify_jwt = false
+
