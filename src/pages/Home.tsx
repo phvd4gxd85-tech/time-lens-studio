@@ -830,7 +830,7 @@ const Home = () => {
                 name: t.starter, 
                 subtitle: t.starterDesc,
                 price: "$6", 
-                videos: 2,
+                videos: 3,
                 images: 5,
                 color: "bg-amber-900",
                 borderColor: "border-amber-600",
