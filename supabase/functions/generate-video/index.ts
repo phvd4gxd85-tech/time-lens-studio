@@ -144,7 +144,7 @@ serve(async (req) => {
     // Build request body according to KIE API specs
     const requestBody: any = {
       prompt: prompt,
-      duration: 5,
+      duration: 7,
       quality: "720p",
       waterMark: ""
     };
