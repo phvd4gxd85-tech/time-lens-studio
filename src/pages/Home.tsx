@@ -1,7 +1,7 @@
 import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download, Camera, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
@@ -27,6 +27,31 @@ const Home = () => {
   const [uploadedImageForGen, setUploadedImageForGen] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  // Auto-pause videos when scrolled out of view
+  const videoRef1 = useRef<HTMLVideoElement>(null);
+  const videoRef2 = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    if (videoRef1.current) observer.observe(videoRef1.current);
+    if (videoRef2.current) observer.observe(videoRef2.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   // Check for Stripe payment success on page load
   useEffect(() => {
@@ -494,10 +519,12 @@ const Home = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-amber-800/20 blur-2xl"></div>
               <div className="relative">
                 <video 
+                  ref={videoRef1}
                   src={exampleVideo} 
                   controls 
                   autoPlay
                   loop
+                  muted
                   playsInline
                   className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
                 />
@@ -710,10 +737,12 @@ const Home = () => {
         <div className="max-w-6xl mx-auto">
           <div className="max-w-5xl mx-auto mb-20">
             <video 
+              ref={videoRef2}
               src={santaExample} 
               controls 
               autoPlay
               loop
+              muted
               playsInline
               className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
             />
