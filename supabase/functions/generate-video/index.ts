@@ -67,8 +67,8 @@ serve(async (req) => {
       throw new Error("Prompt must be at least 3 characters");
     }
 
-    if (prompt.length > 2000) {
-      throw new Error("Prompt must be less than 2000 characters");
+    if (prompt.length > 5000) {
+      throw new Error("Prompt must be less than 5000 characters");
     }
 
     // Validate imageUrl if provided
