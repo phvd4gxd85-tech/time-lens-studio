@@ -67,9 +67,8 @@ serve(async (req) => {
       throw new Error("Prompt must be at least 3 characters");
     }
 
-    if (prompt.length > 5000) {
-      throw new Error("Prompt must be less than 5000 characters");
-    }
+    // Truncate prompt if too long for API (keep first 2000 chars of actual prompt text)
+    const trimmedPrompt = prompt.length > 2000 ? prompt.substring(0, 2000) : prompt;
 
     // Validate imageUrl if provided
     if (imageUrl && typeof imageUrl !== 'string') {
@@ -143,7 +142,7 @@ serve(async (req) => {
 
     // Build request body according to KIE API specs
     const requestBody: any = {
-      prompt: prompt,
+      prompt: trimmedPrompt,
       duration: 8,
       quality: "720p",
       waterMark: ""
@@ -204,7 +203,7 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         generation_id: generationId,
-        prompt: prompt,
+        prompt: trimmedPrompt,
         status: 'processing',
         progress: 0
       });
