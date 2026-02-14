@@ -12,7 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export const VEO3VideoGenerator = () => {
   const { toast } = useToast();
   const { language } = useLanguage();
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   const [customPrompt, setCustomPrompt] = useState<string>("");
   
@@ -29,14 +29,26 @@ export const VEO3VideoGenerator = () => {
   const [progress, setProgress] = useState(0);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const remainingSlots = 3 - uploadedImages.length;
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+    
+    filesToProcess.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
+        setUploadedImages(prev => [...prev, event.target?.result as string].slice(0, 3));
       };
       reader.readAsDataURL(file);
-    }
+    });
+    
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleGenerate = async () => {
@@ -118,7 +130,7 @@ export const VEO3VideoGenerator = () => {
       const { data: videoData, error: videoError } = await supabase.functions.invoke('generate-video', {
         body: {
           prompt: finalPrompt,
-          imageUrl: uploadedImage || null
+          imageUrl: uploadedImages[0] || null
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -333,30 +345,45 @@ export const VEO3VideoGenerator = () => {
         </ul>
       </div>
 
-      {/* Image upload */}
+      {/* Image upload - up to 3 images */}
       <div className="mb-8">
         <Label className="text-amber-200 mb-2 block">
-          {language === 'sv' ? 'Ladda upp bild (valfritt)' : 'Upload image (optional)'}
+          {language === 'sv' ? 'Ladda upp bilder (max 3, valfritt)' : 'Upload images (max 3, optional)'}
         </Label>
-        <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            id="veo3-image-upload"
-          />
-          <label htmlFor="veo3-image-upload" className="cursor-pointer block">
-            {uploadedImage ? (
-              <img src={uploadedImage} alt="Uploaded" className="w-full h-64 object-cover rounded" />
-            ) : (
-              <div className="text-center">
-                <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
-                <p className="text-amber-200 text-lg">{language === 'sv' ? 'Klicka för att ladda upp' : 'Click to upload'}</p>
+        
+        {/* Uploaded images grid */}
+        {uploadedImages.length > 0 && (
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            {uploadedImages.map((img, index) => (
+              <div key={index} className="relative group">
+                <img src={img} alt={`Uploaded ${index + 1}`} className="w-full h-32 object-cover rounded border border-amber-600/50" />
+                <button 
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ✕
+                </button>
               </div>
-            )}
-          </label>
-        </div>
+            ))}
+          </div>
+        )}
+
+        {uploadedImages.length < 3 && (
+          <div className="border-2 border-dashed border-amber-600 rounded-lg p-6 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+              id="veo3-image-upload"
+            />
+            <label htmlFor="veo3-image-upload" className="cursor-pointer block text-center">
+              <Upload className="w-12 h-12 mx-auto mb-2 text-amber-600 group-hover:text-amber-500 transition-colors" />
+              <p className="text-amber-200">{language === 'sv' ? `Klicka för att ladda upp (${uploadedImages.length}/3)` : `Click to upload (${uploadedImages.length}/3)`}</p>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Toggle between custom prompt and questions */}
@@ -471,26 +498,24 @@ export const VEO3VideoGenerator = () => {
       )}
 
       {/* Generate button */}
-      {uploadedImage && (
-        <Button
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 h-12"
-        >
-          {isGenerating ? (
-            <>
-              <Film className="w-5 h-5 mr-2 animate-pulse" />
-              {language === 'sv' ? 'Genererar...' : 'Generating...'}
-              {progress > 0 && ` (${progress}%)`}
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 mr-2" />
-              {language === 'sv' ? 'Generera Video' : 'Generate Video'}
-            </>
-          )}
-        </Button>
-      )}
+      <Button
+        onClick={handleGenerate}
+        disabled={isGenerating}
+        className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 h-12"
+      >
+        {isGenerating ? (
+          <>
+            <Film className="w-5 h-5 mr-2 animate-pulse" />
+            {language === 'sv' ? 'Genererar...' : 'Generating...'}
+            {progress > 0 && ` (${progress}%)`}
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-5 h-5 mr-2" />
+            {language === 'sv' ? 'Generera Video' : 'Generate Video'}
+          </>
+        )}
+      </Button>
 
       <div className="flex justify-center mt-8">
         <div className="flex items-center gap-4">
