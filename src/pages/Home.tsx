@@ -333,7 +333,7 @@ const Home = () => {
                 type="file"
                 accept="image/*"
                 onChange={handleTrialImageChange}
-                disabled={isTrialLoading || trialUsed}
+                disabled={isTrialLoading}
                 className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
               />
             </label>
