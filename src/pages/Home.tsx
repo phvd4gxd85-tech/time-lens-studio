@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
+import showcaseVideo from '@/assets/example-showcase.mov';
 
 const Home = () => {
   const { toast } = useToast();
@@ -26,6 +27,7 @@ const Home = () => {
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
+  const videoRef3 = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -44,6 +46,7 @@ const Home = () => {
 
     if (videoRef1.current) observer.observe(videoRef1.current);
     if (videoRef2.current) observer.observe(videoRef2.current);
+    if (videoRef3.current) observer.observe(videoRef3.current);
 
     return () => observer.disconnect();
   }, []);
@@ -335,6 +338,17 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Showcase Video */}
+      <div className="relative py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <video 
+            ref={videoRef3}
+            src={showcaseVideo} 
+            controls autoPlay loop muted playsInline
+            className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+          />
+        </div>
+      </div>
 
       {/* Santa Example Video */}
       <div className="relative py-16 px-4">
