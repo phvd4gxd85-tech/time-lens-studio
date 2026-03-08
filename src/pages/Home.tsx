@@ -19,7 +19,14 @@ const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-
+  // Free trial states
+  const [trialLoading, setTrialLoading] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vai_trial_done'));
+  const [trialPrompt, setTrialPrompt] = useState('');
+  const [trialFile, setTrialFile] = useState<File | null>(null);
+  const [trialPreview, setTrialPreview] = useState<string | null>(null);
+  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
+  const [trialPolling, setTrialPolling] = useState(false);
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
