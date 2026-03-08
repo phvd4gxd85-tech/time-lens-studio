@@ -104,9 +104,9 @@ const Home = () => {
   }, [language, refreshCredits, toast]);
 
   const PRICE_IDS = {
-    starter: "price_1SNsvKQt7FLZjS8hXtfTMW47",  // $6
-    classic: "price_1SNsvaQt7FLZjS8hoxcTNsfN",  // $20
-    premier: "price_1SNswDQt7FLZjS8huIapxFyx",  // $55
+    klassisk: "price_1T8bfLQt7FLZjS8hIlinBJRL",  // $5
+    standard: "price_1T8bfpQt7FLZjS8hTuCktjZn",  // $12
+    premium: "price_1T8bgHQt7FLZjS8huUX28eWF",   // $22
   };
 
   const handlePurchase = async (packageType: 'starter' | 'classic' | 'premier') => {
