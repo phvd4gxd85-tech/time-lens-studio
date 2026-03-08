@@ -28,6 +28,14 @@ const Home = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
+  // Free trial states
+  const [isTrialLoading, setIsTrialLoading] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vintage_ai_trial_used'));
+  const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
+  const [trialVideoRequestId, setTrialVideoRequestId] = useState<string | null>(null);
+  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
+  const [trialPrompt, setTrialPrompt] = useState('');
+
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
