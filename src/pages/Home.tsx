@@ -501,6 +501,9 @@ const Home = () => {
         </div>
       )}
 
+      {/* Contact Form */}
+      <ContactForm />
+
       {/* Footer */}
       <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 border-t border-amber-600/30">
         <div className="max-w-6xl mx-auto text-center">
