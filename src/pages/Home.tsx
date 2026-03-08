@@ -326,6 +326,7 @@ const Home = () => {
             {language === 'sv' 
               ? 'Testa vår AI-teknik helt gratis. Få 1 bild + 1 kort video (4 sek) utan att skapa konto.'
               : 'Test our AI technology completely free. Get 1 image + 1 short video (4 sec) without creating an account.'}
+          </p>
           <div className="w-full max-w-lg mx-auto space-y-4 mb-4 text-left">
             <textarea
               value={trialPrompt}
