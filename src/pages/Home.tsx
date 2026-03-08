@@ -168,7 +168,8 @@ const Home = () => {
 
     try {
       const dataUrl = await fileToDataUrl(file);
-      setTrialUploadedImage(dataUrl);
+      setTrialUploadedImage(dataUrl); // for preview only
+      setTrialFile(file); // keep file for upload
       setTrialImageUrl(null);
       setTrialVideoUrl(null);
       setTrialVideoRequestId(null);
@@ -187,10 +188,28 @@ const Home = () => {
     setIsTrialLoading(true);
 
     try {
+      // Upload image to storage FIRST (client-side) to avoid sending huge base64 to edge function
+      let uploadedImageUrl: string | null = null;
+      if (trialFile) {
+        const clientId = getClientId();
+        const ext = trialFile.name.split('.').pop() || 'jpg';
+        const fileName = `trial-input/${clientId}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, trialFile, { contentType: trialFile.type, upsert: true });
+        
+        if (uploadError) {
+          throw new Error(language === 'sv' ? 'Kunde inte ladda upp bilden' : 'Could not upload image');
+        }
+        
+        const { data: urlData } = supabase.storage.from('videos').getPublicUrl(fileName);
+        uploadedImageUrl = urlData.publicUrl;
+      }
+
       const { data, error } = await supabase.functions.invoke('free-trial', {
         body: {
-          prompt: trialPrompt.trim() || null,
-          imageUrl: trialUploadedImage,
+          prompt: trialPrompt.trim(),
+          imageUrl: uploadedImageUrl,
           clientId: getClientId(),
         }
       });
