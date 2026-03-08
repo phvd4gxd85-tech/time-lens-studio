@@ -17,14 +17,17 @@ serve(async (req) => {
       throw new Error('XAI_API_KEY is not configured');
     }
 
-    const { prompt, clientId } = await req.json();
-
-    if (!prompt || typeof prompt !== 'string') {
-      throw new Error("Valid prompt is required");
-    }
+    const { prompt, clientId, imageUrl } = await req.json();
 
     if (!clientId || typeof clientId !== 'string') {
       throw new Error("Client ID is required");
+    }
+
+    const hasPrompt = typeof prompt === 'string' && prompt.trim().length > 0;
+    const hasImage = typeof imageUrl === 'string' && (imageUrl.startsWith('data:image') || imageUrl.startsWith('https://'));
+
+    if (!hasPrompt && !hasImage) {
+      throw new Error("Provide either a prompt or an image");
     }
 
     // Use service role for DB operations
@@ -38,7 +41,7 @@ serve(async (req) => {
       .from('free_trials')
       .select('id')
       .eq('client_id', clientId)
-      .single();
+      .maybeSingle();
 
     if (existingTrial) {
       return new Response(
@@ -47,50 +50,98 @@ serve(async (req) => {
       );
     }
 
-    const trimmedPrompt = prompt.length > 2000 ? prompt.substring(0, 2000) : prompt;
+    const trimmedPrompt = hasPrompt
+      ? prompt.trim().substring(0, 2000)
+      : "Create subtle cinematic movement from the image";
+
     console.log("Free trial generation for client:", clientId);
 
-    // Step 1: Generate image with xAI Grok
-    console.log("Generating trial image...");
-    const imageResponse = await fetch("https://api.x.ai/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${XAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "grok-imagine-image",
-        prompt: trimmedPrompt,
-        n: 1,
-      })
-    });
+    let trialImageUrl: string | null = null;
 
-    if (!imageResponse.ok) {
-      const errorText = await imageResponse.text();
-      console.error("xAI image error:", imageResponse.status, errorText);
-      throw new Error(`Image generation failed: ${imageResponse.status}`);
+    // If user uploaded a data image, upload it so we can use a stable public URL
+    if (hasImage && imageUrl.startsWith('data:image')) {
+      try {
+        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (!matches) throw new Error("Invalid base64 image format");
+
+        const mimeType = matches[1];
+        const base64Data = matches[2];
+        const extension = mimeType.split('/')[1] || 'jpg';
+
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const fileName = `trial/${clientId}/${Date.now()}.${extension}`;
+        const { error: uploadError } = await supabaseClient
+          .storage
+          .from('videos')
+          .upload(fileName, bytes, { contentType: mimeType, upsert: true });
+
+        if (uploadError) throw new Error(`Failed to upload trial image: ${uploadError.message}`);
+
+        const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
+        trialImageUrl = publicUrl;
+      } catch (uploadError) {
+        console.error("Trial image upload error:", uploadError);
+        throw new Error("Failed to process uploaded image");
+      }
+    } else if (hasImage && imageUrl.startsWith('https://')) {
+      trialImageUrl = imageUrl;
     }
 
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.data?.[0]?.url;
+    // If no image was provided, generate one from prompt
+    if (!trialImageUrl) {
+      console.log("Generating trial image from prompt...");
+      const imageResponse = await fetch("https://api.x.ai/v1/images/generations", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${XAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "grok-imagine-image",
+          prompt: trimmedPrompt,
+          n: 1,
+        })
+      });
 
-    if (!imageUrl) {
-      throw new Error("No image returned from AI");
+      if (!imageResponse.ok) {
+        const errorText = await imageResponse.text();
+        console.error("xAI image error:", imageResponse.status, errorText);
+        throw new Error(`Image generation failed: ${imageResponse.status}`);
+      }
+
+      const imageData = await imageResponse.json();
+      trialImageUrl = imageData.data?.[0]?.url ?? null;
+
+      if (!trialImageUrl) {
+        throw new Error("No image returned from AI");
+      }
     }
 
-    // Step 2: Generate short video (4 seconds) with xAI Grok
+    // Generate short video (4 seconds), using image if available
     console.log("Generating trial video (4 sec)...");
+    const videoPayload: Record<string, unknown> = {
+      model: "grok-imagine-video",
+      prompt: trimmedPrompt,
+      duration: 4,
+    };
+
+    if (trialImageUrl) {
+      videoPayload.image = { url: trialImageUrl };
+      console.log("Using trial reference image URL:", trialImageUrl);
+    }
+
     const videoResponse = await fetch("https://api.x.ai/v1/videos/generations", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${XAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "grok-imagine-video",
-        prompt: trimmedPrompt,
-        duration: 4,
-      })
+      body: JSON.stringify(videoPayload)
     });
 
     if (!videoResponse.ok) {
@@ -119,8 +170,8 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        imageUrl,
+      JSON.stringify({
+        imageUrl: trialImageUrl,
         videoRequestId,
         status: "processing"
       }),
