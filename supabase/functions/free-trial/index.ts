@@ -19,15 +19,16 @@ serve(async (req) => {
 
     // Validate inputs
     if (!clientId || typeof clientId !== 'string') {
+      // ALWAYS return 200 so supabase SDK puts body in `data`
       return new Response(
-        JSON.stringify({ error: "Client ID krävs" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        JSON.stringify({ success: false, error: "Client ID krävs" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return new Response(
-        JSON.stringify({ error: "En textprompt krävs" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        JSON.stringify({ success: false, error: "En textprompt krävs" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
@@ -45,8 +46,8 @@ serve(async (req) => {
 
     if (existingTrial) {
       return new Response(
-        JSON.stringify({ error: "Du har redan använt ditt gratisprov", trial_used: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        JSON.stringify({ success: false, error: "Du har redan använt ditt gratisprov", trial_used: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
@@ -103,15 +104,15 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ videoRequestId, status: "processing" }),
+      JSON.stringify({ success: true, videoRequestId, status: "processing" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
 
   } catch (error) {
     console.error("Error in free-trial:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Ett oväntat fel uppstod" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Ett oväntat fel uppstod" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   }
 });
