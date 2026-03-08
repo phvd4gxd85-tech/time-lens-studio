@@ -179,7 +179,7 @@ const Home = () => {
   };
 
   const handleFreeTrial = async () => {
-    if (trialUsed || !trialPrompt.trim()) return;
+    if (!trialPrompt.trim()) return;
 
     setIsTrialLoading(true);
 
