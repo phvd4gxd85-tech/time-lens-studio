@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
+import showcaseVideo from '@/assets/example-showcase.mov';
 
 const Home = () => {
   const { toast } = useToast();
