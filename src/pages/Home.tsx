@@ -1,10 +1,10 @@
-import { Film, Sparkles, Video, Lightbulb, Camera } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Film, Camera, Video } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect, useRef, useCallback, type ChangeEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 import ContactForm from '@/components/ContactForm';
 import exampleVideo from '@/assets/example-video.mov';
@@ -19,20 +19,12 @@ const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Free trial states
-  const [trialLoading, setTrialLoading] = useState(false);
-  const [trialUsed, setTrialUsed] = useState(false);
-  const [trialPrompt, setTrialPrompt] = useState('');
-  const [trialFile, setTrialFile] = useState<File | null>(null);
-  const [trialPreview, setTrialPreview] = useState<string | null>(null);
-  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
-  const [trialPolling, setTrialPolling] = useState(false);
-  // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
   const videoRef3 = useRef<HTMLVideoElement>(null);
   const videoRef4 = useRef<HTMLVideoElement>(null);
 
+  // Auto-pause videos when scrolled out of view
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -48,10 +40,9 @@ const Home = () => {
       { threshold: 0.25 }
     );
 
-    if (videoRef1.current) observer.observe(videoRef1.current);
-    if (videoRef2.current) observer.observe(videoRef2.current);
-    if (videoRef3.current) observer.observe(videoRef3.current);
-    if (videoRef4.current) observer.observe(videoRef4.current);
+    [videoRef1, videoRef2, videoRef3, videoRef4].forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
 
     return () => observer.disconnect();
   }, []);
@@ -60,10 +51,10 @@ const Home = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
-    
+
     if (sessionId) {
       window.history.replaceState({}, '', window.location.pathname);
-      
+
       const verifyPayment = async () => {
         try {
           const { data, error } = await supabase.functions.invoke('verify-payment', {
@@ -73,8 +64,8 @@ const Home = () => {
           if (error) {
             toast({
               title: language === 'sv' ? "Verifieringsfel" : "Verification Error",
-              description: language === 'sv' 
-                ? "Kunde inte verifiera betalningen. Kontakta support." 
+              description: language === 'sv'
+                ? "Kunde inte verifiera betalningen. Kontakta support."
                 : "Could not verify payment. Contact support.",
               variant: "destructive",
             });
@@ -82,21 +73,20 @@ const Home = () => {
           }
 
           await refreshCredits();
-          
+
           toast({
             title: language === 'sv' ? "Betalning Lyckades!" : "Payment Successful!",
-            description: language === 'sv' 
-              ? `Dina krediter har lagts till: ${data.credits_added.videos} videos och ${data.credits_added.images} bilder` 
+            description: language === 'sv'
+              ? `Dina krediter har lagts till: ${data.credits_added.videos} videos och ${data.credits_added.images} bilder`
               : `Your credits have been added: ${data.credits_added.videos} videos and ${data.credits_added.images} images`,
           });
 
-          // Redirect to dashboard after successful payment
           navigate('/dashboard');
         } catch (err) {
           console.error('Error verifying payment:', err);
         }
       };
-      
+
       verifyPayment();
     }
   }, [language, refreshCredits, toast, navigate]);
@@ -130,123 +120,6 @@ const Home = () => {
       });
     } finally {
       setLoading(null);
-    }
-  };
-
-  // --- Free trial handlers ---
-  const getClientId = useCallback(() => {
-    let id = localStorage.getItem('vai_client_id');
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem('vai_client_id', id);
-    }
-    return id;
-  }, []);
-
-  const handleTrialImage = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    setTrialFile(file);
-    const url = URL.createObjectURL(file);
-    setTrialPreview(url);
-  };
-
-  const handleFreeTrial = async () => {
-    if (!trialPrompt.trim() || trialLoading || trialUsed) return;
-    setTrialLoading(true);
-    setTrialVideoUrl(null);
-
-    try {
-      // Step 1: Convert image to base64 if provided (avoids storage auth issues for anonymous users)
-      let imageBase64: string | null = null;
-      let imageMimeType: string | null = null;
-      if (trialFile) {
-        const buffer = await trialFile.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        imageBase64 = btoa(binary);
-        imageMimeType = trialFile.type;
-      }
-
-      // Step 2: Call free-trial edge function (small payload, just URL + prompt)
-      console.log('Calling free-trial with prompt:', trialPrompt.trim().substring(0, 50));
-      const { data, error } = await supabase.functions.invoke('free-trial', {
-        body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageBase64, imageMimeType }
-      });
-
-      console.log('Free trial response:', JSON.stringify(data), 'error:', error);
-
-      // All responses come back as 200 with success/error in data
-      if (error) {
-        throw new Error(language === 'sv' ? 'Kunde inte kontakta servern' : 'Could not reach server');
-      }
-
-      if (!data?.success) {
-        if (data?.trial_used) {
-          setTrialUsed(true);
-          throw new Error(language === 'sv' ? 'Du har redan använt ditt gratisprov' : 'You have already used your free trial');
-        }
-        throw new Error(data?.error || (language === 'sv' ? 'Något gick fel' : 'Something went wrong'));
-      }
-
-      if (!data.videoRequestId) throw new Error('Inget video-ID mottaget');
-
-      // Mark trial as used only after successful start
-      setTrialUsed(true);
-
-      toast({
-        title: language === 'sv' ? 'Video skapas!' : 'Video creating!',
-        description: language === 'sv' ? 'Din 4-sekunders video genereras nu. Vänta ca 1-2 minuter.' : 'Your 4-second video is being generated. Wait about 1-2 minutes.',
-      });
-
-      // Step 3: Poll for completion
-      setTrialPolling(true);
-      const videoReqId = data.videoRequestId;
-      const clientId = getClientId();
-      const interval = setInterval(async () => {
-        try {
-          const { data: poll } = await supabase.functions.invoke('poll-trial-video', {
-            body: { requestId: videoReqId, clientId }
-          });
-          if (poll?.status === 'completed' && poll?.videoUrl) {
-            setTrialVideoUrl(poll.videoUrl);
-            setTrialPolling(false);
-            clearInterval(interval);
-            toast({
-              title: language === 'sv' ? 'Video klar!' : 'Video ready!',
-              description: language === 'sv' ? 'Din video är nu klar!' : 'Your video is now ready!',
-            });
-          } else if (poll?.status === 'failed') {
-            setTrialPolling(false);
-            clearInterval(interval);
-            toast({
-              title: language === 'sv' ? 'Misslyckades' : 'Failed',
-              description: poll?.error || 'Videogenerering misslyckades',
-              variant: 'destructive',
-            });
-          }
-        } catch (e) {
-          console.error('Poll error:', e);
-        }
-      }, 5000);
-
-      // Safety timeout after 5 minutes
-      setTimeout(() => {
-        clearInterval(interval);
-        setTrialPolling(false);
-      }, 300000);
-
-    } catch (err) {
-      toast({
-        title: language === 'sv' ? 'Fel' : 'Error',
-        description: err instanceof Error ? err.message : 'Något gick fel',
-        variant: 'destructive',
-      });
-    } finally {
-      setTrialLoading(false);
     }
   };
 
@@ -291,7 +164,7 @@ const Home = () => {
             </h1>
             <div className="flex justify-center mb-6">
               <svg width="200" height="60" viewBox="0 0 200 60">
-                <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30" 
+                <path d="M20,30 Q40,10 60,30 T100,30 T140,30 T180,30"
                       stroke="#D4AF37" strokeWidth="2" fill="none"/>
                 <rect x="15" y="20" width="8" height="20" fill="#D4AF37" opacity="0.6"/>
                 <rect x="25" y="20" width="8" height="20" fill="#D4AF37" opacity="0.4"/>
@@ -309,11 +182,11 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Main Example Video - First thing visitors see */}
+          {/* Main Example Video */}
           <div className="max-w-4xl mx-auto mt-8">
-            <video 
+            <video
               ref={videoRef1}
-              src={exampleVideo} 
+              src={exampleVideo}
               controls autoPlay loop muted playsInline
               className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
             />
@@ -321,108 +194,18 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Free Trial Section */}
-      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            <Sparkles className="w-10 h-10 text-amber-400" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-            {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
-          </h2>
-          <p className="text-amber-200/80 text-lg mb-8 max-w-lg mx-auto">
-            {language === 'sv'
-              ? 'Testa vår AI-teknik helt gratis. Skriv en prompt, ladda upp en bild och få en kort video (4 sek) utan att skapa konto.'
-              : 'Test our AI technology for free. Write a prompt, upload an image and get a short video (4 sec) without creating an account.'}
-          </p>
-
-          <div className="w-full max-w-lg mx-auto space-y-4 mb-6 text-left">
-            {/* Prompt */}
-            <textarea
-              value={trialPrompt}
-              onChange={(e) => setTrialPrompt(e.target.value)}
-              placeholder={language === 'sv' ? 'Beskriv vad som ska hända i videon (obligatoriskt)...' : 'Describe what should happen in the video (required)...'}
-              className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[100px] focus:outline-none focus:border-amber-500"
-              disabled={trialLoading || trialUsed}
-            />
-
-            {/* Image upload */}
-            <label className="block">
-              <span className="block text-amber-200 text-sm mb-2">
-                {language === 'sv' ? 'Ladda upp bild för video (valfritt)' : 'Upload image for video (optional)'}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleTrialImage}
-                disabled={trialLoading || trialUsed}
-                className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
-              />
-            </label>
-
-            {/* Image preview */}
-            {trialPreview && (
-              <img src={trialPreview} alt="Preview" className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
-            )}
-          </div>
-
-          {/* Generate button */}
-          <button
-            onClick={handleFreeTrial}
-            disabled={trialLoading || trialUsed || !trialPrompt.trim()}
-            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
-          >
-            {trialLoading
-              ? (language === 'sv' ? 'Skapar video...' : 'Creating video...')
-              : trialUsed
-                ? (language === 'sv' ? 'Gratisprov använt' : 'Free trial used')
-                : (language === 'sv' ? '✨ Generera gratis video' : '✨ Generate free video')}
-          </button>
-
-          <p className="text-amber-300/50 text-xs mb-6">
-            {language === 'sv'
-              ? 'En gång per person. För längre videor (upp till 10 sek) krävs krediter.'
-              : 'Once per person. For longer videos (up to 10 sec) credits are required.'}
-          </p>
-
-          {/* Polling indicator */}
-          {trialPolling && !trialVideoUrl && (
-            <div className="bg-black/40 p-6 rounded-lg border border-amber-600/50 max-w-lg mx-auto">
-              <p className="text-amber-200 animate-pulse text-lg">
-                {language === 'sv' ? '⏳ Video genereras... vänta ca 1-2 minuter' : '⏳ Video generating... wait about 1-2 minutes'}
-              </p>
-            </div>
-          )}
-
-          {/* Completed video */}
-          {trialVideoUrl && (
-            <div className="bg-black/40 p-6 rounded-lg border border-amber-600/50 max-w-lg mx-auto space-y-4">
-              <h3 className="text-amber-100 font-bold text-xl">
-                {language === 'sv' ? '🎬 Din video är klar!' : '🎬 Your video is ready!'}
-              </h3>
-              <video src={trialVideoUrl} controls autoPlay className="w-full rounded-lg" />
-              <p className="text-amber-300 text-sm">
-                {language === 'sv'
-                  ? 'Gillar du resultatet? Köp ett paket för längre videor och fler genereringar!'
-                  : 'Like the result? Buy a package for longer videos and more generations!'}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-
+      {/* Showcase Videos */}
       <div className="relative py-16 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <video 
+          <video
             ref={videoRef3}
-            src={showcaseVideo} 
+            src={showcaseVideo}
             controls autoPlay loop muted playsInline
             className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
           />
-          <video 
+          <video
             ref={videoRef4}
-            src={showcaseVideo2} 
+            src={showcaseVideo2}
             controls autoPlay loop muted playsInline
             className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
           />
@@ -432,25 +215,25 @@ const Home = () => {
       {/* Santa Example Video */}
       <div className="relative py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <video 
+          <video
             ref={videoRef2}
-            src={santaExample} 
+            src={santaExample}
             controls autoPlay loop muted playsInline
             className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
           />
         </div>
       </div>
 
-      {/* How to write a prompt */}
+      {/* What is a prompt */}
       <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-4xl mx-auto">
           <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">
             {language === 'sv' ? 'Vad är en prompt?' : 'What is a prompt?'}
           </h3>
-          
+
           <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border border-amber-600/40 rounded-lg space-y-6">
             <p className="text-amber-200/90 text-lg leading-relaxed">
-              {language === 'sv' 
+              {language === 'sv'
                 ? 'En prompt är den instruktion du ger till en AI, ungefär som en filmregissör beskriver en scen. Ju tydligare du beskriver miljö, stil, ljus och stämning, desto mer exakt blir resultatet.'
                 : 'A prompt is the instruction you give to an AI, similar to how a director describes a scene. The clearer you describe environment, style, light and mood, the more accurate the result.'}
             </p>
@@ -482,7 +265,7 @@ const Home = () => {
             <div className="bg-black/30 p-4 rounded border border-amber-600/30">
               <p className="text-amber-300 font-bold mb-2">💡 {language === 'sv' ? 'Tips:' : 'Tip:'}</p>
               <p className="text-amber-200/90">
-                {language === 'sv' 
+                {language === 'sv'
                   ? 'Ange också vad AI:n inte får göra, t.ex. "ändra inte bakgrunden" eller "lägg inte till nya objekt".'
                   : 'Also specify what the AI must not do, e.g. "don\'t change the background" or "don\'t add new objects".'}
               </p>
@@ -503,22 +286,22 @@ const Home = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { 
-                name: language === 'sv' ? 'Klassisk' : 'Classic', 
+              {
+                name: language === 'sv' ? 'Klassisk' : 'Classic',
                 subtitle: language === 'sv' ? '$5 (ca 55 kr)' : '$5 (~55 SEK)',
                 price: "$5", videos: 3, images: 8,
                 color: "bg-amber-900", borderColor: "border-amber-600",
                 packageType: "klassisk" as const
               },
-              { 
-                name: 'Standard', 
+              {
+                name: 'Standard',
                 subtitle: language === 'sv' ? '$12 (ca 130 kr)' : '$12 (~130 SEK)',
                 price: "$12", videos: 8, images: 20,
                 color: "bg-red-900", borderColor: "border-red-700",
                 packageType: "standard" as const
               },
-              { 
-                name: 'Premium', 
+              {
+                name: 'Premium',
                 subtitle: language === 'sv' ? '$22 (ca 240 kr)' : '$22 (~240 SEK)',
                 price: "$22", videos: 15, images: 40,
                 color: "bg-slate-800", borderColor: "border-slate-600",
@@ -536,7 +319,7 @@ const Home = () => {
                   <h3 className="text-3xl font-bold mb-2 text-amber-100">{pkg.name}</h3>
                   <p className="text-amber-300/60 italic mb-4">{pkg.subtitle}</p>
                   <div className="text-5xl font-bold mb-6 text-amber-100">{pkg.price}</div>
-                  
+
                   <div className="space-y-3 mb-8 flex-grow">
                     <div className="flex items-center gap-3 text-amber-200">
                       <Camera className="w-5 h-5 text-amber-500" />
@@ -548,7 +331,7 @@ const Home = () => {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => handlePurchase(pkg.packageType)}
                     disabled={loading === pkg.packageType}
                     className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed"
@@ -593,7 +376,7 @@ const Home = () => {
             </div>
           </div>
           <p className="text-amber-200/60 text-xs mb-4 max-w-2xl mx-auto">
-            {language === 'sv' 
+            {language === 'sv'
               ? 'Priser inklusive moms. Paketen ger tillgång till hög kvalitet och ljud i videon. Tack för att du testar!'
               : 'Prices include VAT. Packages include high quality and audio in videos. Thank you for trying!'}
           </p>
