@@ -169,17 +169,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
       
-      {/* Welcome Section */}
-      <div className="relative pt-8 pb-12 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-            {language === 'sv' ? 'Din Studio' : 'Your Studio'}
-          </h1>
-          <p className="text-amber-200/70 text-lg">
-            {language === 'sv' ? 'Skapa bilder och videor med AI' : 'Create images and videos with AI'}
-          </p>
-        </div>
-      </div>
+      <div className="pt-4"></div>
 
       {/* Video Generator Section */}
       <div className="relative py-12 px-4">
