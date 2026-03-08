@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
 import showcaseVideo from '@/assets/example-showcase.mov';
+import showcaseVideo2 from '@/assets/example-showcase-2.mov';
 
 const Home = () => {
   const { toast } = useToast();
@@ -28,6 +29,7 @@ const Home = () => {
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
   const videoRef3 = useRef<HTMLVideoElement>(null);
+  const videoRef4 = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,6 +49,7 @@ const Home = () => {
     if (videoRef1.current) observer.observe(videoRef1.current);
     if (videoRef2.current) observer.observe(videoRef2.current);
     if (videoRef3.current) observer.observe(videoRef3.current);
+    if (videoRef4.current) observer.observe(videoRef4.current);
 
     return () => observer.disconnect();
   }, []);
@@ -338,14 +341,20 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Showcase Video */}
+      {/* Showcase Videos Side by Side */}
       <div className="relative py-16 px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <video 
             ref={videoRef3}
             src={showcaseVideo} 
             controls autoPlay loop muted playsInline
-            className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+          />
+          <video 
+            ref={videoRef4}
+            src={showcaseVideo2} 
+            controls autoPlay loop muted playsInline
+            className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
           />
         </div>
       </div>
