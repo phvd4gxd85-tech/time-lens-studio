@@ -209,28 +209,20 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // --- Rate limiting: clientId + IP ---
+    // --- Rate limiting: IP only (generous cap to avoid blocking legitimate retries) ---
     const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('cf-connecting-ip')
       || 'unknown';
 
-    const { data: existingByClient } = await supabaseClient
-      .from('free_trials')
-      .select('id')
-      .eq('client_id', clientId)
-      .maybeSingle();
-
-    if (existingByClient) {
-      return jsonResponse({ error: "Prov redan använt", trial_used: true }, 403);
-    }
-
     if (ipAddress !== 'unknown') {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data: trialsByIp } = await supabaseClient
         .from('free_trials')
         .select('id')
-        .eq('ip_address', ipAddress);
+        .eq('ip_address', ipAddress)
+        .gte('created_at', since);
 
-      if (trialsByIp && trialsByIp.length >= 2) {
+      if (trialsByIp && trialsByIp.length >= 20) {
         return jsonResponse({ error: "Provgräns nådd för ditt nätverk", trial_used: true }, 403);
       }
     }
