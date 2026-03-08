@@ -21,3 +21,9 @@ verify_jwt = false
 [functions.chat-assistant]
 verify_jwt = false
 
+[functions.free-trial]
+verify_jwt = false
+
+[functions.poll-trial-video]
+verify_jwt = false
+
