@@ -46,6 +46,7 @@ const Home = () => {
 
     if (videoRef1.current) observer.observe(videoRef1.current);
     if (videoRef2.current) observer.observe(videoRef2.current);
+    if (videoRef3.current) observer.observe(videoRef3.current);
 
     return () => observer.disconnect();
   }, []);
