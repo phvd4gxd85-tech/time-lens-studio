@@ -368,8 +368,8 @@ const Home = () => {
 
           <p className="text-amber-300/50 text-xs">
             {language === 'sv' 
-              ? 'En gång per person. Betalda paket ger videor upp till 10 sekunder!'
-              : 'Once per person. Paid packages give videos up to 10 seconds!'}
+              ? 'En gång per person. För längre videor (upp till 10 sek) krävs krediter – se våra paket nedan!'
+              : 'Once per person. For longer videos (up to 10 sec) credits are required – see our packages below!'}
           </p>
 
           {trialImageUrl && (
