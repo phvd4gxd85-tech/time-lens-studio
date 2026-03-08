@@ -1,0 +1,1 @@
+ALTER TABLE public.free_trials DROP CONSTRAINT free_trials_client_id_key;
