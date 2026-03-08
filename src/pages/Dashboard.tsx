@@ -150,12 +150,15 @@ const Dashboard = () => {
 
     const result = await downloadFileFromUrl(generatedImage, `ai-image-${Date.now()}.png`);
 
+    const descriptions: Record<string, { sv: string; en: string }> = {
+      downloaded: { sv: 'Din bild laddas ner.', en: 'Your image is downloading.' },
+      shared: { sv: 'Välj "Spara bild" i delningsmenyn.', en: 'Choose "Save Image" in the share menu.' },
+      opened: { sv: 'Håll inne på bilden och välj "Spara bild".', en: 'Long-press the image and choose "Save Image".' },
+    };
+
     toast({
-      title: language === 'sv' ? 'Nedladdning startad' : 'Download started',
-      description:
-        result === 'downloaded'
-          ? (language === 'sv' ? 'Din bild laddas ner.' : 'Your image is downloading.')
-          : (language === 'sv' ? 'Bilden öppnades i ny flik – spara därifrån på mobilen.' : 'Image opened in a new tab — save it there on mobile.'),
+      title: language === 'sv' ? 'Nedladdning' : 'Download',
+      description: descriptions[result]?.[language] ?? descriptions.downloaded[language],
     });
   };
 

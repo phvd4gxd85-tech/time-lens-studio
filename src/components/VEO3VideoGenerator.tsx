@@ -258,12 +258,15 @@ export const VEO3VideoGenerator = () => {
 
     const result = await downloadFileFromUrl(videoUrl, `veo3-video-${Date.now()}.mp4`);
 
+    const descriptions: Record<string, { sv: string; en: string }> = {
+      downloaded: { sv: 'Din video laddas ner.', en: 'Your video is downloading.' },
+      shared: { sv: 'Välj "Spara video" i delningsmenyn.', en: 'Choose "Save Video" in the share menu.' },
+      opened: { sv: 'Håll inne på videon och välj "Spara till Bilder".', en: 'Long-press the video and choose "Save to Photos".' },
+    };
+
     toast({
-      title: language === 'sv' ? 'Nedladdning startad' : 'Download started',
-      description:
-        result === 'downloaded'
-          ? (language === 'sv' ? 'Din video laddas ner.' : 'Your video is downloading.')
-          : (language === 'sv' ? 'Videon öppnades i ny flik – spara därifrån på mobilen.' : 'Video opened in a new tab — save it there on mobile.'),
+      title: language === 'sv' ? 'Nedladdning' : 'Download',
+      description: descriptions[result]?.[language] ?? descriptions.downloaded[language],
     });
   };
 
