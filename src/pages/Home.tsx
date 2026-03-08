@@ -133,6 +133,116 @@ const Home = () => {
     }
   };
 
+  // --- Free trial handlers ---
+  const getClientId = useCallback(() => {
+    let id = localStorage.getItem('vai_client_id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('vai_client_id', id);
+    }
+    return id;
+  }, []);
+
+  const handleTrialImage = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setTrialFile(file);
+    const url = URL.createObjectURL(file);
+    setTrialPreview(url);
+  };
+
+  const handleFreeTrial = async () => {
+    if (!trialPrompt.trim() || trialLoading || trialUsed) return;
+    setTrialLoading(true);
+    setTrialVideoUrl(null);
+
+    try {
+      // Step 1: Upload image to storage if provided
+      let imageUrl: string | null = null;
+      if (trialFile) {
+        const clientId = getClientId();
+        const ext = trialFile.name.split('.').pop() || 'jpg';
+        const path = `trial-input/${clientId}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from('videos')
+          .upload(path, trialFile, { contentType: trialFile.type, upsert: true });
+        if (upErr) throw new Error('Kunde inte ladda upp bilden');
+        const { data: urlData } = supabase.storage.from('videos').getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      }
+
+      // Step 2: Call free-trial edge function (small payload, just URL + prompt)
+      const { data, error } = await supabase.functions.invoke('free-trial', {
+        body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageUrl }
+      });
+
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('trial_used') || msg.includes('redan')) {
+          setTrialUsed(true);
+          localStorage.setItem('vai_trial_done', '1');
+        }
+        throw error;
+      }
+
+      if (!data?.videoRequestId) throw new Error('Inget video-ID mottaget');
+
+      // Mark trial as used
+      setTrialUsed(true);
+      localStorage.setItem('vai_trial_done', '1');
+
+      toast({
+        title: language === 'sv' ? 'Video skapas!' : 'Video creating!',
+        description: language === 'sv' ? 'Din 4-sekunders video genereras nu. Vänta ca 1-2 minuter.' : 'Your 4-second video is being generated. Wait about 1-2 minutes.',
+      });
+
+      // Step 3: Poll for completion
+      setTrialPolling(true);
+      const videoReqId = data.videoRequestId;
+      const clientId = getClientId();
+      const interval = setInterval(async () => {
+        try {
+          const { data: poll } = await supabase.functions.invoke('poll-trial-video', {
+            body: { requestId: videoReqId, clientId }
+          });
+          if (poll?.status === 'completed' && poll?.videoUrl) {
+            setTrialVideoUrl(poll.videoUrl);
+            setTrialPolling(false);
+            clearInterval(interval);
+            toast({
+              title: language === 'sv' ? 'Video klar!' : 'Video ready!',
+              description: language === 'sv' ? 'Din video är nu klar!' : 'Your video is now ready!',
+            });
+          } else if (poll?.status === 'failed') {
+            setTrialPolling(false);
+            clearInterval(interval);
+            toast({
+              title: language === 'sv' ? 'Misslyckades' : 'Failed',
+              description: poll?.error || 'Videogenerering misslyckades',
+              variant: 'destructive',
+            });
+          }
+        } catch (e) {
+          console.error('Poll error:', e);
+        }
+      }, 5000);
+
+      // Safety timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(interval);
+        setTrialPolling(false);
+      }, 300000);
+
+    } catch (err) {
+      toast({
+        title: language === 'sv' ? 'Fel' : 'Error',
+        description: err instanceof Error ? err.message : 'Något gick fel',
+        variant: 'destructive',
+      });
+    } finally {
+      setTrialLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
