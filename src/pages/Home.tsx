@@ -326,11 +326,36 @@ const Home = () => {
             {language === 'sv' 
               ? 'Testa vår AI-teknik helt gratis. Få 1 bild + 1 kort video (4 sek) utan att skapa konto.'
               : 'Test our AI technology completely free. Get 1 image + 1 short video (4 sec) without creating an account.'}
-          </p>
-          
+          <div className="w-full max-w-lg mx-auto space-y-4 mb-4 text-left">
+            <textarea
+              value={trialPrompt}
+              onChange={(e) => setTrialPrompt(e.target.value)}
+              placeholder={language === 'sv' ? 'Skriv en prompt för testet (valfritt om du laddar upp bild)...' : 'Write a prompt for the trial (optional if you upload an image)...'}
+              className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[110px]"
+              disabled={isTrialLoading || trialUsed}
+            />
+
+            <label className="block">
+              <span className="block text-amber-200 text-sm mb-2">
+                {language === 'sv' ? 'Ladda upp bild för video (valfritt)' : 'Upload image for video (optional)'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleTrialImageChange}
+                disabled={isTrialLoading || trialUsed}
+                className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
+              />
+            </label>
+
+            {trialUploadedImage && !trialUsed && (
+              <img src={trialUploadedImage} alt={language === 'sv' ? 'Uppladdad testbild' : 'Uploaded trial image'} className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
+            )}
+          </div>
+
           <button
             onClick={handleFreeTrial}
-            disabled={isTrialLoading || trialUsed}
+            disabled={isTrialLoading || trialUsed || (!trialPrompt.trim() && !trialUploadedImage)}
             className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
           >
             {isTrialLoading 
