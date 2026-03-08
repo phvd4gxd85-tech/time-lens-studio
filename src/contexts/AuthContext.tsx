@@ -90,13 +90,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
     if (error) {
       return { error: error.message };
+    }
+
+    // Check if user has any credits
+    if (data.user) {
+      const { data: tokens } = await supabase
+        .from('user_tokens')
+        .select('videos, images')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (tokens && tokens.videos <= 0 && tokens.images <= 0) {
+        navigate('/#priser');
+        return { error: null };
+      }
     }
     
     navigate('/dashboard');
