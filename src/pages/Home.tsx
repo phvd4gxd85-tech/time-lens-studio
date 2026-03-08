@@ -143,15 +143,52 @@ const Home = () => {
     return clientId;
   }, []);
 
-  const handleFreeTrial = async () => {
-    if (trialUsed) return;
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(file);
+    });
 
-    const defaultPrompt = "A beautiful vintage photograph from the 1960s, warm golden tones, nostalgic atmosphere, film grain effect";
+  const handleTrialImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: language === 'sv' ? 'Fel filtyp' : 'Invalid file type',
+        description: language === 'sv' ? 'Ladda upp en bildfil.' : 'Please upload an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setTrialUploadedImage(dataUrl);
+      setTrialImageUrl(dataUrl);
+    } catch (error) {
+      toast({
+        title: language === 'sv' ? 'Fel' : 'Error',
+        description: error instanceof Error ? error.message : (language === 'sv' ? 'Kunde inte läsa bilden' : 'Could not read image'),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleFreeTrial = async () => {
+    if (trialUsed || (!trialPrompt.trim() && !trialUploadedImage)) return;
+
     setIsTrialLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('free-trial', {
-        body: { prompt: defaultPrompt, clientId: getClientId() }
+        body: {
+          prompt: trialPrompt.trim() || null,
+          imageUrl: trialUploadedImage,
+          clientId: getClientId(),
+        }
       });
 
       if (error) {
@@ -192,7 +229,7 @@ const Home = () => {
       localStorage.setItem('vintage_ai_trial_used', 'true');
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
-        description: language === 'sv' ? "Din bild och video skapas nu." : "Your image and video are being created.",
+        description: language === 'sv' ? "Din bild och video (4 sek) skapas nu." : "Your image and 4-second video are being created.",
       });
     } catch (error) {
       toast({
