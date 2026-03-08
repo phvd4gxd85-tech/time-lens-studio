@@ -108,7 +108,7 @@ const Login = () => {
             <h2 className="text-3xl text-center text-amber-100 tracking-[0.15em] uppercase mb-8 font-bold">
               {forgotMode
                 ? (language === 'sv' ? 'Återställ Lösenord' : 'Reset Password')
-                : t.loginTitle}
+                : (language === 'sv' ? 'Logga In' : 'Log In')}
             </h2>
 
             {!forgotMode && (
