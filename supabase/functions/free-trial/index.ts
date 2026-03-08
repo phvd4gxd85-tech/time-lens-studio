@@ -15,7 +15,7 @@ serve(async (req) => {
     const XAI_API_KEY = Deno.env.get('XAI_API_KEY');
     if (!XAI_API_KEY) throw new Error('XAI_API_KEY is not configured');
 
-    const { prompt, clientId, imageUrl } = await req.json();
+    const { prompt, clientId, imageUrl, imageBase64, imageMimeType } = await req.json();
 
     // Validate inputs
     if (!clientId || typeof clientId !== 'string') {
