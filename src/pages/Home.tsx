@@ -180,7 +180,7 @@ const Home = () => {
   };
 
   const handleFreeTrial = async () => {
-    if (trialUsed || (!trialPrompt.trim() && !trialUploadedImage)) return;
+    if (trialUsed || !trialPrompt.trim()) return;
 
     setIsTrialLoading(true);
 
