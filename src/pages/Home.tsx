@@ -843,6 +843,57 @@ const Home = () => {
       </div>
 
 
+      {/* Free Trial Section */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-8">
+            {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
+          </h2>
+          
+          <button
+            onClick={handleFreeTrial}
+            disabled={isTrialLoading || trialUsed}
+            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-6"
+          >
+            {isTrialLoading 
+              ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
+              : trialUsed 
+                ? (language === 'sv' ? 'Prov redan använt' : 'Trial already used')
+                : (language === 'sv' ? 'Prova gratis – ingen inloggning behövs' : 'Try free – no login required')}
+          </button>
+
+          <p className="text-amber-200/80 text-sm leading-relaxed max-w-lg mx-auto">
+            {language === 'sv' 
+              ? 'Få 1 vintage-bild + 1 kort video (max 4 sekunder) helt gratis. Detta är en kort testvideo på max 4 sekunder. När du köper ett paket kan du välja längre videos upp till 10 sekunder!'
+              : 'Get 1 vintage image + 1 short video (max 4 seconds) completely free. This is a short test video of max 4 seconds. When you buy a package you can choose longer videos up to 10 seconds!'}
+          </p>
+
+          {trialImageUrl && (
+            <div className="mt-8 space-y-6">
+              <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis bild:' : 'Your free image:'}</h3>
+                <img src={trialImageUrl} alt="Trial result" className="w-full max-w-md mx-auto rounded" />
+              </div>
+              {trialVideoUrl ? (
+                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                  <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis video:' : 'Your free video:'}</h3>
+                  <video src={trialVideoUrl} controls className="w-full max-w-md mx-auto rounded" />
+                </div>
+              ) : trialVideoRequestId && (
+                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                  <p className="text-amber-200 animate-pulse">{language === 'sv' ? 'Video genereras...' : 'Video generating...'}</p>
+                </div>
+              )}
+              <p className="text-amber-300 text-sm">
+                {language === 'sv' 
+                  ? 'Gillar du? Skapa konto för att spara, dela eller skapa längre videos (upp till 10 sekunder) och fler!'
+                  : 'Like it? Create an account to save, share or create longer videos (up to 10 seconds) and more!'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Pricing Section */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-7xl mx-auto">
