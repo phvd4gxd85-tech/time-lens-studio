@@ -21,7 +21,7 @@ const Home = () => {
 
   // Free trial states
   const [trialLoading, setTrialLoading] = useState(false);
-  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vai_trial_done'));
+  const [trialUsed, setTrialUsed] = useState(false);
   const [trialPrompt, setTrialPrompt] = useState('');
   const [trialFile, setTrialFile] = useState<File | null>(null);
   const [trialPreview, setTrialPreview] = useState<string | null>(null);
