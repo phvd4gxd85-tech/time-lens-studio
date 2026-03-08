@@ -44,22 +44,18 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Check user has credits
-    const { data: tokenData, error: tokenError } = await supabaseClient
-      .from('user_tokens')
-      .select('videos')
-      .eq('user_id', userId)
-      .single();
+    // Atomically deduct video credit (prevents race condition)
+    const { data: creditResult, error: creditError } = await supabaseClient
+      .rpc('decrement_video_credit', { p_user_id: userId });
 
-    if (tokenError || !tokenData) {
-      throw new Error("Could not fetch user video credits");
+    if (creditError || !creditResult) {
+      return new Response(
+        JSON.stringify({ error: "Insufficient video credits. Please purchase more to continue." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    if (tokenData.videos < 1) {
-      throw new Error("Insufficient video credits. Please purchase more to continue.");
-    }
-
-    console.log(`User ${userId} has ${tokenData.videos} video credits`);
+    console.log(`Video credit deducted for user ${userId}`);
 
     const { prompt, imageUrl } = await req.json();
 
@@ -148,15 +144,7 @@ serve(async (req) => {
       throw new Error("No generation ID received from xAI");
     }
 
-    // Deduct credit
-    const { error: updateError } = await supabaseClient
-      .from('user_tokens')
-      .update({ videos: tokenData.videos - 1 })
-      .eq('user_id', userId);
-
-    if (updateError) {
-      console.error("Failed to deduct video credit:", updateError);
-    }
+    // Credit already deducted atomically above
 
     // Create tracking record
     const { error: dbError } = await supabaseClient

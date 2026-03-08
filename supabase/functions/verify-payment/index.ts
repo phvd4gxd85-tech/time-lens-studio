@@ -4,13 +4,33 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Authenticate user
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+  }
+
+  const supabaseAuth = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+  if (claimsError || !claimsData?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+  }
+
+  const userId = claimsData.claims.sub;
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -24,7 +44,7 @@ serve(async (req) => {
       throw new Error("Valid session ID is required");
     }
 
-    console.log("Verifying payment for session:", session_id);
+    console.log("Verifying payment for session:", session_id, "user:", userId);
 
     // Check if this session has already been processed (idempotency)
     const { data: existingPurchase } = await supabaseClient
@@ -41,10 +61,7 @@ serve(async (req) => {
           message: "Payment already processed",
           already_processed: true
         }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
@@ -60,8 +77,6 @@ serve(async (req) => {
     }
 
     console.log("Payment confirmed for session:", session_id);
-    console.log("Customer email:", session.customer_email || session.customer_details?.email);
-    console.log("Package type:", session.metadata?.package_type);
 
     const email = session.customer_email || session.customer_details?.email;
     const packageType = session.metadata?.package_type;
@@ -70,11 +85,18 @@ serve(async (req) => {
       throw new Error("Missing email or package type");
     }
 
-    // Define package credits based on actual pricing
+    // Verify that the authenticated user's email matches the payment email
+    const { data: userData } = await supabaseAuth.auth.getUser(token);
+    if (userData?.user?.email?.toLowerCase() !== email.toLowerCase()) {
+      console.error("Email mismatch: auth=", userData?.user?.email, "stripe=", email);
+      throw new Error("Payment email does not match authenticated user");
+    }
+
+    // Define package credits
     const packageCredits: Record<string, { videos: number; images: number }> = {
-      klassisk: { videos: 3, images: 8 },      // $5
-      standard: { videos: 8, images: 20 },     // $12
-      premium: { videos: 15, images: 40 }      // $22
+      klassisk: { videos: 3, images: 8 },
+      standard: { videos: 8, images: 20 },
+      premium: { videos: 15, images: 40 }
     };
 
     const credits = packageCredits[packageType];
@@ -82,49 +104,7 @@ serve(async (req) => {
       throw new Error(`Unknown package type: ${packageType}`);
     }
 
-    // Find or create user by email
-    let userId = null;
-    const users = (await supabaseClient.auth.admin.listUsers()).data.users;
-    const matchingUser = users.find(u => u.email === email);
-    
-    if (matchingUser) {
-      // Existing user
-      userId = matchingUser.id;
-      console.log("Found existing user:", userId);
-    } else {
-      // Create new user automatically after payment
-      console.log("Creating new user account for:", email);
-      
-      const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
-        email: email,
-        email_confirm: true,
-        user_metadata: { 
-          created_via: 'payment',
-          package_type: packageType 
-        }
-      });
-
-      if (createError || !newUser.user) {
-        console.error("Error creating user:", createError);
-        throw new Error("Failed to create user account");
-      }
-
-      userId = newUser.user.id;
-      console.log("New user created:", userId);
-
-      // Send password reset email so user can set their password
-      const { error: resetError } = await supabaseClient.auth.admin.generateLink({
-        type: 'recovery',
-        email: email
-      });
-
-      if (resetError) {
-        console.error("Error sending password reset:", resetError);
-        // Don't fail if reset email fails, user can request it later
-      }
-    }
-
-    // Update or create user credits
+    // Update credits for authenticated user
     const { data: currentCredits } = await supabaseClient
       .from('user_tokens')
       .select('videos, images')
@@ -132,7 +112,6 @@ serve(async (req) => {
       .single();
 
     if (currentCredits) {
-      // User already has credits, add more
       const { error: updateError } = await supabaseClient
         .from('user_tokens')
         .update({
@@ -145,28 +124,23 @@ serve(async (req) => {
         console.error("Error updating credits:", updateError);
         throw new Error("Failed to add credits");
       }
-
-      console.log(`Added ${credits.videos} videos and ${credits.images} images to user ${userId}`);
     } else {
-      // New user, credits will be set by trigger (handle_new_user) then we update
-      // Wait a moment for trigger to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { error: updateError } = await supabaseClient
+      // User has no token record yet (shouldn't happen due to trigger, but handle gracefully)
+      const { error: insertError } = await supabaseClient
         .from('user_tokens')
-        .update({
+        .insert({
+          user_id: userId,
           videos: credits.videos,
           images: credits.images
-        })
-        .eq('user_id', userId);
+        });
 
-      if (updateError) {
-        console.error("Error setting initial credits:", updateError);
+      if (insertError) {
+        console.error("Error inserting credits:", insertError);
         throw new Error("Failed to set credits");
       }
-
-      console.log(`Set initial ${credits.videos} videos and ${credits.images} images for new user ${userId}`);
     }
+
+    console.log(`Added ${credits.videos} videos and ${credits.images} images to user ${userId}`);
 
     // Record the purchase
     const { error: purchaseError } = await supabaseClient
@@ -186,22 +160,15 @@ serve(async (req) => {
 
     if (purchaseError) {
       console.error("Error recording purchase:", purchaseError);
-      // Don't fail if we can't record the purchase, credits were already added
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         credits_added: credits,
-        user_created: !matchingUser,
-        message: matchingUser 
-          ? "Payment verified and credits added" 
-          : "Payment verified, account created, and credits added. Check your email to set your password."
+        message: "Payment verified and credits added"
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
 
   } catch (error) {
@@ -209,10 +176,7 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

@@ -61,15 +61,15 @@ serve(async (req) => {
       throw new Error("Image URL must be HTTPS or base64 data");
     }
 
-    // Check credits
-    const { data: tokensData, error: tokensError } = await supabaseClient
-      .from('user_tokens')
-      .select('images')
-      .eq('user_id', userId)
-      .single();
+    // Atomically deduct image credit (prevents race condition)
+    const { data: creditResult, error: creditError } = await supabaseClient
+      .rpc('decrement_image_credit', { p_user_id: userId });
 
-    if (tokensError || !tokensData || tokensData.images < 1) {
-      throw new Error("Insufficient images credits");
+    if (creditError || !creditResult) {
+      return new Response(
+        JSON.stringify({ error: "Insufficient image credits. Please purchase more to continue." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const XAI_API_KEY = Deno.env.get("XAI_API_KEY");
@@ -113,13 +113,7 @@ serve(async (req) => {
       throw new Error("No image returned from AI");
     }
 
-    // Deduct credit
-    const { error: updateError } = await supabaseClient
-      .from('user_tokens')
-      .update({ images: tokensData.images - 1 })
-      .eq('user_id', userId);
-
-    if (updateError) console.error("Error updating image credits:", updateError);
+    // Credit already deducted atomically above
 
     return new Response(
       JSON.stringify({ imageUrl: generatedImageUrl }),

@@ -199,6 +199,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_image_credit: { Args: { p_user_id: string }; Returns: boolean }
+      decrement_video_credit: { Args: { p_user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
