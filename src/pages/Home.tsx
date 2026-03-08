@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+import ContactForm from '@/components/ContactForm';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
 import showcaseVideo from '@/assets/example-showcase.mov';
@@ -499,6 +500,9 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      {/* Contact Form */}
+      <ContactForm />
 
       {/* Footer */}
       <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 border-t border-amber-600/30">
