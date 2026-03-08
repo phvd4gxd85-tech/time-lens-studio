@@ -80,6 +80,7 @@ serve(async (req) => {
     const requestBody: any = {
       model: "grok-imagine-video",
       prompt: trimmedPrompt,
+      duration: 10,
     };
 
     // If image provided, upload to storage and use as reference
