@@ -260,10 +260,20 @@ const Home = () => {
               {t.tagline}
             </p>
           </div>
+
+          {/* Main Example Video - First thing visitors see */}
+          <div className="max-w-4xl mx-auto mt-8">
+            <video 
+              ref={videoRef1}
+              src={exampleVideo} 
+              controls autoPlay loop muted playsInline
+              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Free Trial Section - PROMINENT */}
+      {/* Free Trial Section */}
       <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6">
@@ -319,25 +329,6 @@ const Home = () => {
               </p>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Example Video Showcase */}
-      <div className="relative py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-              {language === 'sv' ? 'Se vad du kan skapa' : 'See what you can create'}
-            </h2>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <video 
-              ref={videoRef1}
-              src={exampleVideo} 
-              controls autoPlay loop muted playsInline
-              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
-            />
-          </div>
         </div>
       </div>
 
