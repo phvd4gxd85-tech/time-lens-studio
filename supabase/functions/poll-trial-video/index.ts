@@ -60,12 +60,24 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Trial video status:", data.state || data.status);
+    console.log("Trial video full response:", JSON.stringify(data));
 
     if (data.state === 'done' || data.status === 'completed') {
-      const videoUrl = data.video_url || data.result_url || data.output?.video_url;
+      // xAI may return video URL in various fields
+      const videoUrl = data.video_url 
+        || data.result_url 
+        || data.output?.video_url 
+        || data.output?.url
+        || data.url
+        || data.data?.[0]?.url
+        || data.data?.[0]?.video?.url;
+      
+      if (!videoUrl) {
+        console.error("Video done but no URL found in response:", JSON.stringify(data));
+      }
+      
       return new Response(
-        JSON.stringify({ status: 'completed', videoUrl }),
+        JSON.stringify({ status: 'completed', videoUrl: videoUrl || null }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
