@@ -1,0 +1,1 @@
+ALTER TABLE public.free_trials ADD COLUMN video_request_id text;
