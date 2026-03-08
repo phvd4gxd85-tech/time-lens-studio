@@ -212,7 +212,7 @@ const Home = () => {
         const pollTrialVideo = setInterval(async () => {
           try {
             const { data: statusData } = await supabase.functions.invoke('poll-trial-video', {
-              body: { requestId: data.videoRequestId }
+              body: { requestId: data.videoRequestId, clientId: getClientId() }
             });
             if (statusData?.videoUrl) {
               setTrialVideoUrl(statusData.videoUrl);
