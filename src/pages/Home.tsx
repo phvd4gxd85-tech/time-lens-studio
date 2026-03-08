@@ -1,7 +1,7 @@
-import { Film, Sparkles, Video, Lightbulb, Camera } from 'lucide-react';
+import { Film, Video, Lightbulb, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect, useRef, useCallback, type ChangeEvent } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,13 +19,6 @@ const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Free trial states
-  const [isTrialLoading, setIsTrialLoading] = useState(false);
-  const [trialPrompt, setTrialPrompt] = useState('');
-  const [trialUploadedImage, setTrialUploadedImage] = useState<string | null>(null);
-  const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
-  const [trialVideoRequestId, setTrialVideoRequestId] = useState<string | null>(null);
-  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
 
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
@@ -133,125 +126,6 @@ const Home = () => {
     }
   };
 
-  const getClientId = useCallback(() => {
-    let clientId = localStorage.getItem('vintage_ai_client_id');
-    if (!clientId) {
-      clientId = crypto.randomUUID();
-      localStorage.setItem('vintage_ai_client_id', clientId);
-    }
-    return clientId;
-  }, []);
-
-  const fileToDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('Failed to read image file'));
-      reader.readAsDataURL(file);
-    });
-
-  // Keep the original file reference for upload
-  const [trialFile, setTrialFile] = useState<File | null>(null);
-
-  const handleTrialImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: language === 'sv' ? 'Fel filtyp' : 'Invalid file type',
-        description: language === 'sv' ? 'Ladda upp en bildfil.' : 'Please upload an image file.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      setTrialUploadedImage(dataUrl); // for preview only
-      setTrialFile(file); // keep file for upload
-      setTrialImageUrl(null);
-      setTrialVideoUrl(null);
-      setTrialVideoRequestId(null);
-    } catch (error) {
-      toast({
-        title: language === 'sv' ? 'Fel' : 'Error',
-        description: error instanceof Error ? error.message : (language === 'sv' ? 'Kunde inte läsa bilden' : 'Could not read image'),
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleFreeTrial = async () => {
-    if (!trialPrompt.trim()) return;
-
-    setIsTrialLoading(true);
-
-    try {
-      // Upload image to storage FIRST (client-side) to avoid sending huge base64 to edge function
-      let uploadedImageUrl: string | null = null;
-      if (trialFile) {
-        const clientId = getClientId();
-        const ext = trialFile.name.split('.').pop() || 'jpg';
-        const fileName = `trial-input/${clientId}/${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(fileName, trialFile, { contentType: trialFile.type, upsert: true });
-        
-        if (uploadError) {
-          throw new Error(language === 'sv' ? 'Kunde inte ladda upp bilden' : 'Could not upload image');
-        }
-        
-        const { data: urlData } = supabase.storage.from('videos').getPublicUrl(fileName);
-        uploadedImageUrl = urlData.publicUrl;
-      }
-
-      const { data, error } = await supabase.functions.invoke('free-trial', {
-        body: {
-          prompt: trialPrompt.trim(),
-          imageUrl: uploadedImageUrl,
-          clientId: getClientId(),
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.imageUrl) setTrialImageUrl(data.imageUrl);
-
-      if (data?.videoRequestId) {
-        setTrialVideoRequestId(data.videoRequestId);
-        const pollTrialVideo = setInterval(async () => {
-          try {
-            const { data: statusData } = await supabase.functions.invoke('poll-trial-video', {
-              body: { requestId: data.videoRequestId, clientId: getClientId() }
-            });
-            if (statusData?.videoUrl) {
-              setTrialVideoUrl(statusData.videoUrl);
-              clearInterval(pollTrialVideo);
-            }
-          } catch (e) {
-            console.error("Trial poll error:", e);
-          }
-        }, 5000);
-        setTimeout(() => clearInterval(pollTrialVideo), 300000);
-      }
-
-      toast({
-        title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
-        description: language === 'sv' ? "Din video (4 sek) skapas nu." : "Your 4-second video is being created.",
-      });
-    } catch (error) {
-      toast({
-        title: language === 'sv' ? "Fel" : "Error",
-        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta provet" : "Could not start trial"),
-        variant: "destructive",
-      });
-    } finally {
-      setIsTrialLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -324,88 +198,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Free Trial Section */}
-      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            <Sparkles className="w-10 h-10 text-amber-400" />
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-            {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
-          </h2>
-          <p className="text-amber-200/80 text-lg mb-8 max-w-lg mx-auto">
-            {language === 'sv' 
-              ? 'Testa vår AI-teknik helt gratis. Få 1 bild + 1 kort video (4 sek) utan att skapa konto.'
-              : 'Test our AI technology completely free. Get 1 image + 1 short video (4 sec) without creating an account.'}
-          </p>
-          <div className="w-full max-w-lg mx-auto space-y-4 mb-4 text-left">
-            <textarea
-              value={trialPrompt}
-              onChange={(e) => setTrialPrompt(e.target.value)}
-              placeholder={language === 'sv' ? 'Skriv en prompt för testet (obligatorisk)...' : 'Write a prompt for the trial (required)...'}
-              className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[110px]"
-              disabled={isTrialLoading}
-            />
-
-            <label className="block">
-              <span className="block text-amber-200 text-sm mb-2">
-                {language === 'sv' ? 'Ladda upp bild för video (valfritt)' : 'Upload image for video (optional)'}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleTrialImageChange}
-                disabled={isTrialLoading}
-                className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
-              />
-            </label>
-
-            {trialUploadedImage && (
-              <img src={trialUploadedImage} alt={language === 'sv' ? 'Uppladdad testbild' : 'Uploaded trial image'} className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
-            )}
-          </div>
-
-          <button
-            onClick={handleFreeTrial}
-            disabled={isTrialLoading || !trialPrompt.trim()}
-            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
-          >
-            {isTrialLoading 
-              ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
-              : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
-          </button>
-
-          <p className="text-amber-300/50 text-xs">
-            {language === 'sv' 
-              ? 'Du kan testa med prompt + bild och få en kort video (4 sek).' 
-              : 'You can test with prompt + image and get a short 4-second video.'}
-          </p>
-
-          {trialImageUrl && !trialUploadedImage && (
-            <div className="mt-8 space-y-6">
-              <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
-                <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis bild:' : 'Your free image:'}</h3>
-                <img src={trialImageUrl} alt="Trial result" className="w-full max-w-md mx-auto rounded" />
-              </div>
-              {trialVideoUrl ? (
-                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
-                  <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis video:' : 'Your free video:'}</h3>
-                  <video src={trialVideoUrl} controls className="w-full max-w-md mx-auto rounded" />
-                </div>
-              ) : trialVideoRequestId && (
-                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
-                  <p className="text-amber-200 animate-pulse">{language === 'sv' ? 'Video genereras...' : 'Video generating...'}</p>
-                </div>
-              )}
-              <p className="text-amber-300 text-sm">
-                {language === 'sv' 
-                  ? 'Gillar du resultatet? Köp ett paket för längre videor (upp till 10 sekunder) och fler genereringar!'
-                  : 'Like the result? Buy a package for longer videos (up to 10 seconds) and more generations!'}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Showcase Videos Side by Side */}
       <div className="relative py-16 px-4">
