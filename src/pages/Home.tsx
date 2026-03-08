@@ -167,7 +167,9 @@ const Home = () => {
     try {
       const dataUrl = await fileToDataUrl(file);
       setTrialUploadedImage(dataUrl);
-      setTrialImageUrl(dataUrl);
+      setTrialImageUrl(null);
+      setTrialVideoUrl(null);
+      setTrialVideoRequestId(null);
     } catch (error) {
       toast({
         title: language === 'sv' ? 'Fel' : 'Error',
