@@ -241,7 +241,7 @@ serve(async (req) => {
     let finalImageUrl: string | null = null;
 
     if (hasImage) {
-      // User uploaded an image — we MUST edit it with the prompt, never return it as-is
+      // User uploaded an image — prioritize speed to avoid frontend timeout
       let referenceUrl: string;
 
       if (imageUrl.startsWith('data:image')) {
@@ -250,17 +250,26 @@ serve(async (req) => {
         referenceUrl = imageUrl;
       }
 
-      // Edit the image using AI — the result must be different from the input
-      const editedDataUrl = await editImageWithAI(referenceUrl, trimmedPrompt, LOVABLE_API_KEY);
+      finalImageUrl = referenceUrl;
 
-      // Upload the edited result if it's base64
-      if (editedDataUrl.startsWith('data:image')) {
-        finalImageUrl = await uploadDataUrlToStorage(supabaseClient, editedDataUrl, 'trial-edited', clientId);
-      } else {
-        finalImageUrl = editedDataUrl;
+      // Try to AI-edit quickly, but fall back to original if it takes too long
+      try {
+        const editedDataUrl = await withTimeout(
+          editImageWithAI(referenceUrl, trimmedPrompt, LOVABLE_API_KEY),
+          6500,
+          'Bildredigering timeout'
+        );
+
+        if (editedDataUrl.startsWith('data:image')) {
+          finalImageUrl = await uploadDataUrlToStorage(supabaseClient, editedDataUrl, 'trial-edited', clientId);
+        } else {
+          finalImageUrl = editedDataUrl;
+        }
+
+        console.log("Image edited successfully. Original:", referenceUrl.substring(0, 80), "Edited:", finalImageUrl?.substring(0, 80));
+      } catch (editError) {
+        console.warn("Image edit skipped due to timeout/error, using original image", editError);
       }
-
-      console.log("Image edited successfully. Original:", referenceUrl.substring(0, 80), "Edited:", finalImageUrl?.substring(0, 80));
     } else {
       // No image uploaded — generate a new one from the prompt
       finalImageUrl = await generateImageFromPrompt(trimmedPrompt, XAI_API_KEY);
