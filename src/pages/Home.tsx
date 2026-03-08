@@ -358,7 +358,7 @@ const Home = () => {
 
           <button
             onClick={handleFreeTrial}
-            disabled={isTrialLoading || trialUsed || (!trialPrompt.trim() && !trialUploadedImage)}
+            disabled={isTrialLoading || trialUsed || !trialPrompt.trim()}
             className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
           >
             {isTrialLoading 
