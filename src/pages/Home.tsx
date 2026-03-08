@@ -377,7 +377,7 @@ const Home = () => {
     }
   };
 
-
+  const handleGenerate = async () => {
     if (!prompt) {
       toast({
         title: language === 'sv' ? "Prompt krävs" : "Prompt required",
