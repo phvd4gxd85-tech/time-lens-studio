@@ -27,3 +27,6 @@ verify_jwt = false
 [functions.poll-trial-video]
 verify_jwt = false
 
+[functions.send-contact]
+verify_jwt = false
+
