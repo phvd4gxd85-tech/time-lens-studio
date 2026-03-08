@@ -79,10 +79,10 @@ const Dashboard = () => {
   };
 
   const handleGenerateImage = async () => {
-    if (!imagePrompt && !uploadedImageForGen) {
+    if (!imagePrompt.trim()) {
       toast({
-        title: language === 'sv' ? "Prompt eller bild krävs" : "Prompt or image required",
-        description: language === 'sv' ? "Vänligen beskriv vad du vill skapa eller ladda upp en bild" : "Please describe what you want to create or upload an image",
+        title: language === 'sv' ? "Prompt krävs" : "Prompt required",
+        description: language === 'sv' ? "Skriv en beskrivning av bilden du vill skapa" : "Write a description of the image you want to create",
         variant: "destructive",
       });
       return;
