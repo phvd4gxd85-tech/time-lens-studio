@@ -933,6 +933,11 @@ const Home = () => {
               <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
             </div>
           </div>
+          <p className="text-amber-200/60 text-xs mb-4 max-w-2xl mx-auto">
+            {language === 'sv' 
+              ? 'Priser inklusive moms. Paketen ger tillgång till hög kvalitet och ljud i videon. Pengarna går till att hålla tjänsten igång och utveckla fler filter. Tack för att du testar!'
+              : 'Prices include VAT. Packages include high quality and audio in videos. Revenue goes towards keeping the service running and developing more filters. Thank you for trying!'}
+          </p>
           <p className="text-amber-300/60">© 2024 Vintage AI • {t.footer}</p>
         </div>
       </div>

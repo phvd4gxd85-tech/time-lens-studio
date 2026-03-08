@@ -72,9 +72,9 @@ serve(async (req) => {
 
     // Define package credits based on actual pricing
     const packageCredits: Record<string, { videos: number; images: number }> = {
-      starter: { videos: 3, images: 5 },      // Klassisk $6
-      classic: { videos: 10, images: 15 },    // Premiär $20
-      premier: { videos: 25, images: 40 }     // Upptäck $55
+      klassisk: { videos: 3, images: 8 },      // $5
+      standard: { videos: 8, images: 20 },     // $12
+      premium: { videos: 15, images: 40 }      // $22
     };
 
     const credits = packageCredits[packageType];
