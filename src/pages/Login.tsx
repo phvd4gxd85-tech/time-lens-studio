@@ -181,8 +181,7 @@ const Login = () => {
                     : (language === 'sv' ? 'Glömt lösenord?' : 'Forgot password?')}
                 </button>
               </form>
-            )}
-            </form>
+            )
           </div>
         </div>
       </div>
