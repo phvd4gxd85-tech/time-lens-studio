@@ -20,8 +20,30 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     setLoading(true);
+
+    if (forgotMode) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: language === 'sv' ? 'Något gick fel' : 'Something went wrong',
+          description: error.message,
+        });
+      } else {
+        setResetSent(true);
+        toast({
+          title: language === 'sv' ? 'E-post skickad!' : 'Email sent!',
+          description: language === 'sv'
+            ? 'Kolla din inkorg för en återställningslänk.'
+            : 'Check your inbox for a reset link.',
+        });
+      }
+      setLoading(false);
+      return;
+    }
 
     const { error } = await signIn(email, password);
     
