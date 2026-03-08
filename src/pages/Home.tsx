@@ -338,7 +338,7 @@ const Home = () => {
               />
             </label>
 
-            {trialUploadedImage && !trialUsed && (
+            {trialUploadedImage && (
               <img src={trialUploadedImage} alt={language === 'sv' ? 'Uppladdad testbild' : 'Uploaded trial image'} className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
             )}
           </div>
