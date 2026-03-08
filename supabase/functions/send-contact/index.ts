@@ -1,8 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const TO_EMAIL = "aeonnull@icloud.com";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,38 +21,25 @@ serve(async (req) => {
       });
     }
 
-    if (RESEND_API_KEY) {
-      // Send via Resend
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "Vintage AI <onboarding@resend.dev>",
-          to: [TO_EMAIL],
-          subject: `Kontaktformulär: ${name}`,
-          html: `<h2>Nytt meddelande från kontaktformuläret</h2>
-            <p><strong>Namn:</strong> ${name}</p>
-            <p><strong>E-post:</strong> ${email}</p>
-            <p><strong>Meddelande:</strong></p>
-            <p>${message}</p>`,
-        }),
+    // Validate input lengths
+    if (name.length > 100 || email.length > 255 || message.length > 2000) {
+      return new Response(JSON.stringify({ error: "Input too long" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
 
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("Resend error:", errText);
-        throw new Error("Failed to send email");
-      }
-    } else {
-      // Fallback: just log it
-      console.log("=== CONTACT FORM SUBMISSION ===");
-      console.log(`Name: ${name}`);
-      console.log(`Email: ${email}`);
-      console.log(`Message: ${message}`);
-      console.log("(No RESEND_API_KEY set, email not sent)");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { error } = await supabase
+      .from("contact_messages")
+      .insert({ name, email, message });
+
+    if (error) {
+      console.error("DB insert error:", error);
+      throw new Error("Failed to save message");
     }
 
     return new Response(JSON.stringify({ success: true }), {

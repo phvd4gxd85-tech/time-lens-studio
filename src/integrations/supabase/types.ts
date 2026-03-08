@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          read: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          read?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          read?: boolean
+        }
+        Relationships: []
+      }
       free_trials: {
         Row: {
           client_id: string
