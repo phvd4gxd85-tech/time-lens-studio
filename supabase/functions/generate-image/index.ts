@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -11,23 +11,33 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
-
   try {
+    // Authenticate user with getClaims
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
+
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !user) {
-      throw new Error("User not authenticated");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
+
+    const userId = claimsData.claims.sub;
+    console.log("Authenticated user for image generation:", userId);
+
+    // Use service role for DB operations
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
     const { prompt, imageUrl } = await req.json();
     
@@ -53,31 +63,25 @@ serve(async (req) => {
       throw new Error("Image URL must be HTTPS or base64 data");
     }
 
-    console.log("Generating image for user:", user.id, "with prompt:", prompt);
-
-    // Check if user has enough images (but don't deduct yet!)
+    // Check credits
     const { data: tokensData, error: tokensError } = await supabaseClient
       .from('user_tokens')
       .select('images')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (tokensError || !tokensData || tokensData.images < 1) {
       throw new Error("Insufficient images credits");
     }
 
-    console.log(`User ${user.id} has ${tokensData.images} image credits`);
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    // Build messages array
+    // Build messages
     const messages: any[] = [];
-    
     if (imageUrl) {
-      // If user uploaded an image, include it in the request
       messages.push({
         role: "user",
         content: [
@@ -86,14 +90,8 @@ serve(async (req) => {
         ]
       });
     } else {
-      // Text-only prompt
-      messages.push({
-        role: "user",
-        content: prompt
-      });
+      messages.push({ role: "user", content: prompt });
     }
-
-    console.log("Calling Lovable AI for image generation...");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -121,37 +119,23 @@ serve(async (req) => {
       throw new Error("No image returned from AI");
     }
 
-    console.log("Image generated successfully");
-
-    // NOW deduct one image credit since generation was successful
+    // Deduct credit
     const { error: updateError } = await supabaseClient
       .from('user_tokens')
       .update({ images: tokensData.images - 1 })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
-    if (updateError) {
-      console.error("Error updating image credits:", updateError);
-    } else {
-      console.log(`Image credit deducted. User ${user.id} now has ${tokensData.images - 1} images`);
-    }
+    if (updateError) console.error("Error updating image credits:", updateError);
 
     return new Response(
       JSON.stringify({ imageUrl: generatedImageUrl }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-
   } catch (error) {
     console.error("Error in generate-image function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });
