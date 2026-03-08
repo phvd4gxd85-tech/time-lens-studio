@@ -340,21 +340,21 @@ const Home = () => {
 
       if (data?.videoRequestId) {
         setTrialVideoRequestId(data.videoRequestId);
-        // Poll for video completion
+        // Poll for trial video completion via edge function
         const pollTrialVideo = setInterval(async () => {
           try {
-            const { data: pollData } = await supabase.functions.invoke('poll-video-status');
-            // Check xAI directly for the trial video
-            const response = await fetch(`https://api.x.ai/v1/videos/${data.videoRequestId}`, {
-              headers: { "Authorization": `Bearer ${Deno.env.get('XAI_API_KEY')}` }
+            const { data: statusData } = await supabase.functions.invoke('poll-trial-video', {
+              body: { requestId: data.videoRequestId }
             });
-            // We can't call xAI from frontend, so we rely on poll-video-status
+            if (statusData?.videoUrl) {
+              setTrialVideoUrl(statusData.videoUrl);
+              clearInterval(pollTrialVideo);
+            }
           } catch (e) {
             console.error("Trial poll error:", e);
           }
         }, 5000);
 
-        // Stop polling after 5 minutes
         setTimeout(() => clearInterval(pollTrialVideo), 300000);
       }
 
