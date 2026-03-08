@@ -76,42 +76,101 @@ serve(async (req) => {
     console.log("Free trial generation for client:", clientId, "IP:", ipAddress);
 
     let trialImageUrl: string | null = null;
+    let referenceImageUrl: string | null = null;
 
-    // If user uploaded a data image, upload it
+    const uploadDataUrlToStorage = async (dataUrl: string, pathPrefix: string) => {
+      const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) throw new Error("Invalid base64 image format");
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const extension = mimeType.split('/')[1] || 'jpg';
+
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const fileName = `${pathPrefix}/${clientId}/${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabaseClient
+        .storage
+        .from('videos')
+        .upload(fileName, bytes, { contentType: mimeType, upsert: true });
+
+      if (uploadError) throw new Error(`Failed to upload image: ${uploadError.message}`);
+
+      const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
+      return publicUrl;
+    };
+
+    // Resolve reference image URL first (uploaded image or external URL)
     if (hasImage && imageUrl.startsWith('data:image')) {
       try {
-        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
-        if (!matches) throw new Error("Invalid base64 image format");
-
-        const mimeType = matches[1];
-        const base64Data = matches[2];
-        const extension = mimeType.split('/')[1] || 'jpg';
-
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        const fileName = `trial/${clientId}/${Date.now()}.${extension}`;
-        const { error: uploadError } = await supabaseClient
-          .storage
-          .from('videos')
-          .upload(fileName, bytes, { contentType: mimeType, upsert: true });
-
-        if (uploadError) throw new Error(`Failed to upload trial image: ${uploadError.message}`);
-
-        const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
-        trialImageUrl = publicUrl;
+        referenceImageUrl = await uploadDataUrlToStorage(imageUrl, 'trial-input');
       } catch (uploadError) {
         console.error("Trial image upload error:", uploadError);
         throw new Error("Failed to process uploaded image");
       }
     } else if (hasImage && imageUrl.startsWith('https://')) {
-      trialImageUrl = imageUrl;
+      referenceImageUrl = imageUrl;
     }
 
-    // If no image was provided, generate one from prompt
+    // If a reference image exists, create an edited/changed image from prompt (not a raw copy)
+    if (referenceImageUrl) {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) {
+        throw new Error('LOVABLE_API_KEY is not configured');
+      }
+
+      const editResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: `Edit this image according to the user's prompt. Keep the core subject recognizable but apply the requested changes. User prompt: ${trimmedPrompt}`,
+                },
+                {
+                  type: 'image_url',
+                  image_url: { url: referenceImageUrl },
+                },
+              ],
+            },
+          ],
+          modalities: ['image', 'text'],
+        }),
+      });
+
+      if (!editResponse.ok) {
+        const errorText = await editResponse.text();
+        console.error('Lovable image edit error:', editResponse.status, errorText);
+        throw new Error(`Image edit failed: ${editResponse.status}`);
+      }
+
+      const editData = await editResponse.json();
+      const editedImageUrl = editData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+      if (!editedImageUrl || typeof editedImageUrl !== 'string') {
+        throw new Error('No edited image returned');
+      }
+
+      if (editedImageUrl.startsWith('data:image')) {
+        trialImageUrl = await uploadDataUrlToStorage(editedImageUrl, 'trial-edited');
+      } else {
+        trialImageUrl = editedImageUrl;
+      }
+    }
+
+    // If no reference image was provided, generate one from prompt
     if (!trialImageUrl) {
       console.log("Generating trial image from prompt...");
       const imageResponse = await fetch("https://api.x.ai/v1/images/generations", {
