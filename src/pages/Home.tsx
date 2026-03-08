@@ -295,7 +295,89 @@ const Home = () => {
     }
   };
 
-  const handleGenerate = async () => {
+  // Generate a unique client ID for trial tracking
+  const getClientId = useCallback(() => {
+    let clientId = localStorage.getItem('vintage_ai_client_id');
+    if (!clientId) {
+      clientId = crypto.randomUUID();
+      localStorage.setItem('vintage_ai_client_id', clientId);
+    }
+    return clientId;
+  }, []);
+
+  const handleFreeTrial = async () => {
+    if (trialUsed) return;
+
+    // Simple prompt for trial - user doesn't need to configure anything
+    const defaultPrompt = "A beautiful vintage photograph from the 1960s, warm golden tones, nostalgic atmosphere, film grain effect";
+
+    setIsTrialLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('free-trial', {
+        body: {
+          prompt: defaultPrompt,
+          clientId: getClientId()
+        }
+      });
+
+      if (error) {
+        if (error.message?.includes('trial_used') || error.message?.includes('Trial already used')) {
+          setTrialUsed(true);
+          localStorage.setItem('vintage_ai_trial_used', 'true');
+          toast({
+            title: language === 'sv' ? "Prov redan använt" : "Trial already used",
+            description: language === 'sv' ? "Du har redan använt ditt gratis prov." : "You have already used your free trial.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
+
+      if (data?.imageUrl) {
+        setTrialImageUrl(data.imageUrl);
+      }
+
+      if (data?.videoRequestId) {
+        setTrialVideoRequestId(data.videoRequestId);
+        // Poll for video completion
+        const pollTrialVideo = setInterval(async () => {
+          try {
+            const { data: pollData } = await supabase.functions.invoke('poll-video-status');
+            // Check xAI directly for the trial video
+            const response = await fetch(`https://api.x.ai/v1/videos/${data.videoRequestId}`, {
+              headers: { "Authorization": `Bearer ${Deno.env.get('XAI_API_KEY')}` }
+            });
+            // We can't call xAI from frontend, so we rely on poll-video-status
+          } catch (e) {
+            console.error("Trial poll error:", e);
+          }
+        }, 5000);
+
+        // Stop polling after 5 minutes
+        setTimeout(() => clearInterval(pollTrialVideo), 300000);
+      }
+
+      setTrialUsed(true);
+      localStorage.setItem('vintage_ai_trial_used', 'true');
+
+      toast({
+        title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
+        description: language === 'sv' ? "Din bild och video skapas nu." : "Your image and video are being created.",
+      });
+    } catch (error) {
+      console.error("Free trial error:", error);
+      toast({
+        title: language === 'sv' ? "Fel" : "Error",
+        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta provet" : "Could not start trial"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsTrialLoading(false);
+    }
+  };
+
+
     if (!prompt) {
       toast({
         title: language === 'sv' ? "Prompt krävs" : "Prompt required",
