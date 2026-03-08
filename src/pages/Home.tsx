@@ -172,24 +172,27 @@ const Home = () => {
       }
 
       // Step 2: Call free-trial edge function (small payload, just URL + prompt)
+      console.log('Calling free-trial with prompt:', trialPrompt.trim().substring(0, 50));
       const { data, error } = await supabase.functions.invoke('free-trial', {
         body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageUrl }
       });
 
-      // supabase.functions.invoke returns non-2xx body in `data` with error context in `error`
-      // Check both for trial_used flag
-      const responseData = data || {};
-      if (error || responseData.error) {
-        const isTrialUsed = responseData.trial_used || 
-          (responseData.error && typeof responseData.error === 'string' && responseData.error.includes('redan'));
-        if (isTrialUsed) {
+      console.log('Free trial response:', JSON.stringify(data), 'error:', error);
+
+      // All responses come back as 200 with success/error in data
+      if (error) {
+        throw new Error(language === 'sv' ? 'Kunde inte kontakta servern' : 'Could not reach server');
+      }
+
+      if (!data?.success) {
+        if (data?.trial_used) {
           setTrialUsed(true);
           throw new Error(language === 'sv' ? 'Du har redan använt ditt gratisprov' : 'You have already used your free trial');
         }
-        throw new Error(responseData.error || (error instanceof Error ? error.message : 'Något gick fel'));
+        throw new Error(data?.error || (language === 'sv' ? 'Något gick fel' : 'Something went wrong'));
       }
 
-      if (!responseData.videoRequestId) throw new Error('Inget video-ID mottaget');
+      if (!data.videoRequestId) throw new Error('Inget video-ID mottaget');
 
       // Mark trial as used only after successful start
       setTrialUsed(true);
@@ -201,7 +204,7 @@ const Home = () => {
 
       // Step 3: Poll for completion
       setTrialPolling(true);
-      const videoReqId = responseData.videoRequestId;
+      const videoReqId = data.videoRequestId;
       const clientId = getClientId();
       const interval = setInterval(async () => {
         try {
