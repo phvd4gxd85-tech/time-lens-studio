@@ -167,7 +167,9 @@ const Home = () => {
     try {
       const dataUrl = await fileToDataUrl(file);
       setTrialUploadedImage(dataUrl);
-      setTrialImageUrl(dataUrl);
+      setTrialImageUrl(null);
+      setTrialVideoUrl(null);
+      setTrialVideoRequestId(null);
     } catch (error) {
       toast({
         title: language === 'sv' ? 'Fel' : 'Error',
@@ -178,7 +180,7 @@ const Home = () => {
   };
 
   const handleFreeTrial = async () => {
-    if (trialUsed || (!trialPrompt.trim() && !trialUploadedImage)) return;
+    if (trialUsed || !trialPrompt.trim()) return;
 
     setIsTrialLoading(true);
 
@@ -331,7 +333,7 @@ const Home = () => {
             <textarea
               value={trialPrompt}
               onChange={(e) => setTrialPrompt(e.target.value)}
-              placeholder={language === 'sv' ? 'Skriv en prompt för testet (valfritt om du laddar upp bild)...' : 'Write a prompt for the trial (optional if you upload an image)...'}
+              placeholder={language === 'sv' ? 'Skriv en prompt för testet (obligatorisk)...' : 'Write a prompt for the trial (required)...'}
               className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[110px]"
               disabled={isTrialLoading || trialUsed}
             />
@@ -356,7 +358,7 @@ const Home = () => {
 
           <button
             onClick={handleFreeTrial}
-            disabled={isTrialLoading || trialUsed || (!trialPrompt.trim() && !trialUploadedImage)}
+            disabled={isTrialLoading || trialUsed || !trialPrompt.trim()}
             className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
           >
             {isTrialLoading 

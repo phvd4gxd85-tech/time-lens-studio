@@ -26,8 +26,8 @@ serve(async (req) => {
     const hasPrompt = typeof prompt === 'string' && prompt.trim().length > 0;
     const hasImage = typeof imageUrl === 'string' && (imageUrl.startsWith('data:image') || imageUrl.startsWith('https://'));
 
-    if (!hasPrompt && !hasImage) {
-      throw new Error("Provide either a prompt or an image");
+    if (!hasPrompt) {
+      throw new Error("Prompt is required");
     }
 
     const supabaseClient = createClient(
