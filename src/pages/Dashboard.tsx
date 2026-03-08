@@ -273,7 +273,7 @@ const Dashboard = () => {
 
                   <button
                     onClick={handleGenerateImage}
-                    disabled={(!imagePrompt && !uploadedImageForGen) || isGeneratingImage}
+                    disabled={!imagePrompt.trim() || isGeneratingImage}
                     className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <Sparkles className="w-5 h-5" />
