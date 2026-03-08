@@ -17,6 +17,22 @@ serve(async (req) => {
       throw new Error('XAI_API_KEY is not configured');
     }
 
+    // Parse body first (before any credit deduction)
+    const { prompt, imageUrl } = await req.json();
+
+    // Validate prompt before doing anything else
+    if (!prompt || typeof prompt !== 'string') {
+      return new Response(JSON.stringify({ error: "Valid prompt is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    if (prompt.length < 3) {
+      return new Response(JSON.stringify({ error: "Prompt must be at least 3 characters" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -25,17 +41,16 @@ serve(async (req) => {
 
     const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_ANON_KEY")!
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+    if (userError || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = userData.user.id;
     console.log("Authenticated user:", userId);
 
     // Use service role for DB operations
@@ -44,7 +59,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Atomically deduct video credit (prevents race condition)
+    // Atomically deduct video credit AFTER validation
     const { data: creditResult, error: creditError } = await supabaseClient
       .rpc('decrement_video_credit', { p_user_id: userId });
 
@@ -56,17 +71,6 @@ serve(async (req) => {
     }
 
     console.log(`Video credit deducted for user ${userId}`);
-
-    const { prompt, imageUrl } = await req.json();
-
-    // Validate prompt
-    if (!prompt || typeof prompt !== 'string') {
-      throw new Error("Valid prompt is required");
-    }
-
-    if (prompt.length < 3) {
-      throw new Error("Prompt must be at least 3 characters");
-    }
 
     const trimmedPrompt = prompt.length > 2000 ? prompt.substring(0, 2000) : prompt;
 
