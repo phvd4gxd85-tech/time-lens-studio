@@ -1,7 +1,7 @@
-import { Film, Video, Lightbulb, Camera } from 'lucide-react';
+import { Film, Sparkles, Video, Lightbulb, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type ChangeEvent } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,14 @@ const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-
+  // Free trial states
+  const [trialLoading, setTrialLoading] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vai_trial_done'));
+  const [trialPrompt, setTrialPrompt] = useState('');
+  const [trialFile, setTrialFile] = useState<File | null>(null);
+  const [trialPreview, setTrialPreview] = useState<string | null>(null);
+  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
+  const [trialPolling, setTrialPolling] = useState(false);
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
@@ -126,6 +133,116 @@ const Home = () => {
     }
   };
 
+  // --- Free trial handlers ---
+  const getClientId = useCallback(() => {
+    let id = localStorage.getItem('vai_client_id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('vai_client_id', id);
+    }
+    return id;
+  }, []);
+
+  const handleTrialImage = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setTrialFile(file);
+    const url = URL.createObjectURL(file);
+    setTrialPreview(url);
+  };
+
+  const handleFreeTrial = async () => {
+    if (!trialPrompt.trim() || trialLoading || trialUsed) return;
+    setTrialLoading(true);
+    setTrialVideoUrl(null);
+
+    try {
+      // Step 1: Upload image to storage if provided
+      let imageUrl: string | null = null;
+      if (trialFile) {
+        const clientId = getClientId();
+        const ext = trialFile.name.split('.').pop() || 'jpg';
+        const path = `trial-input/${clientId}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from('videos')
+          .upload(path, trialFile, { contentType: trialFile.type, upsert: true });
+        if (upErr) throw new Error('Kunde inte ladda upp bilden');
+        const { data: urlData } = supabase.storage.from('videos').getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      }
+
+      // Step 2: Call free-trial edge function (small payload, just URL + prompt)
+      const { data, error } = await supabase.functions.invoke('free-trial', {
+        body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageUrl }
+      });
+
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('trial_used') || msg.includes('redan')) {
+          setTrialUsed(true);
+          localStorage.setItem('vai_trial_done', '1');
+        }
+        throw error;
+      }
+
+      if (!data?.videoRequestId) throw new Error('Inget video-ID mottaget');
+
+      // Mark trial as used
+      setTrialUsed(true);
+      localStorage.setItem('vai_trial_done', '1');
+
+      toast({
+        title: language === 'sv' ? 'Video skapas!' : 'Video creating!',
+        description: language === 'sv' ? 'Din 4-sekunders video genereras nu. Vänta ca 1-2 minuter.' : 'Your 4-second video is being generated. Wait about 1-2 minutes.',
+      });
+
+      // Step 3: Poll for completion
+      setTrialPolling(true);
+      const videoReqId = data.videoRequestId;
+      const clientId = getClientId();
+      const interval = setInterval(async () => {
+        try {
+          const { data: poll } = await supabase.functions.invoke('poll-trial-video', {
+            body: { requestId: videoReqId, clientId }
+          });
+          if (poll?.status === 'completed' && poll?.videoUrl) {
+            setTrialVideoUrl(poll.videoUrl);
+            setTrialPolling(false);
+            clearInterval(interval);
+            toast({
+              title: language === 'sv' ? 'Video klar!' : 'Video ready!',
+              description: language === 'sv' ? 'Din video är nu klar!' : 'Your video is now ready!',
+            });
+          } else if (poll?.status === 'failed') {
+            setTrialPolling(false);
+            clearInterval(interval);
+            toast({
+              title: language === 'sv' ? 'Misslyckades' : 'Failed',
+              description: poll?.error || 'Videogenerering misslyckades',
+              variant: 'destructive',
+            });
+          }
+        } catch (e) {
+          console.error('Poll error:', e);
+        }
+      }, 5000);
+
+      // Safety timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(interval);
+        setTrialPolling(false);
+      }, 300000);
+
+    } catch (err) {
+      toast({
+        title: language === 'sv' ? 'Fel' : 'Error',
+        description: err instanceof Error ? err.message : 'Något gick fel',
+        variant: 'destructive',
+      });
+    } finally {
+      setTrialLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 text-amber-50" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -198,8 +315,97 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Free Trial Section */}
+      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="flex justify-center mb-6">
+            <Sparkles className="w-10 h-10 text-amber-400" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
+            {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
+          </h2>
+          <p className="text-amber-200/80 text-lg mb-8 max-w-lg mx-auto">
+            {language === 'sv'
+              ? 'Testa vår AI-teknik helt gratis. Skriv en prompt, ladda upp en bild och få en kort video (4 sek) utan att skapa konto.'
+              : 'Test our AI technology for free. Write a prompt, upload an image and get a short video (4 sec) without creating an account.'}
+          </p>
 
-      {/* Showcase Videos Side by Side */}
+          <div className="w-full max-w-lg mx-auto space-y-4 mb-6 text-left">
+            {/* Prompt */}
+            <textarea
+              value={trialPrompt}
+              onChange={(e) => setTrialPrompt(e.target.value)}
+              placeholder={language === 'sv' ? 'Beskriv vad som ska hända i videon (obligatoriskt)...' : 'Describe what should happen in the video (required)...'}
+              className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[100px] focus:outline-none focus:border-amber-500"
+              disabled={trialLoading || trialUsed}
+            />
+
+            {/* Image upload */}
+            <label className="block">
+              <span className="block text-amber-200 text-sm mb-2">
+                {language === 'sv' ? 'Ladda upp bild för video (valfritt)' : 'Upload image for video (optional)'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleTrialImage}
+                disabled={trialLoading || trialUsed}
+                className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
+              />
+            </label>
+
+            {/* Image preview */}
+            {trialPreview && (
+              <img src={trialPreview} alt="Preview" className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
+            )}
+          </div>
+
+          {/* Generate button */}
+          <button
+            onClick={handleFreeTrial}
+            disabled={trialLoading || trialUsed || !trialPrompt.trim()}
+            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
+          >
+            {trialLoading
+              ? (language === 'sv' ? 'Skapar video...' : 'Creating video...')
+              : trialUsed
+                ? (language === 'sv' ? 'Gratisprov använt' : 'Free trial used')
+                : (language === 'sv' ? '✨ Generera gratis video' : '✨ Generate free video')}
+          </button>
+
+          <p className="text-amber-300/50 text-xs mb-6">
+            {language === 'sv'
+              ? 'En gång per person. För längre videor (upp till 10 sek) krävs krediter.'
+              : 'Once per person. For longer videos (up to 10 sec) credits are required.'}
+          </p>
+
+          {/* Polling indicator */}
+          {trialPolling && !trialVideoUrl && (
+            <div className="bg-black/40 p-6 rounded-lg border border-amber-600/50 max-w-lg mx-auto">
+              <p className="text-amber-200 animate-pulse text-lg">
+                {language === 'sv' ? '⏳ Video genereras... vänta ca 1-2 minuter' : '⏳ Video generating... wait about 1-2 minutes'}
+              </p>
+            </div>
+          )}
+
+          {/* Completed video */}
+          {trialVideoUrl && (
+            <div className="bg-black/40 p-6 rounded-lg border border-amber-600/50 max-w-lg mx-auto space-y-4">
+              <h3 className="text-amber-100 font-bold text-xl">
+                {language === 'sv' ? '🎬 Din video är klar!' : '🎬 Your video is ready!'}
+              </h3>
+              <video src={trialVideoUrl} controls autoPlay className="w-full rounded-lg" />
+              <p className="text-amber-300 text-sm">
+                {language === 'sv'
+                  ? 'Gillar du resultatet? Köp ett paket för längre videor och fler genereringar!'
+                  : 'Like the result? Buy a package for longer videos and more generations!'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+
       <div className="relative py-16 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <video 
