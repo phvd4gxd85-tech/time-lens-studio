@@ -216,8 +216,6 @@ const Home = () => {
         setTimeout(() => clearInterval(pollTrialVideo), 300000);
       }
 
-      setTrialUsed(true);
-      localStorage.setItem('vintage_ai_trial_used', 'true');
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
         description: language === 'sv' ? "Din video (4 sek) skapas nu." : "Your 4-second video is being created.",
