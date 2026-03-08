@@ -60,21 +60,39 @@ serve(async (req) => {
       duration: 6,
     };
 
-    // If user provided a storage path, create a signed URL for xAI
-    if (imageUrl && typeof imageUrl === 'string' && !imageUrl.startsWith('http')) {
-      // imageUrl is a storage path like "trial-input/clientId/timestamp.jpg"
+    // If user provided base64 image, upload to storage and create signed URL
+    if (imageBase64 && typeof imageBase64 === 'string') {
+      try {
+        const ext = (imageMimeType || 'image/jpeg').split('/')[1] || 'jpg';
+        const storagePath = `trial-input/${clientId}/${Date.now()}.${ext}`;
+        const binaryStr = atob(imageBase64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        
+        await supabaseClient.storage
+          .from('videos')
+          .upload(storagePath, bytes.buffer, { contentType: imageMimeType || 'image/jpeg', upsert: true });
+        
+        const { data: signedData } = await supabaseClient.storage
+          .from('videos')
+          .createSignedUrl(storagePath, 600);
+        if (signedData?.signedUrl) {
+          videoPayload.image = { url: signedData.signedUrl };
+          console.log("Using signed URL from base64 upload");
+        }
+      } catch (e) {
+        console.error("Failed to process base64 image:", e);
+      }
+    } else if (imageUrl && typeof imageUrl === 'string' && !imageUrl.startsWith('http')) {
+      // Legacy: imageUrl is a storage path
       const { data: signedData, error: signedError } = await supabaseClient.storage
         .from('videos')
-        .createSignedUrl(imageUrl, 600); // 10-minute URL
+        .createSignedUrl(imageUrl, 600);
       if (!signedError && signedData?.signedUrl) {
         videoPayload.image = { url: signedData.signedUrl };
-        console.log("Using signed reference image URL");
-      } else {
-        console.error("Failed to create signed URL:", signedError);
       }
     } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('https://')) {
       videoPayload.image = { url: imageUrl };
-      console.log("Using reference image:", imageUrl.substring(0, 100));
     }
 
     console.log("Starting free trial video for client:", clientId);
