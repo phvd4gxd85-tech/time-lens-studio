@@ -157,18 +157,18 @@ const Home = () => {
     setTrialVideoUrl(null);
 
     try {
-      // Step 1: Upload image to storage if provided
-      let imageUrl: string | null = null;
+      // Step 1: Convert image to base64 if provided (avoids storage auth issues for anonymous users)
+      let imageBase64: string | null = null;
+      let imageMimeType: string | null = null;
       if (trialFile) {
-        const clientId = getClientId();
-        const ext = trialFile.name.split('.').pop() || 'jpg';
-        const path = `trial-input/${clientId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from('videos')
-          .upload(path, trialFile, { contentType: trialFile.type, upsert: true });
-        if (upErr) throw new Error('Kunde inte ladda upp bilden');
-        // Pass storage path instead of URL - edge function will create signed URL
-        imageUrl = path;
+        const buffer = await trialFile.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        imageBase64 = btoa(binary);
+        imageMimeType = trialFile.type;
       }
 
       // Step 2: Call free-trial edge function (small payload, just URL + prompt)
