@@ -109,7 +109,7 @@ const Home = () => {
     premium: "price_1T8bgHQt7FLZjS8huUX28eWF",   // $22
   };
 
-  const handlePurchase = async (packageType: 'starter' | 'classic' | 'premier') => {
+  const handlePurchase = async (packageType: 'klassisk' | 'standard' | 'premium') => {
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
