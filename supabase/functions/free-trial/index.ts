@@ -6,6 +6,163 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const jsonResponse = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status,
+  });
+
+const errorResponse = (message: string, status = 500) =>
+  jsonResponse({ error: message }, status);
+
+async function uploadDataUrlToStorage(
+  supabase: ReturnType<typeof createClient>,
+  dataUrl: string,
+  pathPrefix: string,
+  clientId: string
+): Promise<string> {
+  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!matches) throw new Error("Ogiltigt bildformat (base64 krävs)");
+
+  const mimeType = matches[1];
+  const base64Data = matches[2];
+  const extension = mimeType.split('/')[1] || 'jpg';
+
+  const binaryString = atob(base64Data);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  const fileName = `${pathPrefix}/${clientId}/${Date.now()}.${extension}`;
+  const { error: uploadError } = await supabase
+    .storage.from('videos')
+    .upload(fileName, bytes, { contentType: mimeType, upsert: true });
+
+  if (uploadError) throw new Error(`Kunde inte ladda upp bild: ${uploadError.message}`);
+
+  const { data: { publicUrl } } = supabase.storage.from('videos').getPublicUrl(fileName);
+  return publicUrl;
+}
+
+async function editImageWithAI(
+  referenceImageUrl: string,
+  prompt: string,
+  lovableApiKey: string
+): Promise<string> {
+  console.log("Editing image with AI. Prompt:", prompt);
+
+  const editResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${lovableApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash-image',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `You MUST modify this image based on the user's prompt. The result must be visibly different from the original. Do NOT return the original image unchanged. Apply all changes described in the prompt. User prompt: "${prompt}"`,
+            },
+            {
+              type: 'image_url',
+              image_url: { url: referenceImageUrl },
+            },
+          ],
+        },
+      ],
+      modalities: ['image', 'text'],
+    }),
+  });
+
+  if (!editResponse.ok) {
+    const errorText = await editResponse.text();
+    console.error('AI image edit error:', editResponse.status, errorText);
+    if (editResponse.status === 429) throw new Error("För många förfrågningar, försök igen om en stund");
+    if (editResponse.status === 402) throw new Error("AI-tjänsten är tillfälligt otillgänglig");
+    throw new Error(`Bildredigering misslyckades (${editResponse.status})`);
+  }
+
+  const editData = await editResponse.json();
+  const editedImageUrl = editData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+  if (!editedImageUrl || typeof editedImageUrl !== 'string') {
+    console.error('No edited image in response:', JSON.stringify(editData).substring(0, 500));
+    throw new Error('AI returnerade ingen redigerad bild');
+  }
+
+  return editedImageUrl;
+}
+
+async function generateImageFromPrompt(prompt: string, xaiApiKey: string): Promise<string> {
+  console.log("Generating image from prompt...");
+  const response = await fetch("https://api.x.ai/v1/images/generations", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${xaiApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "grok-imagine-image",
+      prompt,
+      n: 1,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("xAI image error:", response.status, errorText);
+    throw new Error(`Bildgenerering misslyckades (${response.status})`);
+  }
+
+  const data = await response.json();
+  const imageUrl = data.data?.[0]?.url;
+  if (!imageUrl) throw new Error("Ingen bild returnerades från AI");
+  return imageUrl;
+}
+
+async function startVideoGeneration(
+  prompt: string,
+  imageUrl: string | null,
+  xaiApiKey: string
+): Promise<string> {
+  console.log("Starting video generation (4 sec)...");
+  const payload: Record<string, unknown> = {
+    model: "grok-imagine-video",
+    prompt,
+    duration: 4,
+  };
+
+  if (imageUrl) {
+    payload.image = { url: imageUrl };
+    console.log("Using reference image for video:", imageUrl);
+  }
+
+  const response = await fetch("https://api.x.ai/v1/videos/generations", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${xaiApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("xAI video error:", response.status, errorText);
+    throw new Error(`Videogenerering misslyckades (${response.status})`);
+  }
+
+  const data = await response.json();
+  const requestId = data.request_id || data.id;
+  if (!requestId) throw new Error("Inget video-ID mottaget");
+  return requestId;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -13,34 +170,36 @@ serve(async (req) => {
 
   try {
     const XAI_API_KEY = Deno.env.get('XAI_API_KEY');
-    if (!XAI_API_KEY) {
-      throw new Error('XAI_API_KEY is not configured');
-    }
+    if (!XAI_API_KEY) throw new Error('XAI_API_KEY is not configured');
+
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
     const { prompt, clientId, imageUrl } = await req.json();
 
     if (!clientId || typeof clientId !== 'string') {
-      throw new Error("Client ID is required");
+      return errorResponse("Client ID krävs", 400);
     }
 
     const hasPrompt = typeof prompt === 'string' && prompt.trim().length > 0;
     const hasImage = typeof imageUrl === 'string' && (imageUrl.startsWith('data:image') || imageUrl.startsWith('https://'));
 
     if (!hasPrompt) {
-      throw new Error("Prompt is required");
+      return errorResponse("En textprompt krävs", 400);
     }
+
+    const trimmedPrompt = prompt.trim().substring(0, 2000);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get IP address for server-side rate limiting
+    // --- Rate limiting: clientId + IP ---
     const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('cf-connecting-ip')
       || 'unknown';
 
-    // Check BOTH clientId AND IP address to prevent bypass
     const { data: existingByClient } = await supabaseClient
       .from('free_trials')
       .select('id')
@@ -48,194 +207,59 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingByClient) {
-      return new Response(
-        JSON.stringify({ error: "Trial already used", trial_used: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
-      );
+      return jsonResponse({ error: "Prov redan använt", trial_used: true }, 403);
     }
 
-    // Also check by IP - max 2 trials per IP to account for shared networks
     if (ipAddress !== 'unknown') {
-      const { data: trialsByIp, error: ipError } = await supabaseClient
+      const { data: trialsByIp } = await supabaseClient
         .from('free_trials')
         .select('id')
         .eq('ip_address', ipAddress);
 
-      if (!ipError && trialsByIp && trialsByIp.length >= 2) {
-        return new Response(
-          JSON.stringify({ error: "Trial limit reached for your network", trial_used: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
-        );
+      if (trialsByIp && trialsByIp.length >= 2) {
+        return jsonResponse({ error: "Provgräns nådd för ditt nätverk", trial_used: true }, 403);
       }
     }
 
-    const trimmedPrompt = hasPrompt
-      ? prompt.trim().substring(0, 2000)
-      : "Create subtle cinematic movement from the image";
+    console.log("Free trial for client:", clientId, "IP:", ipAddress, "hasImage:", hasImage);
 
-    console.log("Free trial generation for client:", clientId, "IP:", ipAddress);
+    // --- Step 1: Resolve the output image ---
+    let finalImageUrl: string | null = null;
 
-    let trialImageUrl: string | null = null;
-    let referenceImageUrl: string | null = null;
+    if (hasImage) {
+      // User uploaded an image — we MUST edit it with the prompt, never return it as-is
+      let referenceUrl: string;
 
-    const uploadDataUrlToStorage = async (dataUrl: string, pathPrefix: string) => {
-      const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-      if (!matches) throw new Error("Invalid base64 image format");
-
-      const mimeType = matches[1];
-      const base64Data = matches[2];
-      const extension = mimeType.split('/')[1] || 'jpg';
-
-      const binaryString = atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      const fileName = `${pathPrefix}/${clientId}/${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabaseClient
-        .storage
-        .from('videos')
-        .upload(fileName, bytes, { contentType: mimeType, upsert: true });
-
-      if (uploadError) throw new Error(`Failed to upload image: ${uploadError.message}`);
-
-      const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
-      return publicUrl;
-    };
-
-    // Resolve reference image URL first (uploaded image or external URL)
-    if (hasImage && imageUrl.startsWith('data:image')) {
-      try {
-        referenceImageUrl = await uploadDataUrlToStorage(imageUrl, 'trial-input');
-      } catch (uploadError) {
-        console.error("Trial image upload error:", uploadError);
-        throw new Error("Failed to process uploaded image");
-      }
-    } else if (hasImage && imageUrl.startsWith('https://')) {
-      referenceImageUrl = imageUrl;
-    }
-
-    // If a reference image exists, create an edited/changed image from prompt (not a raw copy)
-    if (referenceImageUrl) {
-      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-      if (!LOVABLE_API_KEY) {
-        throw new Error('LOVABLE_API_KEY is not configured');
-      }
-
-      const editResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: `Edit this image according to the user's prompt. Keep the core subject recognizable but apply the requested changes. User prompt: ${trimmedPrompt}`,
-                },
-                {
-                  type: 'image_url',
-                  image_url: { url: referenceImageUrl },
-                },
-              ],
-            },
-          ],
-          modalities: ['image', 'text'],
-        }),
-      });
-
-      if (!editResponse.ok) {
-        const errorText = await editResponse.text();
-        console.error('Lovable image edit error:', editResponse.status, errorText);
-        throw new Error(`Image edit failed: ${editResponse.status}`);
-      }
-
-      const editData = await editResponse.json();
-      const editedImageUrl = editData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-      if (!editedImageUrl || typeof editedImageUrl !== 'string') {
-        throw new Error('No edited image returned');
-      }
-
-      if (editedImageUrl.startsWith('data:image')) {
-        trialImageUrl = await uploadDataUrlToStorage(editedImageUrl, 'trial-edited');
+      if (imageUrl.startsWith('data:image')) {
+        referenceUrl = await uploadDataUrlToStorage(supabaseClient, imageUrl, 'trial-input', clientId);
       } else {
-        trialImageUrl = editedImageUrl;
-      }
-    }
-
-    // If no reference image was provided, generate one from prompt
-    if (!trialImageUrl) {
-      console.log("Generating trial image from prompt...");
-      const imageResponse = await fetch("https://api.x.ai/v1/images/generations", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${XAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "grok-imagine-image",
-          prompt: trimmedPrompt,
-          n: 1,
-        })
-      });
-
-      if (!imageResponse.ok) {
-        const errorText = await imageResponse.text();
-        console.error("xAI image error:", imageResponse.status, errorText);
-        throw new Error(`Image generation failed: ${imageResponse.status}`);
+        referenceUrl = imageUrl;
       }
 
-      const imageData = await imageResponse.json();
-      trialImageUrl = imageData.data?.[0]?.url ?? null;
+      // Edit the image using AI — the result must be different from the input
+      const editedDataUrl = await editImageWithAI(referenceUrl, trimmedPrompt, LOVABLE_API_KEY);
 
-      if (!trialImageUrl) {
-        throw new Error("No image returned from AI");
+      // Upload the edited result if it's base64
+      if (editedDataUrl.startsWith('data:image')) {
+        finalImageUrl = await uploadDataUrlToStorage(supabaseClient, editedDataUrl, 'trial-edited', clientId);
+      } else {
+        finalImageUrl = editedDataUrl;
       }
+
+      console.log("Image edited successfully. Original:", referenceUrl.substring(0, 80), "Edited:", finalImageUrl?.substring(0, 80));
+    } else {
+      // No image uploaded — generate a new one from the prompt
+      finalImageUrl = await generateImageFromPrompt(trimmedPrompt, XAI_API_KEY);
     }
 
-    // Generate short video (4 seconds)
-    console.log("Generating trial video (4 sec)...");
-    const videoPayload: Record<string, unknown> = {
-      model: "grok-imagine-video",
-      prompt: trimmedPrompt,
-      duration: 4,
-    };
-
-    if (trialImageUrl) {
-      videoPayload.image = { url: trialImageUrl };
-      console.log("Using trial reference image URL:", trialImageUrl);
+    if (!finalImageUrl) {
+      return errorResponse("Kunde inte skapa bilden", 500);
     }
 
-    const videoResponse = await fetch("https://api.x.ai/v1/videos/generations", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${XAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(videoPayload)
-    });
+    // --- Step 2: Generate video from the (new/edited) image ---
+    const videoRequestId = await startVideoGeneration(trimmedPrompt, finalImageUrl, XAI_API_KEY);
 
-    if (!videoResponse.ok) {
-      const errorText = await videoResponse.text();
-      console.error("xAI video error:", videoResponse.status, errorText);
-      throw new Error(`Video generation failed: ${videoResponse.status}`);
-    }
-
-    const videoData = await videoResponse.json();
-    const videoRequestId = videoData.request_id || videoData.id;
-
-    if (!videoRequestId) {
-      throw new Error("No video generation ID received");
-    }
-
-    // Record the trial usage with IP and video request ID
+    // --- Step 3: Record trial usage ---
     const { error: trialError } = await supabaseClient
       .from('free_trials')
       .insert({
@@ -244,23 +268,17 @@ serve(async (req) => {
         video_request_id: videoRequestId,
       });
 
-    if (trialError) {
-      console.error("Failed to record trial:", trialError);
-    }
+    if (trialError) console.error("Failed to record trial:", trialError);
 
-    return new Response(
-      JSON.stringify({
-        imageUrl: trialImageUrl,
-        videoRequestId,
-        status: "processing"
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    return jsonResponse({
+      imageUrl: finalImageUrl,
+      videoRequestId,
+      status: "processing",
+    });
   } catch (error) {
     console.error("Error in free-trial:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    return errorResponse(
+      error instanceof Error ? error.message : "Ett oväntat fel uppstod"
     );
   }
 });

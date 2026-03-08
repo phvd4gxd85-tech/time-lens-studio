@@ -13,9 +13,7 @@ serve(async (req) => {
 
   try {
     const XAI_API_KEY = Deno.env.get('XAI_API_KEY');
-    if (!XAI_API_KEY) {
-      throw new Error('XAI_API_KEY is not configured');
-    }
+    if (!XAI_API_KEY) throw new Error('XAI_API_KEY is not configured');
 
     const { requestId, clientId } = await req.json();
 
@@ -26,7 +24,6 @@ serve(async (req) => {
       throw new Error("Client ID is required");
     }
 
-    // Validate that this requestId belongs to the given clientId
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -46,11 +43,9 @@ serve(async (req) => {
       );
     }
 
-    // Check xAI video status
+    // Poll xAI — use same format as poll-video-status (data.status + data.video.url)
     const response = await fetch(`https://api.x.ai/v1/videos/${encodeURIComponent(requestId)}`, {
-      headers: {
-        "Authorization": `Bearer ${XAI_API_KEY}`,
-      },
+      headers: { "Authorization": `Bearer ${XAI_API_KEY}` },
     });
 
     if (!response.ok) {
@@ -60,35 +55,24 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Trial video full response:", JSON.stringify(data));
+    const state = data.status;
+    console.log("Trial poll - state:", state, "full:", JSON.stringify(data).substring(0, 300));
 
-    if (data.state === 'done' || data.status === 'completed') {
-      // xAI may return video URL in various fields
-      const videoUrl = data.video_url 
-        || data.result_url 
-        || data.output?.video_url 
-        || data.output?.url
-        || data.url
-        || data.data?.[0]?.url
-        || data.data?.[0]?.video?.url;
-      
-      if (!videoUrl) {
-        console.error("Video done but no URL found in response:", JSON.stringify(data));
-      }
-      
+    if (state === 'done' && data.video?.url) {
       return new Response(
-        JSON.stringify({ status: 'completed', videoUrl: videoUrl || null }),
+        JSON.stringify({ status: 'completed', videoUrl: data.video.url }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
-    if (data.state === 'failed' || data.status === 'failed') {
+    if (state === 'failed') {
       return new Response(
-        JSON.stringify({ status: 'failed', error: data.error || 'Video generation failed' }),
+        JSON.stringify({ status: 'failed', error: data.error || 'Videogenerering misslyckades' }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
       );
     }
 
+    // Still processing
     return new Response(
       JSON.stringify({ status: 'processing' }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
