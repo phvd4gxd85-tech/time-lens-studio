@@ -21,7 +21,6 @@ const Home = () => {
 
   // Free trial states
   const [isTrialLoading, setIsTrialLoading] = useState(false);
-  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vintage_ai_trial_used'));
   const [trialPrompt, setTrialPrompt] = useState('');
   const [trialUploadedImage, setTrialUploadedImage] = useState<string | null>(null);
   const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
@@ -180,7 +179,7 @@ const Home = () => {
   };
 
   const handleFreeTrial = async () => {
-    if (trialUsed || !trialPrompt.trim()) return;
+    if (!trialPrompt.trim()) return;
 
     setIsTrialLoading(true);
 
@@ -194,16 +193,6 @@ const Home = () => {
       });
 
       if (error) {
-        if (error.message?.includes('trial_used') || error.message?.includes('Trial already used')) {
-          setTrialUsed(true);
-          localStorage.setItem('vintage_ai_trial_used', 'true');
-          toast({
-            title: language === 'sv' ? "Prov redan använt" : "Trial already used",
-            description: language === 'sv' ? "Du har redan använt ditt gratis prov." : "You have already used your free trial.",
-            variant: "destructive",
-          });
-          return;
-        }
         throw error;
       }
 
@@ -227,8 +216,6 @@ const Home = () => {
         setTimeout(() => clearInterval(pollTrialVideo), 300000);
       }
 
-      setTrialUsed(true);
-      localStorage.setItem('vintage_ai_trial_used', 'true');
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
         description: language === 'sv' ? "Din video (4 sek) skapas nu." : "Your 4-second video is being created.",
@@ -335,7 +322,7 @@ const Home = () => {
               onChange={(e) => setTrialPrompt(e.target.value)}
               placeholder={language === 'sv' ? 'Skriv en prompt för testet (obligatorisk)...' : 'Write a prompt for the trial (required)...'}
               className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[110px]"
-              disabled={isTrialLoading || trialUsed}
+              disabled={isTrialLoading}
             />
 
             <label className="block">
@@ -346,32 +333,30 @@ const Home = () => {
                 type="file"
                 accept="image/*"
                 onChange={handleTrialImageChange}
-                disabled={isTrialLoading || trialUsed}
+                disabled={isTrialLoading}
                 className="block w-full text-sm text-amber-100 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-amber-600 file:text-white hover:file:bg-amber-500 disabled:opacity-60"
               />
             </label>
 
-            {trialUploadedImage && !trialUsed && (
+            {trialUploadedImage && (
               <img src={trialUploadedImage} alt={language === 'sv' ? 'Uppladdad testbild' : 'Uploaded trial image'} className="w-full max-h-52 object-contain rounded-lg border border-amber-600/50 bg-black/40 p-2" />
             )}
           </div>
 
           <button
             onClick={handleFreeTrial}
-            disabled={isTrialLoading || trialUsed || !trialPrompt.trim()}
+            disabled={isTrialLoading || !trialPrompt.trim()}
             className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
           >
             {isTrialLoading 
               ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
-              : trialUsed 
-                ? (language === 'sv' ? 'Prov redan använt' : 'Trial already used')
-                : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
+              : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
           </button>
 
           <p className="text-amber-300/50 text-xs">
             {language === 'sv' 
-              ? 'En gång per person. För längre videor (upp till 10 sek) krävs krediter – se våra paket nedan!'
-              : 'Once per person. For longer videos (up to 10 sec) credits are required – see our packages below!'}
+              ? 'Du kan testa med prompt + bild och få en kort video (4 sek).' 
+              : 'You can test with prompt + image and get a short 4-second video.'}
           </p>
 
           {trialImageUrl && !trialUploadedImage && (
