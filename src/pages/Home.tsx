@@ -21,7 +21,6 @@ const Home = () => {
 
   // Free trial states
   const [isTrialLoading, setIsTrialLoading] = useState(false);
-  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vintage_ai_trial_used'));
   const [trialPrompt, setTrialPrompt] = useState('');
   const [trialUploadedImage, setTrialUploadedImage] = useState<string | null>(null);
   const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
