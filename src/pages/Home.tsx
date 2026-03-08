@@ -193,16 +193,6 @@ const Home = () => {
       });
 
       if (error) {
-        if (error.message?.includes('trial_used') || error.message?.includes('Trial already used')) {
-          setTrialUsed(true);
-          localStorage.setItem('vintage_ai_trial_used', 'true');
-          toast({
-            title: language === 'sv' ? "Prov redan använt" : "Trial already used",
-            description: language === 'sv' ? "Du har redan använt ditt gratis prov." : "You have already used your free trial.",
-            variant: "destructive",
-          });
-          return;
-        }
         throw error;
       }
 
