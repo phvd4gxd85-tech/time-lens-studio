@@ -1,4 +1,4 @@
-import { Film, Video, Lightbulb, Camera } from 'lucide-react';
+import { Film, Sparkles, Video, Lightbulb, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useRef, useCallback } from 'react';
