@@ -333,7 +333,7 @@ const Home = () => {
             <textarea
               value={trialPrompt}
               onChange={(e) => setTrialPrompt(e.target.value)}
-              placeholder={language === 'sv' ? 'Skriv en prompt för testet (valfritt om du laddar upp bild)...' : 'Write a prompt for the trial (optional if you upload an image)...'}
+              placeholder={language === 'sv' ? 'Skriv en prompt för testet (obligatorisk)...' : 'Write a prompt for the trial (required)...'}
               className="w-full rounded-lg border border-amber-600/50 bg-black/40 text-amber-100 placeholder:text-amber-300/50 p-4 min-h-[110px]"
               disabled={isTrialLoading || trialUsed}
             />
