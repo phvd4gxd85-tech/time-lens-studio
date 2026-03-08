@@ -374,7 +374,7 @@ const Home = () => {
               : 'Once per person. For longer videos (up to 10 sec) credits are required – see our packages below!'}
           </p>
 
-          {trialImageUrl && (
+          {trialImageUrl && !trialUploadedImage && (
             <div className="mt-8 space-y-6">
               <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
                 <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis bild:' : 'Your free image:'}</h3>
