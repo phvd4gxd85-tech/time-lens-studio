@@ -341,14 +341,20 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Showcase Video */}
+      {/* Showcase Videos Side by Side */}
       <div className="relative py-16 px-4">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <video 
             ref={videoRef3}
             src={showcaseVideo} 
             controls autoPlay loop muted playsInline
-            className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+          />
+          <video 
+            ref={videoRef4}
+            src={showcaseVideo2} 
+            controls autoPlay loop muted playsInline
+            className="w-full aspect-[9/16] rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
           />
         </div>
       </div>
