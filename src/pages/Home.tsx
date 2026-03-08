@@ -335,33 +335,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Inspiration Example */}
-      <div className="relative py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-              {language === 'sv' ? 'Skapa Magin' : 'Create the Magic'}
-            </h2>
-            <p className="text-amber-200/70 text-lg">
-              {language === 'sv' 
-                ? 'Ett exempel på vad du kan skapa med Vintage AI' 
-                : 'An example of what you can create with Vintage AI'}
-            </p>
-          </div>
-          
-          <div className="max-w-5xl mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/30 to-amber-800/30 blur-2xl"></div>
-            <div className="relative border-2 border-amber-600 shadow-2xl shadow-amber-600/50 rounded-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-400"></div>
-              <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-400"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-400"></div>
-              <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-400"></div>
-              <div className="absolute inset-2 border border-amber-500/50 rounded pointer-events-none"></div>
-              <img src={vintageAiExample} alt="Vintage AI Example" className="w-full h-auto" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Santa Example Video */}
       <div className="relative py-16 px-4">
