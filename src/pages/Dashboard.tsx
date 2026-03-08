@@ -144,14 +144,31 @@ const Dashboard = () => {
     }
   };
 
-  const handleDownloadImage = () => {
+  const handleDownloadImage = async () => {
     if (!generatedImage) return;
-    const a = document.createElement('a');
-    a.href = generatedImage;
-    a.download = 'vintage-ai-image.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ai-image-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({
+        title: language === 'sv' ? "Nedladdning startad" : "Download started",
+        description: language === 'sv' ? "Din bild laddas ner" : "Your image is downloading",
+      });
+    } catch (error) {
+      console.error("Image download error:", error);
+      toast({
+        title: language === 'sv' ? "Nedladdningsfel" : "Download error",
+        description: language === 'sv' ? "Kunde inte ladda ner bilden" : "Could not download the image",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
