@@ -856,34 +856,34 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { 
-                name: t.starter, 
-                subtitle: t.starterDesc,
-                price: "$6", 
+                name: language === 'sv' ? 'Klassisk' : 'Classic', 
+                subtitle: language === 'sv' ? '$5 (ca 55 kr)' : '$5 (~55 SEK)',
+                price: "$5", 
                 videos: 3,
-                images: 5,
+                images: 8,
                 color: "bg-amber-900",
                 borderColor: "border-amber-600",
-                packageType: "starter" as const
+                packageType: "klassisk" as const
               },
               { 
-                name: t.pro, 
-                subtitle: t.proDesc,
-                price: "$20", 
-                videos: 10,
-                images: 15,
+                name: 'Standard', 
+                subtitle: language === 'sv' ? '$12 (ca 130 kr)' : '$12 (~130 SEK)',
+                price: "$12", 
+                videos: 8,
+                images: 20,
                 color: "bg-red-900",
                 borderColor: "border-red-700",
-                packageType: "classic" as const
+                packageType: "standard" as const
               },
               { 
-                name: t.trial, 
-                subtitle: t.trialDesc,
-                price: "$55", 
-                videos: 25,
+                name: 'Premium', 
+                subtitle: language === 'sv' ? '$22 (ca 240 kr)' : '$22 (~240 SEK)',
+                price: "$22", 
+                videos: 15,
                 images: 40,
                 color: "bg-slate-800",
                 borderColor: "border-slate-600",
-                packageType: "premier" as const
+                packageType: "premium" as const
               }
             ].map((pkg, i) => (
               <div key={i} className="relative group">
