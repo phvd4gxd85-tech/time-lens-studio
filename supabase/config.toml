@@ -4,29 +4,20 @@ project_id = "nplznqgzotuhzscwcrui"
 verify_jwt = false
 
 [functions.generate-image]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-video]
-verify_jwt = true
+verify_jwt = false
 
 [functions.poll-video-status]
 verify_jwt = false
 
 [functions.generate-veo3-prompt]
-verify_jwt = true
+verify_jwt = false
 
 [functions.verify-payment]
 verify_jwt = false
 
 [functions.chat-assistant]
-verify_jwt = false
-
-[functions.create-special-user]
-verify_jwt = false
-
-[functions.setup-art-user]
-verify_jwt = false
-
-[functions.admin-setup]
 verify_jwt = false
 

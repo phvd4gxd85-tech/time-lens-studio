@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -11,11 +12,42 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !data?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    const userId = data.claims.sub;
+    console.log("Authenticated user for chat:", userId);
+
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Validate messages input
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      throw new Error("Valid messages array is required");
+    }
+
+    // Limit message count to prevent abuse
+    if (messages.length > 50) {
+      throw new Error("Too many messages in conversation");
     }
 
     const systemPrompt = `Du är Vintage AI, en AI-expert på VEO3 Video och Gemini Nano Banana bildgenerering.
@@ -68,30 +100,21 @@ HUR DU SKA AGERA:
 
 2. STÄLL PRECISIONSFRÅGOR:
    Om något är oklart, fråga användaren innan du föreslår ändringar.
-   Exempel:
-   - "Om användaren skriver bara 'röd fågel', fråga vilken typ, storlek, miljö och tid på dagen."
-   - "Om prompten saknar kamerainformation, föreslå vinkel och lins."
-   - "Om användaren skriver 'utomhus', fråga om årstid, ljusförhållanden och stil."
 
 3. FÖRESLÅ FÖRBÄTTRINGAR:
    Hur kan varje del bli mer specifik och konsekvent med bästa praxis.
-   Motivera kort varför varje förbättring hjälper.
 
 4. NEGATIVA INSTRUKTIONER:
    Föreslå alltid vad AI:n INTE ska göra för att undvika feltolkningar.
 
 5. FRÅGA OM STILREFERENSER:
-   Påminn användaren om att ange inspirationskällor:
-   - Favoritfotograf, konstnär, film eller genre
-   - Detta ger AI:n tydligare riktning
+   Påminn användaren om att ange inspirationskällor.
 
 6. ANPASSA RÅD:
    - Nybörjare: Enklare steg-för-steg-hjälp
    - Avancerade: Detaljerade tekniska tips
 
 MÅL: Hjälp användaren att skapa prompts som ger konsekvent hög kvalitet.
-Lär dem tänka i detaljer och ge dem kontroll över både video och bild.
-
 Håll svar KORTA och PRAKTISKA. Max 3-4 meningar per punkt.
 Svara ALLTID på svenska.`;
 
@@ -114,19 +137,13 @@ Svara ALLTID på svenska.`;
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "För många förfrågningar, försök igen om en stund." }), 
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "Behöver fylla på credits i Lovable workspace." }), 
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
@@ -134,30 +151,22 @@ Svara ALLTID på svenska.`;
       console.error("AI gateway error:", response.status, errorText);
       return new Response(
         JSON.stringify({ error: "AI gateway error" }), 
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const data = await response.json();
-    const assistantMessage = data.choices[0].message.content;
+    const aiData = await response.json();
+    const assistantMessage = aiData.choices[0].message.content;
 
     return new Response(
       JSON.stringify({ message: assistantMessage }), 
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("chat-assistant error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), 
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
