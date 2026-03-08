@@ -350,9 +350,7 @@ const Home = () => {
           >
             {isTrialLoading 
               ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
-              : trialUsed 
-                ? (language === 'sv' ? 'Prov redan använt' : 'Trial already used')
-                : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
+              : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
           </button>
 
           <p className="text-amber-300/50 text-xs">
