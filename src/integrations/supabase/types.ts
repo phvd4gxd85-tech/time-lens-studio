@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      free_trials: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+        }
+        Relationships: []
+      }
       purchases: {
         Row: {
           amount: number
