@@ -1,32 +1,20 @@
-import { Upload, Film, Sparkles, Video, Lightbulb, Zap, Download, Camera, MessageCircle } from 'lucide-react';
+import { Film, Sparkles, Video, Lightbulb, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import vintageAiExample from '@/assets/vintage-ai-example.jpeg';
 import exampleVideo from '@/assets/example-video.mov';
 import santaExample from '@/assets/santa-example.mov';
-import { VEO3VideoGenerator } from '@/components/VEO3VideoGenerator';
-import { PromptAssistant } from '@/components/PromptAssistant';
 
 const Home = () => {
   const { toast } = useToast();
   const { t, language } = useLanguage();
-  const { refreshCredits } = useAuth();
+  const { user, refreshCredits } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [prompt, setPrompt] = useState('');
-  const [generationId, setGenerationId] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
-  
-  // Image generation states
-  const [imagePrompt, setImagePrompt] = useState('');
-  const [uploadedImageForGen, setUploadedImageForGen] = useState<string | null>(null);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Free trial states
   const [isTrialLoading, setIsTrialLoading] = useState(false);
@@ -34,7 +22,6 @@ const Home = () => {
   const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
   const [trialVideoRequestId, setTrialVideoRequestId] = useState<string | null>(null);
   const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
-  const [trialPrompt, setTrialPrompt] = useState('');
 
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
@@ -67,12 +54,8 @@ const Home = () => {
     const sessionId = urlParams.get('session_id');
     
     if (sessionId) {
-      console.log('Stripe session detected, verifying payment:', sessionId);
-      
-      // Clear URL parameters
       window.history.replaceState({}, '', window.location.pathname);
       
-      // Verify payment and add credits
       const verifyPayment = async () => {
         try {
           const { data, error } = await supabase.functions.invoke('verify-payment', {
@@ -80,20 +63,16 @@ const Home = () => {
           });
 
           if (error) {
-            console.error('Payment verification error:', error);
             toast({
               title: language === 'sv' ? "Verifieringsfel" : "Verification Error",
               description: language === 'sv' 
-                ? "Kunde inte verifiera betalningen. Kontakta support om problemet kvarstår." 
-                : "Could not verify payment. Contact support if the issue persists.",
+                ? "Kunde inte verifiera betalningen. Kontakta support." 
+                : "Could not verify payment. Contact support.",
               variant: "destructive",
             });
             return;
           }
 
-          console.log('Payment verified:', data);
-          
-          // Refresh credits
           await refreshCredits();
           
           toast({
@@ -102,6 +81,9 @@ const Home = () => {
               ? `Dina krediter har lagts till: ${data.credits_added.videos} videos och ${data.credits_added.images} bilder` 
               : `Your credits have been added: ${data.credits_added.videos} videos and ${data.credits_added.images} images`,
           });
+
+          // Redirect to dashboard after successful payment
+          navigate('/dashboard');
         } catch (err) {
           console.error('Error verifying payment:', err);
         }
@@ -109,44 +91,33 @@ const Home = () => {
       
       verifyPayment();
     }
-  }, [language, refreshCredits, toast]);
+  }, [language, refreshCredits, toast, navigate]);
 
   const PRICE_IDS = {
-    klassisk: "price_1T8bfLQt7FLZjS8hIlinBJRL",  // $5
-    standard: "price_1T8bfpQt7FLZjS8hTuCktjZn",  // $12
-    premium: "price_1T8bgHQt7FLZjS8huUX28eWF",   // $22
+    klassisk: "price_1T8bfLQt7FLZjS8hIlinBJRL",
+    standard: "price_1T8bfpQt7FLZjS8hTuCktjZn",
+    premium: "price_1T8bgHQt7FLZjS8huUX28eWF",
   };
 
   const handlePurchase = async (packageType: 'klassisk' | 'standard' | 'premium') => {
     setLoading(packageType);
-    console.log('Starting payment for package:', packageType);
-    
     try {
       const priceId = PRICE_IDS[packageType];
-      console.log('Using price ID:', priceId);
-      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { priceId, packageType }
       });
 
-      console.log('Payment response:', { data, error });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       if (data?.url) {
-        console.log('Redirecting to Stripe checkout:', data.url);
         window.location.href = data.url;
       } else {
-        throw new Error(language === 'sv' ? 'Ingen checkout URL mottagen' : 'No checkout URL received');
+        throw new Error('No checkout URL received');
       }
     } catch (error) {
-      console.error('Payment error:', error);
       toast({
         title: language === 'sv' ? "Fel vid betalning" : "Payment error",
-        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta betalning. Försök igen." : "Could not start payment. Please try again."),
+        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta betalning." : "Could not start payment."),
         variant: "destructive",
       });
     } finally {
@@ -154,148 +125,6 @@ const Home = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setUploadedImage(event.target?.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleImageUploadForGen = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setUploadedImageForGen(event.target?.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleGenerateImage = async () => {
-    if (!imagePrompt && !uploadedImageForGen) {
-      toast({
-        title: language === 'sv' ? "Prompt eller bild krävs" : "Prompt or image required",
-        description: language === 'sv' ? "Vänligen beskriv vad du vill skapa eller ladda upp en bild" : "Please describe what you want to create or upload an image",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    setGeneratedImage(null);
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: language === 'sv' ? "Autentisering krävs" : "Authentication required",
-          description: language === 'sv' ? "Vänligen logga in för att generera bilder" : "Please log in to generate images",
-          variant: "destructive",
-        });
-        setIsGeneratingImage(false);
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { 
-          prompt: imagePrompt,
-          imageUrl: uploadedImageForGen 
-        }
-      });
-
-      if (error) {
-        console.error('Generate image error:', error);
-        if (error.message?.includes('Insufficient tokens')) {
-          toast({
-            title: language === 'sv' ? "Inte tillräckligt med tokens" : "Insufficient tokens",
-            description: language === 'sv' ? "Du har inte tillräckligt med image tokens. Köp fler tokens för att fortsätta." : "You don't have enough image tokens. Please purchase more tokens to continue.",
-            variant: "destructive",
-          });
-          setIsGeneratingImage(false);
-          return;
-        }
-        throw new Error(error.message || 'Failed to generate image');
-      }
-
-      if (data?.imageUrl) {
-        setGeneratedImage(data.imageUrl);
-        toast({
-          title: language === 'sv' ? "Bild klar!" : "Image ready!",
-          description: language === 'sv' ? "Din bild har genererats framgångsrikt" : "Your image has been generated successfully",
-        });
-      }
-    } catch (error) {
-      console.error('Generate image error:', error);
-      toast({
-        title: language === 'sv' ? "Genereringsfel" : "Generation error",
-        description: error instanceof Error ? error.message : (language === 'sv' ? "Misslyckades med att generera bild" : "Failed to generate image"),
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
-  const handleDownloadImage = () => {
-    if (!generatedImage) return;
-    
-    const a = document.createElement('a');
-    a.href = generatedImage;
-    a.download = 'vintage-ai-image.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    toast({
-      title: language === 'sv' ? "Nedladdning startad" : "Download started",
-      description: language === 'sv' ? "Din bild laddas ner" : "Your image is downloading",
-    });
-  };
-
-  const handleDownload = async () => {
-    if (!videoUrl) return;
-
-    try {
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
-      const file = new File([blob], 'vintage-ai-video.mp4', { type: 'video/mp4' });
-
-      // Check if Web Share API is available (mobile devices)
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: language === 'sv' ? 'Min Vintage AI Video' : 'My Vintage AI Video',
-          text: language === 'sv' ? 'Kolla in den här videon jag skapade!' : 'Check out this video I created!'
-        });
-      } else {
-        // Fallback to traditional download
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'vintage-ai-video.mp4';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        toast({
-          title: language === 'sv' ? "Nedladdning startad" : "Download started",
-          description: language === 'sv' ? "Din video laddas ner" : "Your video is downloading",
-        });
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: language === 'sv' ? "Nedladdningsfel" : "Download error",
-        description: language === 'sv' ? "Kunde inte ladda ner videon" : "Could not download the video",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Generate a unique client ID for trial tracking
   const getClientId = useCallback(() => {
     let clientId = localStorage.getItem('vintage_ai_client_id');
     if (!clientId) {
@@ -308,16 +137,12 @@ const Home = () => {
   const handleFreeTrial = async () => {
     if (trialUsed) return;
 
-    // Simple prompt for trial - user doesn't need to configure anything
     const defaultPrompt = "A beautiful vintage photograph from the 1960s, warm golden tones, nostalgic atmosphere, film grain effect";
-
     setIsTrialLoading(true);
+
     try {
       const { data, error } = await supabase.functions.invoke('free-trial', {
-        body: {
-          prompt: defaultPrompt,
-          clientId: getClientId()
-        }
+        body: { prompt: defaultPrompt, clientId: getClientId() }
       });
 
       if (error) {
@@ -334,13 +159,10 @@ const Home = () => {
         throw error;
       }
 
-      if (data?.imageUrl) {
-        setTrialImageUrl(data.imageUrl);
-      }
+      if (data?.imageUrl) setTrialImageUrl(data.imageUrl);
 
       if (data?.videoRequestId) {
         setTrialVideoRequestId(data.videoRequestId);
-        // Poll for trial video completion via edge function
         const pollTrialVideo = setInterval(async () => {
           try {
             const { data: statusData } = await supabase.functions.invoke('poll-trial-video', {
@@ -354,19 +176,16 @@ const Home = () => {
             console.error("Trial poll error:", e);
           }
         }, 5000);
-
         setTimeout(() => clearInterval(pollTrialVideo), 300000);
       }
 
       setTrialUsed(true);
       localStorage.setItem('vintage_ai_trial_used', 'true');
-
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
         description: language === 'sv' ? "Din bild och video skapas nu." : "Your image and video are being created.",
       });
     } catch (error) {
-      console.error("Free trial error:", error);
       toast({
         title: language === 'sv' ? "Fel" : "Error",
         description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta provet" : "Could not start trial"),
@@ -374,173 +193,6 @@ const Home = () => {
       });
     } finally {
       setIsTrialLoading(false);
-    }
-  };
-
-  const handleGenerate = async () => {
-    if (!prompt) {
-      toast({
-        title: language === 'sv' ? "Prompt krävs" : "Prompt required",
-        description: language === 'sv' ? "Vänligen beskriv vad du vill skapa" : "Please describe what you want to create",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    setVideoUrl(null);
-    setProgress(0);
-
-    try {
-      // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast({
-          title: language === 'sv' ? "Autentisering krävs" : "Authentication required",
-          description: language === 'sv' ? "Vänligen logga in för att generera videor" : "Please log in to generate videos",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      // Start video generation
-      const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { 
-          prompt,
-          imageUrl: uploadedImage 
-        }
-      });
-
-      if (error) {
-        console.error('Generate video error:', error);
-        // Check if it's a token error
-        if (error.message?.includes('Insufficient tokens')) {
-          toast({
-            title: language === 'sv' ? "Inte tillräckligt med tokens" : "Insufficient tokens",
-            description: language === 'sv' ? "Du har inte tillräckligt med tokens. Köp fler tokens för att fortsätta." : "You don't have enough tokens. Please purchase more tokens to continue.",
-            variant: "destructive",
-          });
-          setIsGenerating(false);
-          return;
-        }
-        throw new Error(error.message || 'Failed to start video generation');
-      }
-
-      if (!data?.generation_id) {
-        console.error('Invalid response:', data);
-        throw new Error('No generation ID received from server');
-      }
-
-      const genId = data.generation_id;
-      setGenerationId(genId);
-      console.log('Video generation started:', genId);
-
-      // Start polling for status updates
-      const pollInterval = setInterval(async () => {
-        console.log('Polling video status...');
-        try {
-          await supabase.functions.invoke('poll-video-status');
-          
-          // Also check status directly as backup
-          const { data: videoData } = await supabase
-            .from('video_generations')
-            .select('*')
-            .eq('generation_id', genId)
-            .single();
-          
-          if (videoData) {
-            console.log('Direct status check:', videoData);
-            setProgress(videoData.progress || 0);
-            
-            if (videoData.status === 'completed' && videoData.video_url) {
-              setVideoUrl(videoData.video_url);
-              setIsGenerating(false);
-              clearInterval(pollInterval);
-              channel.unsubscribe();
-              toast({
-                title: language === 'sv' ? "Video klar!" : "Video ready!",
-                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
-              });
-            } else if (videoData.status === 'failed') {
-              setIsGenerating(false);
-              clearInterval(pollInterval);
-              channel.unsubscribe();
-              toast({
-                title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
-                description: videoData.error_message || (language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again."),
-                variant: "destructive",
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Poll error:', error);
-        }
-      }, 3000); // Poll every 3 seconds
-
-      // Subscribe to realtime updates
-      const channel = supabase
-        .channel('video-generation-updates')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'video_generations',
-            filter: `generation_id=eq.${genId}`
-          },
-          (payload) => {
-            console.log('Realtime update:', payload);
-            const newData = payload.new as any;
-            
-            setProgress(newData.progress || 0);
-            
-            if (newData.status === 'completed' && newData.video_url) {
-              setVideoUrl(newData.video_url);
-              setIsGenerating(false);
-              clearInterval(pollInterval);
-              channel.unsubscribe();
-              toast({
-                title: language === 'sv' ? "Video klar!" : "Video ready!",
-                description: language === 'sv' ? "Din video har genererats framgångsrikt" : "Your video has been generated successfully",
-              });
-            } else if (newData.status === 'failed') {
-              setIsGenerating(false);
-              clearInterval(pollInterval);
-              channel.unsubscribe();
-              toast({
-                title: language === 'sv' ? "Generering misslyckades" : "Generation failed",
-                description: newData.error_message || (language === 'sv' ? "Något gick fel. Försök igen." : "Something went wrong. Please try again."),
-                variant: "destructive",
-              });
-            }
-          }
-        )
-        .subscribe();
-
-      // Timeout after 10 minutes
-      const timeout = setTimeout(() => {
-        if (isGenerating) {
-          setIsGenerating(false);
-          clearInterval(pollInterval);
-          channel.unsubscribe();
-          toast({
-            title: language === 'sv' ? "Tidsgräns" : "Timeout",
-            description: language === 'sv' ? "Videogenereringen tog för lång tid. Försök igen." : "Video generation took too long. Please try again.",
-            variant: "destructive",
-          });
-        }
-      }, 600000);
-
-    } catch (error) {
-      console.error('Generate error:', error);
-      setIsGenerating(false);
-      toast({
-        title: language === 'sv' ? "Genereringsfel" : "Generation error",
-        description: error instanceof Error ? error.message : (language === 'sv' ? "Misslyckades med att generera video" : "Failed to generate video"),
-        variant: "destructive",
-      });
     }
   };
 
@@ -577,7 +229,7 @@ const Home = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="relative pt-4 pb-32 px-4">
+      <div className="relative pt-4 pb-16 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-7xl md:text-8xl font-bold tracking-wider mb-4 text-amber-100">
@@ -602,360 +254,40 @@ const Home = () => {
               {t.tagline}
             </p>
           </div>
-
-          {/* Example Video Showcase */}
-          <div className="max-w-4xl mx-auto mt-12 mb-12">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-amber-800/20 blur-2xl"></div>
-              <div className="relative">
-                <video 
-                  ref={videoRef1}
-                  src={exampleVideo} 
-                  controls 
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* VEO3 Video Generator Section */}
-      <div className="relative py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <VEO3VideoGenerator />
-        </div>
-      </div>
-
-      {/* Image Generator Section */}
-      <div className="relative py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="max-w-4xl mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/20 to-red-900/20 blur-xl"></div>
-            <div className="relative bg-[#0f172a] p-8 md:p-12 border-2 border-amber-600 rounded-lg shadow-2xl">
-              <div className="flex justify-center mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-                  <Camera className="w-8 h-8 text-amber-500" />
-                  <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
-                </div>
-              </div>
-
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-amber-100">
-                {language === 'sv' ? 'Skapa Bilder' : 'Create Images'}
-              </h2>
-
-              <div className="bg-black/30 p-6 rounded-lg border border-amber-600/30 mb-8">
-                <div className="space-y-4">
-                  <p className="text-amber-200/90 leading-relaxed">
-                    {language === 'sv' 
-                      ? 'Med detta verktyg kan du enkelt förvandla dina idéer till bilder. Du kan antingen skapa en helt ny bild, eller redigera ett befintligt foto genom att ge AI:n tydliga instruktioner – så kallade prompts.' 
-                      : 'With this tool, you can easily transform your ideas into images. You can either create a brand new image or edit an existing photo by giving the AI clear instructions – so-called prompts.'}
-                  </p>
-                  
-                  <h4 className="text-xl font-bold text-amber-100">
-                    {language === 'sv' ? 'Hur fungerar det?' : 'How does it work?'}
-                  </h4>
-                  
-                  <p className="text-amber-200/90">
-                    {language === 'sv' 
-                      ? 'Du har två kraftfulla sätt att använda tjänsten:' 
-                      : 'You have two powerful ways to use the service:'}
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-amber-100 font-semibold">
-                        {language === 'sv' ? '1. Ändra din befintliga bild (Bildredigering)' : '1. Edit Your Existing Image (Image Editing)'}
-                      </p>
-                      <p className="text-amber-200/80 text-sm mt-1">
-                        {language === 'sv' 
-                          ? 'Ladda upp en bild (valfritt) och beskriv i prompten vad du vill ändra. Exempelvis: "Byt bakgrunden till en tropisk strand" eller "Måla bilen röd".' 
-                          : 'Upload an image (optional) and describe in the prompt what you want to change. For example: "Change the background to a tropical beach" or "Paint the car red".'}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-amber-100 font-semibold">
-                        {language === 'sv' ? '2. Skapa en helt ny bild (Generering)' : '2. Create a Brand New Image (Generation)'}
-                      </p>
-                      <p className="text-amber-200/80 text-sm mt-1">
-                        {language === 'sv' 
-                          ? 'Skriv din prompt som beskriver motivet, stilen och känslan du vill ha.' 
-                          : 'Write your prompt describing the subject, style, and feeling you want.'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-3 border-t border-amber-600/30">
-                    <p className="text-amber-100 font-semibold mb-2">
-                      {language === 'sv' ? 'Behöver du hjälp med prompten?' : 'Need help with your prompt?'}
-                    </p>
-                    <p className="text-amber-200/90 text-sm">
-                      {language === 'sv' 
-                        ? 'Du kan alltid diskutera med Chatbotten nere i högra hörnet först. Chatbotten kan hjälpa dig att formulera en perfekt prompt för just din vision! (Läs mer om hur du skriver en bra prompt längre ner på sidan.)' 
-                        : 'You can always discuss with the Chatbot in the bottom right corner first. The Chatbot can help you formulate a perfect prompt for your specific vision! (Read more about how to write a good prompt further down the page.)'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <label className="block">
-                    <div className="border-2 border-dashed border-amber-600 rounded-lg p-8 hover:border-amber-500 transition-all cursor-pointer bg-black/30 hover:bg-black/50 group">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUploadForGen}
-                        className="hidden"
-                      />
-                      {uploadedImageForGen ? (
-                        <img src={uploadedImageForGen} alt="Uploaded" className="w-full h-48 object-cover rounded" />
-                      ) : (
-                        <div className="text-center">
-                          <Upload className="w-16 h-16 mx-auto mb-4 text-amber-600 group-hover:text-amber-500 transition-colors" />
-                          <p className="text-amber-200 text-lg">{language === 'sv' ? 'Ladda upp bild' : 'Upload image'}</p>
-                          <p className="text-amber-400/60 text-sm mt-2">{language === 'sv' ? 'Valfritt - för bildredigering' : 'Optional - for image editing'}</p>
-                        </div>
-                      )}
-                    </div>
-                  </label>
-
-                  <textarea
-                    value={imagePrompt}
-                    onChange={(e) => setImagePrompt(e.target.value)}
-                    placeholder={language === 'sv' ? 'Beskriv bilden du vill skapa...' : 'Describe the image you want to create...'}
-                    className="w-full p-4 bg-black/40 border border-amber-600/50 rounded text-amber-100 placeholder-amber-400/40 focus:outline-none focus:border-amber-500 h-32"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <div className="bg-black/40 border border-amber-600/50 rounded-lg p-6 h-48 flex items-center justify-center overflow-hidden">
-                    {generatedImage ? (
-                      <img src={generatedImage} alt="Generated" className="w-full h-full object-contain rounded" />
-                    ) : isGeneratingImage ? (
-                      <div className="text-center">
-                        <Camera className="w-16 h-16 mx-auto mb-4 text-amber-500 animate-pulse" />
-                        <p className="text-amber-300 text-lg font-semibold">{language === 'sv' ? 'Skapar bild...' : 'Creating image...'}</p>
-                      </div>
-                    ) : (
-                      <div className="text-center text-amber-400/40">
-                        <Camera className="w-16 h-16 mx-auto mb-4" />
-                        <p>{language === 'sv' ? 'Din bild här' : 'Your image here'}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {generatedImage && (
-                    <button
-                      onClick={handleDownloadImage}
-                      className="w-full bg-gradient-to-r from-amber-800 to-amber-700 hover:from-amber-700 hover:to-amber-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-700/50 flex items-center justify-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      {language === 'sv' ? 'LADDA NER BILD' : 'DOWNLOAD IMAGE'}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleGenerateImage}
-                    disabled={(!imagePrompt && !uploadedImageForGen) || isGeneratingImage}
-                    className="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 disabled:from-gray-700 disabled:to-gray-600 text-amber-50 font-bold py-4 px-6 rounded transition-all duration-300 shadow-lg hover:shadow-amber-600/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    {isGeneratingImage ? (language === 'sv' ? 'GENERERAR...' : 'GENERATING...') : (language === 'sv' ? 'GENERERA BILD' : 'GENERATE IMAGE')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-center mt-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-24 h-0.5 bg-gradient-to-r from-transparent to-amber-600"></div>
-                  <div className="w-2 h-2 bg-amber-600 rotate-45"></div>
-                  <div className="w-24 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Inspiration Example */}
-      <div className="relative py-24 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
-              {language === 'sv' ? 'Skapa Magin' : 'Create the Magic'}
-            </h2>
-            <p className="text-amber-200/70 text-lg">
-              {language === 'sv' 
-                ? 'Ett exempel på vad du kan skapa med Vintage AI' 
-                : 'An example of what you can create with Vintage AI'}
-            </p>
-          </div>
-          
-          <div className="max-w-5xl mx-auto relative">
-            {/* Gold frame */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/30 to-amber-800/30 blur-2xl"></div>
-            <div className="relative border-2 border-amber-600 shadow-2xl shadow-amber-600/50 rounded-lg overflow-hidden">
-              {/* Corner decorations */}
-              <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-400"></div>
-              <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-400"></div>
-              <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-400"></div>
-              <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-400"></div>
-              
-              {/* Inner border */}
-              <div className="absolute inset-2 border border-amber-500/50 rounded pointer-events-none"></div>
-              
-              {/* Image */}
-              <img 
-                src={vintageAiExample} 
-                alt="Vintage AI Example" 
-                className="w-full h-auto"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stomatol Example Video */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="max-w-5xl mx-auto mb-20">
-            <video 
-              ref={videoRef2}
-              src={santaExample} 
-              controls 
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
-            />
-          </div>
-
-
-          {/* How to Build a Great Prompt */}
-          <div className="mb-16 max-w-4xl mx-auto">
-            <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">
-              {language === 'sv' ? 'Vad är en prompt?' : 'What is a prompt?'}
-            </h3>
-            
-            <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border border-amber-600/40 rounded-lg space-y-6">
-              <p className="text-amber-200/90 text-lg leading-relaxed">
-                {language === 'sv' 
-                  ? 'En prompt är den instruktion du ger till en AI, ungefär som en filmregissör beskriver en scen för sitt team. Du berättar vad som ska synas, kännas och hända så att AI:n förstår din vision. Om du lämnar delar otydliga kommer AI:n att försöka fylla luckorna själv, och resultatet blir ofta något du inte hade tänkt dig. Ju tydligare du beskriver miljö, stil, ljus, perspektiv och stämning, desto mer exakt blir tolkningen.'
-                  : 'A prompt is the instruction you give to an AI, similar to how a film director describes a scene to their team. You tell what should be seen, felt, and happen so that the AI understands your vision. If you leave parts unclear, the AI will try to fill in the gaps itself, and the result often becomes something you didn\'t imagine. The clearer you describe environment, style, light, perspective, and mood, the more accurate the interpretation will be.'}
-              </p>
-
-              <p className="text-amber-200/90 text-lg leading-relaxed">
-                {language === 'sv' 
-                  ? 'När du skriver en prompt, tänk på att AI:n inte vet vad du menar förrän du berättar det. Om du till exempel skriver att du vill ha en röd fågel, vet den inte om det är en liten fågel i en svensk skog eller en tropisk papegoja i Sydamerika. Därför behöver du specificera allt som påverkar hur bilden eller videon ska se ut.'
-                  : 'When you write a prompt, keep in mind that the AI doesn\'t know what you mean until you tell it. For example, if you write that you want a red bird, it doesn\'t know if it\'s a small bird in a Swedish forest or a tropical parrot in South America. Therefore, you need to specify everything that affects how the image or video should look.'}
-              </p>
-
-              <div className="pt-4">
-                <h4 className="text-xl font-bold text-amber-100 mb-4">
-                  {language === 'sv' ? 'Du kan beskriva:' : 'You can describe:'}
-                </h4>
-                <ul className="space-y-3 text-amber-200/90">
-                  <li className="flex items-start gap-3">
-                    <span className="text-amber-500 font-bold">•</span>
-                    <span>
-                      <strong className="text-amber-100">{language === 'sv' ? 'Kamera eller perspektiv:' : 'Camera or perspective:'}</strong>{' '}
-                      {language === 'sv' 
-                        ? 'Är det en närbild, helbild eller fågelperspektiv? Du kan till och med ange vilken kameralins eller kameramodell som används, till exempel Canon EOS R5, Nikon D850 eller Hasselblad, för att styra stil och skärpedjup.'
-                        : 'Is it a close-up, full shot, or bird\'s eye view? You can even specify which camera lens or camera model is used, such as Canon EOS R5, Nikon D850, or Hasselblad, to control style and depth of field.'}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-amber-500 font-bold">•</span>
-                    <span>
-                      <strong className="text-amber-100">{language === 'sv' ? 'Miljö och tid:' : 'Environment and time:'}</strong>{' '}
-                      {language === 'sv' 
-                        ? 'Beskriv var och när scenen utspelar sig, till exempel utomhus på 1980-talet, inomhus i ett futuristiskt laboratorium eller på en kuststad på morgonen.'
-                        : 'Describe where and when the scene takes place, for example outdoors in the 1980s, indoors in a futuristic laboratory, or in a coastal town in the morning.'}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-amber-500 font-bold">•</span>
-                    <span>
-                      <strong className="text-amber-100">{language === 'sv' ? 'Karaktärer och objekt:' : 'Characters and objects:'}</strong>{' '}
-                      {language === 'sv' 
-                        ? 'Vilka personer, djur eller föremål ska synas? Hur ser de ut, hur är de klädda, vad gör de?'
-                        : 'Which people, animals, or objects should be visible? How do they look, how are they dressed, what are they doing?'}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-amber-500 font-bold">•</span>
-                    <span>
-                      <strong className="text-amber-100">{language === 'sv' ? 'Handling eller rörelse:' : 'Action or movement:'}</strong>{' '}
-                      {language === 'sv' 
-                        ? 'Vad sker i bilden eller videon? Är det ett stilla ögonblick, eller händer något i scenen?'
-                        : 'What happens in the image or video? Is it a still moment, or is something happening in the scene?'}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-amber-500 font-bold">•</span>
-                    <span>
-                      <strong className="text-amber-100">{language === 'sv' ? 'Färg, ljus och känsla:' : 'Color, light, and feeling:'}</strong>{' '}
-                      {language === 'sv' 
-                        ? 'Beskriv ljuset och stämningen med konkreta termer, till exempel dagsljus, soligt, golden hour, kvällsljus, dimma eller neonlysande.'
-                        : 'Describe the light and mood with concrete terms, such as daylight, sunny, golden hour, evening light, fog, or neon-lit.'}
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              <p className="text-amber-200/90 text-lg leading-relaxed pt-4">
-                {language === 'sv' 
-                  ? 'Ju mer exakt du formulerar din vision, desto närmare kommer AI:n att komma din idé. En bra prompt fungerar som ett manus – tydligt, detaljerat och med en känsla för vad som gör bilden eller scenen levande.'
-                  : 'The more precisely you formulate your vision, the closer the AI will come to your idea. A good prompt works like a script – clear, detailed, and with a sense of what makes the image or scene come alive.'}
-              </p>
-
-              <div className="bg-black/30 p-4 rounded border border-amber-600/30">
-                <p className="text-amber-300 font-bold mb-2">
-                  💡 {language === 'sv' ? 'Tips:' : 'Tip:'}
-                </p>
-                <p className="text-amber-200/90">
-                  {language === 'sv' 
-                    ? 'Ibland kan det också vara viktigt att ange vad AI:n inte får göra. Till exempel kan du skriva "ändra inte bakgrunden" eller "lägg inte till nya objekt". Det gör att AI:n inte tolkar din vision på fel sätt och behåller det du faktiskt vill ha i scenen.'
-                    : 'Sometimes it can also be important to specify what the AI must not do. For example, you can write "don\'t change the background" or "don\'t add new objects". This ensures that the AI doesn\'t misinterpret your vision and keeps what you actually want in the scene.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {/* Free Trial Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
+      {/* Free Trial Section - PROMINENT */}
+      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-8">
+          <div className="flex justify-center mb-6">
+            <Sparkles className="w-10 h-10 text-amber-400" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
             {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
           </h2>
+          <p className="text-amber-200/80 text-lg mb-8 max-w-lg mx-auto">
+            {language === 'sv' 
+              ? 'Testa vår AI-teknik helt gratis. Få 1 bild + 1 kort video (4 sek) utan att skapa konto.'
+              : 'Test our AI technology completely free. Get 1 image + 1 short video (4 sec) without creating an account.'}
+          </p>
           
           <button
             onClick={handleFreeTrial}
             disabled={isTrialLoading || trialUsed}
-            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-6"
+            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-4"
           >
             {isTrialLoading 
               ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
               : trialUsed 
                 ? (language === 'sv' ? 'Prov redan använt' : 'Trial already used')
-                : (language === 'sv' ? 'Prova gratis – ingen inloggning behövs' : 'Try free – no login required')}
+                : (language === 'sv' ? '✨ Prova gratis – ingen inloggning behövs' : '✨ Try free – no login required')}
           </button>
 
-          <p className="text-amber-200/80 text-sm leading-relaxed max-w-lg mx-auto">
+          <p className="text-amber-300/50 text-xs">
             {language === 'sv' 
-              ? 'Få 1 vintage-bild + 1 kort video (max 4 sekunder) helt gratis. Detta är en kort testvideo på max 4 sekunder. När du köper ett paket kan du välja längre videos upp till 10 sekunder!'
-              : 'Get 1 vintage image + 1 short video (max 4 seconds) completely free. This is a short test video of max 4 seconds. When you buy a package you can choose longer videos up to 10 seconds!'}
+              ? 'En gång per person. Betalda paket ger videor upp till 10 sekunder!'
+              : 'Once per person. Paid packages give videos up to 10 seconds!'}
           </p>
 
           {trialImageUrl && (
@@ -976,16 +308,125 @@ const Home = () => {
               )}
               <p className="text-amber-300 text-sm">
                 {language === 'sv' 
-                  ? 'Gillar du? Skapa konto för att spara, dela eller skapa längre videos (upp till 10 sekunder) och fler!'
-                  : 'Like it? Create an account to save, share or create longer videos (up to 10 seconds) and more!'}
+                  ? 'Gillar du resultatet? Köp ett paket för längre videor (upp till 10 sekunder) och fler genereringar!'
+                  : 'Like the result? Buy a package for longer videos (up to 10 seconds) and more generations!'}
               </p>
             </div>
           )}
         </div>
       </div>
 
+      {/* Example Video Showcase */}
+      <div className="relative py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Se vad du kan skapa' : 'See what you can create'}
+            </h2>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <video 
+              ref={videoRef1}
+              src={exampleVideo} 
+              controls autoPlay loop muted playsInline
+              className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Inspiration Example */}
+      <div className="relative py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Skapa Magin' : 'Create the Magic'}
+            </h2>
+            <p className="text-amber-200/70 text-lg">
+              {language === 'sv' 
+                ? 'Ett exempel på vad du kan skapa med Vintage AI' 
+                : 'An example of what you can create with Vintage AI'}
+            </p>
+          </div>
+          
+          <div className="max-w-5xl mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-600/30 to-amber-800/30 blur-2xl"></div>
+            <div className="relative border-2 border-amber-600 shadow-2xl shadow-amber-600/50 rounded-lg overflow-hidden">
+              <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-400"></div>
+              <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-400"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-400"></div>
+              <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-400"></div>
+              <div className="absolute inset-2 border border-amber-500/50 rounded pointer-events-none"></div>
+              <img src={vintageAiExample} alt="Vintage AI Example" className="w-full h-auto" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Santa Example Video */}
+      <div className="relative py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <video 
+            ref={videoRef2}
+            src={santaExample} 
+            controls autoPlay loop muted playsInline
+            className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+          />
+        </div>
+      </div>
+
+      {/* How to write a prompt */}
+      <div className="relative py-16 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
+        <div className="max-w-4xl mx-auto">
+          <h3 className="text-3xl font-bold text-amber-100 mb-8 text-center">
+            {language === 'sv' ? 'Vad är en prompt?' : 'What is a prompt?'}
+          </h3>
+          
+          <div className="bg-gradient-to-br from-gray-900 to-green-900 p-8 border border-amber-600/40 rounded-lg space-y-6">
+            <p className="text-amber-200/90 text-lg leading-relaxed">
+              {language === 'sv' 
+                ? 'En prompt är den instruktion du ger till en AI, ungefär som en filmregissör beskriver en scen. Ju tydligare du beskriver miljö, stil, ljus och stämning, desto mer exakt blir resultatet.'
+                : 'A prompt is the instruction you give to an AI, similar to how a director describes a scene. The clearer you describe environment, style, light and mood, the more accurate the result.'}
+            </p>
+
+            <div className="pt-4">
+              <h4 className="text-xl font-bold text-amber-100 mb-4">
+                {language === 'sv' ? 'Du kan beskriva:' : 'You can describe:'}
+              </h4>
+              <ul className="space-y-3 text-amber-200/90">
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-500 font-bold">•</span>
+                  <span><strong className="text-amber-100">{language === 'sv' ? 'Kamera:' : 'Camera:'}</strong> {language === 'sv' ? 'Närbild, helbild, fågelperspektiv, kameramodell' : 'Close-up, full shot, bird\'s eye view, camera model'}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-500 font-bold">•</span>
+                  <span><strong className="text-amber-100">{language === 'sv' ? 'Miljö och tid:' : 'Setting and time:'}</strong> {language === 'sv' ? 'Var och när scenen utspelar sig' : 'Where and when the scene takes place'}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-500 font-bold">•</span>
+                  <span><strong className="text-amber-100">{language === 'sv' ? 'Karaktärer:' : 'Characters:'}</strong> {language === 'sv' ? 'Vilka personer, djur eller föremål ska synas' : 'Which people, animals or objects should appear'}</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-amber-500 font-bold">•</span>
+                  <span><strong className="text-amber-100">{language === 'sv' ? 'Färg och ljus:' : 'Color and light:'}</strong> {language === 'sv' ? 'Golden hour, kvällsljus, dimma, neon' : 'Golden hour, evening light, fog, neon'}</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-black/30 p-4 rounded border border-amber-600/30">
+              <p className="text-amber-300 font-bold mb-2">💡 {language === 'sv' ? 'Tips:' : 'Tip:'}</p>
+              <p className="text-amber-200/90">
+                {language === 'sv' 
+                  ? 'Ange också vad AI:n inte får göra, t.ex. "ändra inte bakgrunden" eller "lägg inte till nya objekt".'
+                  : 'Also specify what the AI must not do, e.g. "don\'t change the background" or "don\'t add new objects".'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Pricing Section */}
-      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
+      <div id="priser" className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-5xl font-bold text-center mb-4 text-amber-100">
             {t.pricingTitle.toUpperCase()}
@@ -999,31 +440,22 @@ const Home = () => {
               { 
                 name: language === 'sv' ? 'Klassisk' : 'Classic', 
                 subtitle: language === 'sv' ? '$5 (ca 55 kr)' : '$5 (~55 SEK)',
-                price: "$5", 
-                videos: 3,
-                images: 8,
-                color: "bg-amber-900",
-                borderColor: "border-amber-600",
+                price: "$5", videos: 3, images: 8,
+                color: "bg-amber-900", borderColor: "border-amber-600",
                 packageType: "klassisk" as const
               },
               { 
                 name: 'Standard', 
                 subtitle: language === 'sv' ? '$12 (ca 130 kr)' : '$12 (~130 SEK)',
-                price: "$12", 
-                videos: 8,
-                images: 20,
-                color: "bg-red-900",
-                borderColor: "border-red-700",
+                price: "$12", videos: 8, images: 20,
+                color: "bg-red-900", borderColor: "border-red-700",
                 packageType: "standard" as const
               },
               { 
                 name: 'Premium', 
                 subtitle: language === 'sv' ? '$22 (ca 240 kr)' : '$22 (~240 SEK)',
-                price: "$22", 
-                videos: 15,
-                images: 40,
-                color: "bg-slate-800",
-                borderColor: "border-slate-600",
+                price: "$22", videos: 15, images: 40,
+                color: "bg-slate-800", borderColor: "border-slate-600",
                 packageType: "premium" as const
               }
             ].map((pkg, i) => (
@@ -1041,8 +473,8 @@ const Home = () => {
                   
                   <div className="space-y-3 mb-8 flex-grow">
                     <div className="flex items-center gap-3 text-amber-200">
-                      <Video className="w-5 h-5 text-amber-500" />
-                     <span className="font-semibold">{pkg.images} {t.images}</span>
+                      <Camera className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold">{pkg.images} {t.images}</span>
                     </div>
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
@@ -1064,6 +496,23 @@ const Home = () => {
         </div>
       </div>
 
+      {/* CTA for logged in users */}
+      {user && (
+        <div className="relative py-16 px-4 bg-gradient-to-br from-amber-950/50 to-gray-900">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-amber-100 mb-4">
+              {language === 'sv' ? 'Redo att skapa?' : 'Ready to create?'}
+            </h2>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-4 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 text-xl"
+            >
+              {language === 'sv' ? '🎬 Gå till din studio' : '🎬 Go to your studio'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="relative py-12 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900 border-t border-amber-600/30">
         <div className="max-w-6xl mx-auto text-center">
@@ -1076,15 +525,12 @@ const Home = () => {
           </div>
           <p className="text-amber-200/60 text-xs mb-4 max-w-2xl mx-auto">
             {language === 'sv' 
-              ? 'Priser inklusive moms. Paketen ger tillgång till hög kvalitet och ljud i videon. Pengarna går till att hålla tjänsten igång och utveckla fler filter. Tack för att du testar!'
-              : 'Prices include VAT. Packages include high quality and audio in videos. Revenue goes towards keeping the service running and developing more filters. Thank you for trying!'}
+              ? 'Priser inklusive moms. Paketen ger tillgång till hög kvalitet och ljud i videon. Tack för att du testar!'
+              : 'Prices include VAT. Packages include high quality and audio in videos. Thank you for trying!'}
           </p>
           <p className="text-amber-300/60">© 2024 Vintage AI • {t.footer}</p>
         </div>
       </div>
-
-      {/* Prompt Assistant */}
-      <PromptAssistant />
     </div>
   );
 };
