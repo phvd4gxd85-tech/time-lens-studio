@@ -57,7 +57,7 @@ serve(async (req) => {
     const videoPayload: Record<string, unknown> = {
       model: "grok-imagine-video",
       prompt: trimmedPrompt,
-      duration: 4,
+      duration: 6,
     };
 
     // If user provided an image URL, use it as reference
