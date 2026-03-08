@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,10 +17,33 @@ serve(async (req) => {
       throw new Error('XAI_API_KEY is not configured');
     }
 
-    const { requestId } = await req.json();
+    const { requestId, clientId } = await req.json();
 
     if (!requestId || typeof requestId !== 'string') {
       throw new Error("Valid request ID is required");
+    }
+    if (!clientId || typeof clientId !== 'string') {
+      throw new Error("Client ID is required");
+    }
+
+    // Validate that this requestId belongs to the given clientId
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const { data: trial, error: trialError } = await supabaseClient
+      .from('free_trials')
+      .select('id')
+      .eq('client_id', clientId)
+      .eq('video_request_id', requestId)
+      .maybeSingle();
+
+    if (trialError || !trial) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or unauthorized request" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
     }
 
     // Check xAI video status

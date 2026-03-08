@@ -176,12 +176,13 @@ serve(async (req) => {
       throw new Error("No video generation ID received");
     }
 
-    // Record the trial usage with IP
+    // Record the trial usage with IP and video request ID
     const { error: trialError } = await supabaseClient
       .from('free_trials')
       .insert({
         client_id: clientId,
         ip_address: ipAddress,
+        video_request_id: videoRequestId,
       });
 
     if (trialError) {

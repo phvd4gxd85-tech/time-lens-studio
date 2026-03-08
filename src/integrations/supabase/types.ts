@@ -47,18 +47,21 @@ export type Database = {
           created_at: string
           id: string
           ip_address: string | null
+          video_request_id: string | null
         }
         Insert: {
           client_id: string
           created_at?: string
           id?: string
           ip_address?: string | null
+          video_request_id?: string | null
         }
         Update: {
           client_id?: string
           created_at?: string
           id?: string
           ip_address?: string | null
+          video_request_id?: string | null
         }
         Relationships: []
       }
