@@ -60,8 +60,19 @@ serve(async (req) => {
       duration: 6,
     };
 
-    // If user provided an image URL, use it as reference
-    if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('https://')) {
+    // If user provided a storage path, create a signed URL for xAI
+    if (imageUrl && typeof imageUrl === 'string' && !imageUrl.startsWith('http')) {
+      // imageUrl is a storage path like "trial-input/clientId/timestamp.jpg"
+      const { data: signedData, error: signedError } = await supabaseClient.storage
+        .from('videos')
+        .createSignedUrl(imageUrl, 600); // 10-minute URL
+      if (!signedError && signedData?.signedUrl) {
+        videoPayload.image = { url: signedData.signedUrl };
+        console.log("Using signed reference image URL");
+      } else {
+        console.error("Failed to create signed URL:", signedError);
+      }
+    } else if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('https://')) {
       videoPayload.image = { url: imageUrl };
       console.log("Using reference image:", imageUrl.substring(0, 100));
     }
