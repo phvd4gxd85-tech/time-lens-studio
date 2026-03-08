@@ -113,13 +113,7 @@ serve(async (req) => {
       throw new Error("No image returned from AI");
     }
 
-    // Deduct credit
-    const { error: updateError } = await supabaseClient
-      .from('user_tokens')
-      .update({ images: tokensData.images - 1 })
-      .eq('user_id', userId);
-
-    if (updateError) console.error("Error updating image credits:", updateError);
+    // Credit already deducted atomically above
 
     return new Response(
       JSON.stringify({ imageUrl: generatedImageUrl }),

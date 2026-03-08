@@ -144,15 +144,7 @@ serve(async (req) => {
       throw new Error("No generation ID received from xAI");
     }
 
-    // Deduct credit
-    const { error: updateError } = await supabaseClient
-      .from('user_tokens')
-      .update({ videos: tokenData.videos - 1 })
-      .eq('user_id', userId);
-
-    if (updateError) {
-      console.error("Failed to deduct video credit:", updateError);
-    }
+    // Credit already deducted atomically above
 
     // Create tracking record
     const { error: dbError } = await supabaseClient

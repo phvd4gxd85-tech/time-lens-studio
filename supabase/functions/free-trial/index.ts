@@ -30,35 +30,54 @@ serve(async (req) => {
       throw new Error("Provide either a prompt or an image");
     }
 
-    // Use service role for DB operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Check if this client has already used the trial
-    const { data: existingTrial } = await supabaseClient
+    // Get IP address for server-side rate limiting
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('cf-connecting-ip')
+      || 'unknown';
+
+    // Check BOTH clientId AND IP address to prevent bypass
+    const { data: existingByClient } = await supabaseClient
       .from('free_trials')
       .select('id')
       .eq('client_id', clientId)
       .maybeSingle();
 
-    if (existingTrial) {
+    if (existingByClient) {
       return new Response(
         JSON.stringify({ error: "Trial already used", trial_used: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
       );
     }
 
+    // Also check by IP - max 2 trials per IP to account for shared networks
+    if (ipAddress !== 'unknown') {
+      const { data: trialsByIp, error: ipError } = await supabaseClient
+        .from('free_trials')
+        .select('id')
+        .eq('ip_address', ipAddress);
+
+      if (!ipError && trialsByIp && trialsByIp.length >= 2) {
+        return new Response(
+          JSON.stringify({ error: "Trial limit reached for your network", trial_used: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        );
+      }
+    }
+
     const trimmedPrompt = hasPrompt
       ? prompt.trim().substring(0, 2000)
       : "Create subtle cinematic movement from the image";
 
-    console.log("Free trial generation for client:", clientId);
+    console.log("Free trial generation for client:", clientId, "IP:", ipAddress);
 
     let trialImageUrl: string | null = null;
 
-    // If user uploaded a data image, upload it so we can use a stable public URL
+    // If user uploaded a data image, upload it
     if (hasImage && imageUrl.startsWith('data:image')) {
       try {
         const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -122,7 +141,7 @@ serve(async (req) => {
       }
     }
 
-    // Generate short video (4 seconds), using image if available
+    // Generate short video (4 seconds)
     console.log("Generating trial video (4 sec)...");
     const videoPayload: Record<string, unknown> = {
       model: "grok-imagine-video",
@@ -157,12 +176,12 @@ serve(async (req) => {
       throw new Error("No video generation ID received");
     }
 
-    // Record the trial usage
+    // Record the trial usage with IP
     const { error: trialError } = await supabaseClient
       .from('free_trials')
       .insert({
         client_id: clientId,
-        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown',
+        ip_address: ipAddress,
       });
 
     if (trialError) {

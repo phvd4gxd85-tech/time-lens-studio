@@ -71,8 +71,8 @@ serve(async (req) => {
     const sessionParams: any = {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/`,
+      success_url: `https://time-lens-studio.lovable.app/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://time-lens-studio.lovable.app/`,
       metadata: { package_type: packageType },
     };
 
