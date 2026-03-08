@@ -167,8 +167,8 @@ const Home = () => {
           .from('videos')
           .upload(path, trialFile, { contentType: trialFile.type, upsert: true });
         if (upErr) throw new Error('Kunde inte ladda upp bilden');
-        const { data: urlData } = supabase.storage.from('videos').getPublicUrl(path);
-        imageUrl = urlData.publicUrl;
+        // Pass storage path instead of URL - edge function will create signed URL
+        imageUrl = path;
       }
 
       // Step 2: Call free-trial edge function (small payload, just URL + prompt)
