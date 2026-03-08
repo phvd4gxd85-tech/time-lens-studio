@@ -292,10 +292,10 @@ export const VEO3VideoGenerator = () => {
       </div>
 
       <h2 className="text-3xl md:text-4xl font-bold mb-2 text-center text-amber-100">
-        {language === 'sv' ? 'Skapa Videos med VEO3' : 'Create Videos with VEO3'}
+        {language === 'sv' ? 'Skapa Videos' : 'Create Videos'}
       </h2>
       <p className="text-center text-amber-200/60 mb-8">
-        {language === 'sv' ? 'Google Veo - Professionell Videogenerering' : 'Google Veo - Professional Video Generation'}
+        {language === 'sv' ? 'AI-driven Videogenerering (upp till 10 sek)' : 'AI-Powered Video Generation (up to 10 sec)'}
       </p>
 
       {/* Introduction - What is a prompt */}
