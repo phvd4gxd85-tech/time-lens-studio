@@ -106,43 +106,82 @@ const Login = () => {
             </div>
 
             <h2 className="text-3xl text-center text-amber-100 tracking-[0.15em] uppercase mb-8 font-bold">
-              {t.loginTitle}
+              {forgotMode
+                ? (language === 'sv' ? 'Återställ Lösenord' : 'Reset Password')
+                : t.loginTitle}
             </h2>
 
-            <Alert className="bg-black/40 border-amber-600/30">
-              <Info className="h-4 w-4 text-amber-500" />
-              <AlertDescription className="text-sm text-amber-200/80">
-                {language === 'sv' 
-                  ? 'För att använda tjänsten måste du först köpa ett paket. Efter köpet får du ett konto automatiskt.'
-                  : 'To use the service, you must first purchase a package. After purchase, you will automatically receive an account.'}
-              </AlertDescription>
-            </Alert>
+            {!forgotMode && (
+              <Alert className="bg-black/40 border-amber-600/30">
+                <Info className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-sm text-amber-200/80">
+                  {language === 'sv' 
+                    ? 'För att använda tjänsten måste du först köpa ett paket. Efter köpet får du ett konto automatiskt.'
+                    : 'To use the service, you must first purchase a package. After purchase, you will automatically receive an account.'}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                type="email"
-                placeholder={t.email}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
-              />
-              <Input
-                type="password"
-                placeholder={t.password}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
-              />
+            {resetSent ? (
+              <div className="text-center space-y-4">
+                <p className="text-amber-200">
+                  {language === 'sv'
+                    ? 'En återställningslänk har skickats till din e-post. Kolla din inkorg (och skräppost).'
+                    : 'A reset link has been sent to your email. Check your inbox (and spam folder).'}
+                </p>
+                <button
+                  onClick={() => { setForgotMode(false); setResetSent(false); }}
+                  className="text-amber-400 hover:text-amber-300 underline"
+                >
+                  {language === 'sv' ? 'Tillbaka till inloggning' : 'Back to login'}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  type="email"
+                  placeholder={t.email}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
+                />
+                {!forgotMode && (
+                  <Input
+                    type="password"
+                    placeholder={t.password}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full p-4 bg-black/40 border-amber-600/50 focus:border-amber-500 text-amber-100 placeholder-amber-400/40"
+                  />
+                )}
 
-              <Button 
-                type="submit"
-                disabled={loading}
-                className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white hover:text-gray-900 py-6 font-bold tracking-[0.15em] uppercase transition-all duration-300"
-              >
-                <span className="relative">{loading ? '...' : t.loginButton}</span>
-              </Button>
+                <Button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full relative overflow-hidden bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white hover:text-gray-900 py-6 font-bold tracking-[0.15em] uppercase transition-all duration-300"
+                >
+                  <span className="relative">
+                    {loading
+                      ? '...'
+                      : forgotMode
+                        ? (language === 'sv' ? 'Skicka återställningslänk' : 'Send reset link')
+                        : t.loginButton}
+                  </span>
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => setForgotMode(!forgotMode)}
+                  className="w-full text-center text-amber-400/70 hover:text-amber-300 text-sm transition-colors"
+                >
+                  {forgotMode
+                    ? (language === 'sv' ? 'Tillbaka till inloggning' : 'Back to login')
+                    : (language === 'sv' ? 'Glömt lösenord?' : 'Forgot password?')}
+                </button>
+              </form>
+            )}
             </form>
           </div>
         </div>
