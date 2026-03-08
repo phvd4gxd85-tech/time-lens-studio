@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const KYE_API_KEY = Deno.env.get('KYE_API_KEY');
-    if (!KYE_API_KEY) {
-      throw new Error('KYE_API_KEY is not configured');
+    const XAI_API_KEY = Deno.env.get('XAI_API_KEY');
+    if (!XAI_API_KEY) {
+      throw new Error('XAI_API_KEY is not configured');
     }
 
-    // Authenticate user with getClaims
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
@@ -72,90 +72,79 @@ serve(async (req) => {
       throw new Error("Prompt must be at least 3 characters");
     }
 
-    // Truncate prompt if too long for API
     const trimmedPrompt = prompt.length > 2000 ? prompt.substring(0, 2000) : prompt;
 
-    // Validate imageUrl if provided
-    if (imageUrl && typeof imageUrl !== 'string') {
-      throw new Error("Invalid image URL format");
-    }
+    console.log("Generating video with xAI Grok for user:", userId);
 
-    if (imageUrl && !imageUrl.startsWith('data:image') && !imageUrl.startsWith('https://')) {
-      throw new Error("Image URL must be HTTPS or base64 data");
-    }
-
-    console.log("Generating video for user:", userId);
-
-    let publicImageUrl = null;
-    
-    // If imageUrl is base64, upload to storage
-    if (imageUrl && imageUrl.startsWith('data:image')) {
-      try {
-        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
-        if (!matches) throw new Error("Invalid base64 image format");
-        
-        const mimeType = matches[1];
-        const base64Data = matches[2];
-        const extension = mimeType.split('/')[1] || 'jpg';
-        
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        const fileName = `${userId}/${Date.now()}.${extension}`;
-        const { error: uploadError } = await supabaseClient
-          .storage.from('videos').upload(fileName, bytes, { contentType: mimeType, upsert: true });
-        
-        if (uploadError) throw new Error(`Failed to upload image: ${uploadError.message}`);
-        
-        const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
-        publicImageUrl = publicUrl;
-      } catch (uploadErr) {
-        console.error("Error uploading image:", uploadErr);
-        publicImageUrl = null;
-      }
-    } else if (imageUrl) {
-      publicImageUrl = imageUrl;
-    }
-
-    // Build request body
+    // Build xAI request body
     const requestBody: any = {
+      model: "grok-imagine-video",
       prompt: trimmedPrompt,
-      duration: 8,
-      quality: "720p",
-      waterMark: ""
     };
 
-    if (publicImageUrl) {
-      requestBody.imageUrl = publicImageUrl;
-    } else {
-      requestBody.aspectRatio = "16:9";
+    // If image provided, upload to storage and use as reference
+    if (imageUrl && typeof imageUrl === 'string') {
+      let publicImageUrl = null;
+
+      if (imageUrl.startsWith('data:image')) {
+        try {
+          const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (!matches) throw new Error("Invalid base64 image format");
+          
+          const mimeType = matches[1];
+          const base64Data = matches[2];
+          const extension = mimeType.split('/')[1] || 'jpg';
+          
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          const fileName = `${userId}/${Date.now()}.${extension}`;
+          const { error: uploadError } = await supabaseClient
+            .storage.from('videos').upload(fileName, bytes, { contentType: mimeType, upsert: true });
+          
+          if (uploadError) throw new Error(`Failed to upload image: ${uploadError.message}`);
+          
+          const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
+          publicImageUrl = publicUrl;
+        } catch (uploadErr) {
+          console.error("Error uploading image:", uploadErr);
+        }
+      } else if (imageUrl.startsWith('https://')) {
+        publicImageUrl = imageUrl;
+      }
+
+      if (publicImageUrl) {
+        requestBody.image_url = publicImageUrl;
+      }
     }
 
-    const kieResponse = await fetch("https://api.kie.ai/api/v1/runway/generate", {
+    // Call xAI Grok video generation API
+    const xaiResponse = await fetch("https://api.x.ai/v1/videos/generations", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${KYE_API_KEY}`,
+        "Authorization": `Bearer ${XAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
     });
 
-    const responseText = await kieResponse.text();
+    const responseText = await xaiResponse.text();
 
-    if (!kieResponse.ok) {
-      console.error("KIE API error:", kieResponse.status, responseText);
-      throw new Error(`KIE API error: ${kieResponse.status} - ${responseText}`);
+    if (!xaiResponse.ok) {
+      console.error("xAI API error:", xaiResponse.status, responseText);
+      throw new Error(`xAI API error: ${xaiResponse.status} - ${responseText}`);
     }
 
-    const kieData = JSON.parse(responseText);
-    if (kieData.code !== 200) {
-      throw new Error(`KIE API error: ${kieData.msg}`);
-    }
+    const xaiData = JSON.parse(responseText);
+    const generationId = xaiData.request_id || xaiData.id;
 
-    const generationId = kieData.data.taskId;
+    if (!generationId) {
+      console.error("No request_id in xAI response:", xaiData);
+      throw new Error("No generation ID received from xAI");
+    }
 
     // Deduct credit
     const { error: updateError } = await supabaseClient
