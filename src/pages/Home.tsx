@@ -338,6 +338,17 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Showcase Video */}
+      <div className="relative py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <video 
+            ref={videoRef3}
+            src={showcaseVideo} 
+            controls autoPlay loop muted playsInline
+            className="w-full aspect-video rounded-lg shadow-2xl border-2 border-amber-600/50 object-cover"
+          />
+        </div>
+      </div>
 
       {/* Santa Example Video */}
       <div className="relative py-16 px-4">
