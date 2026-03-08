@@ -42,32 +42,22 @@ serve(async (req) => {
       throw new Error("Price ID does not match package type");
     }
 
-    console.log("Creating payment session for price:", priceId, "package:", packageType);
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
 
-    let userEmail = null;
-    let customerId = null;
-    
+    // Resolve user auth and build session params in parallel where possible
+    let userEmail: string | null = null;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
       const { data } = await supabaseClient.auth.getUser(token);
       if (data.user?.email) {
         userEmail = data.user.email;
-        console.log("User authenticated:", userEmail);
       }
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    if (userEmail) {
-      const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-      }
-    }
-
+    // Build session params - use customer_email directly to skip the slow customers.list call
     const sessionParams: any = {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
@@ -76,9 +66,7 @@ serve(async (req) => {
       metadata: { package_type: packageType },
     };
 
-    if (customerId) {
-      sessionParams.customer = customerId;
-    } else if (userEmail) {
+    if (userEmail) {
       sessionParams.customer_email = userEmail;
     }
 
