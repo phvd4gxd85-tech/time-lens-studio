@@ -89,6 +89,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "grok-imagine-video",
         prompt: trimmedPrompt,
+        duration: 4,
       })
     });
 
