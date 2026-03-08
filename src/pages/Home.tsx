@@ -231,7 +231,7 @@ const Home = () => {
       localStorage.setItem('vintage_ai_trial_used', 'true');
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
-        description: language === 'sv' ? "Din bild och video (4 sek) skapas nu." : "Your image and 4-second video are being created.",
+        description: language === 'sv' ? "Din video (4 sek) skapas nu." : "Your 4-second video is being created.",
       });
     } catch (error) {
       toast({
