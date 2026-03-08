@@ -248,7 +248,7 @@ serve(async (req) => {
       try {
         const editedDataUrl = await withTimeout(
           editImageWithAI(referenceUrl, trimmedPrompt, LOVABLE_API_KEY),
-          6500,
+          15000,
           'Bildredigering timeout'
         );
 
