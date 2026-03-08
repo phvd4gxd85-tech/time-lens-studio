@@ -183,7 +183,7 @@ export const VEO3VideoGenerator = () => {
               channel.unsubscribe();
               toast({
                 title: language === 'sv' ? "Video klar!" : "Video ready!",
-                description: language === 'sv' ? "Din VEO3-video har genererats" : "Your VEO3 video has been generated",
+                description: language === 'sv' ? "Din video är nu klar!" : "Your video is now ready!",
               });
             } else if (videoStatusData.status === 'failed') {
               setIsGenerating(false);
@@ -225,7 +225,7 @@ export const VEO3VideoGenerator = () => {
               channel.unsubscribe();
               toast({
                 title: language === 'sv' ? "Video klar!" : "Video ready!",
-                description: language === 'sv' ? "Din VEO3-video har genererats" : "Your VEO3 video has been generated",
+                description: language === 'sv' ? "Din video är nu klar!" : "Your video is now ready!",
               });
             } else if (newData.status === 'failed') {
               setIsGenerating(false);
