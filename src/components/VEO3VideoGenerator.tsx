@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { downloadFileFromUrl } from '@/lib/download';
 
 export const VEO3VideoGenerator = () => {
   const { toast } = useToast();
@@ -255,30 +256,15 @@ export const VEO3VideoGenerator = () => {
   const handleDownload = async () => {
     if (!videoUrl) return;
 
-    try {
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `veo3-video-${Date.now()}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+    const result = await downloadFileFromUrl(videoUrl, `veo3-video-${Date.now()}.mp4`);
 
-      toast({
-        title: language === 'sv' ? "Nedladdning startad" : "Download started",
-        description: language === 'sv' ? "Din video laddas ner" : "Your video is downloading",
-      });
-    } catch (error) {
-      console.error("Download error:", error);
-      toast({
-        title: language === 'sv' ? "Nedladdningsfel" : "Download error",
-        description: language === 'sv' ? "Kunde inte ladda ner videon" : "Could not download the video",
-        variant: "destructive"
-      });
-    }
+    toast({
+      title: language === 'sv' ? 'Nedladdning startad' : 'Download started',
+      description:
+        result === 'downloaded'
+          ? (language === 'sv' ? 'Din video laddas ner.' : 'Your video is downloading.')
+          : (language === 'sv' ? 'Videon öppnades i ny flik – spara därifrån på mobilen.' : 'Video opened in a new tab — save it there on mobile.'),
+    });
   };
 
   return (
