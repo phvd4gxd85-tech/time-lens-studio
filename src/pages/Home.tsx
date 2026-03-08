@@ -231,7 +231,7 @@ const Home = () => {
       localStorage.setItem('vintage_ai_trial_used', 'true');
       toast({
         title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
-        description: language === 'sv' ? "Din bild och video (4 sek) skapas nu." : "Your image and 4-second video are being created.",
+        description: language === 'sv' ? "Din video (4 sek) skapas nu." : "Your 4-second video is being created.",
       });
     } catch (error) {
       toast({
@@ -374,7 +374,7 @@ const Home = () => {
               : 'Once per person. For longer videos (up to 10 sec) credits are required – see our packages below!'}
           </p>
 
-          {trialImageUrl && (
+          {trialImageUrl && !trialUploadedImage && (
             <div className="mt-8 space-y-6">
               <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
                 <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis bild:' : 'Your free image:'}</h3>
