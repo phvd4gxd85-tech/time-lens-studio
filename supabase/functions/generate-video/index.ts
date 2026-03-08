@@ -108,8 +108,11 @@ serve(async (req) => {
           
           if (uploadError) throw new Error(`Failed to upload image: ${uploadError.message}`);
           
-          const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileName);
-          publicImageUrl = publicUrl;
+          const { data: signedData, error: signedError } = await supabaseClient.storage
+            .from('videos')
+            .createSignedUrl(fileName, 600); // 10-minute URL
+          if (signedError || !signedData?.signedUrl) throw new Error('Failed to create signed URL');
+          publicImageUrl = signedData.signedUrl;
         } catch (uploadErr) {
           console.error("Error uploading image:", uploadErr);
         }
