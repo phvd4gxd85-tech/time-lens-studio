@@ -21,7 +21,7 @@ const Home = () => {
 
   // Free trial states
   const [trialLoading, setTrialLoading] = useState(false);
-  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vai_trial_done'));
+  const [trialUsed, setTrialUsed] = useState(false);
   const [trialPrompt, setTrialPrompt] = useState('');
   const [trialFile, setTrialFile] = useState<File | null>(null);
   const [trialPreview, setTrialPreview] = useState<string | null>(null);
@@ -176,20 +176,23 @@ const Home = () => {
         body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageUrl }
       });
 
-      if (error) {
-        const msg = error.message || '';
-        if (msg.includes('trial_used') || msg.includes('redan')) {
+      // supabase.functions.invoke returns non-2xx body in `data` with error context in `error`
+      // Check both for trial_used flag
+      const responseData = data || {};
+      if (error || responseData.error) {
+        const isTrialUsed = responseData.trial_used || 
+          (responseData.error && typeof responseData.error === 'string' && responseData.error.includes('redan'));
+        if (isTrialUsed) {
           setTrialUsed(true);
-          localStorage.setItem('vai_trial_done', '1');
+          throw new Error(language === 'sv' ? 'Du har redan använt ditt gratisprov' : 'You have already used your free trial');
         }
-        throw error;
+        throw new Error(responseData.error || (error instanceof Error ? error.message : 'Något gick fel'));
       }
 
-      if (!data?.videoRequestId) throw new Error('Inget video-ID mottaget');
+      if (!responseData.videoRequestId) throw new Error('Inget video-ID mottaget');
 
-      // Mark trial as used
+      // Mark trial as used only after successful start
       setTrialUsed(true);
-      localStorage.setItem('vai_trial_done', '1');
 
       toast({
         title: language === 'sv' ? 'Video skapas!' : 'Video creating!',
@@ -198,7 +201,7 @@ const Home = () => {
 
       // Step 3: Poll for completion
       setTrialPolling(true);
-      const videoReqId = data.videoRequestId;
+      const videoReqId = responseData.videoRequestId;
       const clientId = getClientId();
       const interval = setInterval(async () => {
         try {
