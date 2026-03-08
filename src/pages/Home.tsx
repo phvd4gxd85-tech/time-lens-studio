@@ -19,13 +19,6 @@ const Home = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Free trial states
-  const [isTrialLoading, setIsTrialLoading] = useState(false);
-  const [trialPrompt, setTrialPrompt] = useState('');
-  const [trialUploadedImage, setTrialUploadedImage] = useState<string | null>(null);
-  const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
-  const [trialVideoRequestId, setTrialVideoRequestId] = useState<string | null>(null);
-  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
 
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
