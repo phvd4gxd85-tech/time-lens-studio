@@ -93,7 +93,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "grok-2-image-1212",
+        model: "grok-imagine-image",
         prompt: finalPrompt,
         n: 1,
       })
