@@ -1,0 +1,1 @@
+DELETE FROM free_trials WHERE ip_address LIKE '%90.130.54.77%';
