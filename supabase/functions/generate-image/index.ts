@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate user with getClaims
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
@@ -41,7 +41,6 @@ serve(async (req) => {
 
     const { prompt, imageUrl } = await req.json();
     
-    // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
       throw new Error("Valid prompt is required");
     }
@@ -54,7 +53,6 @@ serve(async (req) => {
       throw new Error("Prompt must be less than 2000 characters");
     }
 
-    // Validate imageUrl if provided
     if (imageUrl && typeof imageUrl !== 'string') {
       throw new Error("Invalid image URL format");
     }
@@ -74,48 +72,44 @@ serve(async (req) => {
       throw new Error("Insufficient images credits");
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    const XAI_API_KEY = Deno.env.get("XAI_API_KEY");
+    if (!XAI_API_KEY) {
+      throw new Error("XAI_API_KEY not configured");
     }
 
-    // Build messages
-    const messages: any[] = [];
+    // If user uploaded an image for editing, we need to handle it differently
+    // xAI grok-2-image only supports text-to-image, so we append image context to prompt
+    let finalPrompt = prompt;
     if (imageUrl) {
-      messages.push({
-        role: "user",
-        content: [
-          { type: "text", text: prompt },
-          { type: "image_url", image_url: { url: imageUrl } }
-        ]
-      });
-    } else {
-      messages.push({ role: "user", content: prompt });
+      // For image editing, enhance the prompt to describe the edit
+      finalPrompt = `Based on the reference image provided, ${prompt}`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call xAI Grok image generation API
+    const response = await fetch("https://api.x.ai/v1/images/generations", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${XAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages,
-        modalities: ["image", "text"]
+        model: "grok-2-image-1212",
+        prompt: finalPrompt,
+        n: 1,
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
-      throw new Error(`AI generation failed: ${response.status}`);
+      console.error("xAI image API error:", response.status, errorText);
+      throw new Error(`Image generation failed: ${response.status}`);
     }
 
     const data = await response.json();
-    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const generatedImageUrl = data.data?.[0]?.url;
 
     if (!generatedImageUrl) {
+      console.error("No image URL in xAI response:", data);
       throw new Error("No image returned from AI");
     }
 

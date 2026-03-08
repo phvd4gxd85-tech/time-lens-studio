@@ -292,16 +292,16 @@ export const VEO3VideoGenerator = () => {
       </div>
 
       <h2 className="text-3xl md:text-4xl font-bold mb-2 text-center text-amber-100">
-        {language === 'sv' ? 'Skapa Videos med VEO3' : 'Create Videos with VEO3'}
+        {language === 'sv' ? 'Skapa Videos' : 'Create Videos'}
       </h2>
       <p className="text-center text-amber-200/60 mb-8">
-        {language === 'sv' ? 'Google Veo - Professionell Videogenerering' : 'Google Veo - Professional Video Generation'}
+        {language === 'sv' ? 'AI-driven Videogenerering (upp till 10 sek)' : 'AI-Powered Video Generation (up to 10 sec)'}
       </p>
 
       {/* Introduction - What is a prompt */}
       <div className="mb-8 bg-black/20 p-6 rounded-lg border border-amber-600/20">
         <h3 className="text-xl font-semibold text-amber-100 mb-4">
-          {language === 'sv' ? 'Välkommen till VEO3 Video!' : 'Welcome to VEO3 Video!'}
+          {language === 'sv' ? 'Välkommen till Video!' : 'Welcome to Video!'}
         </h3>
         <p className="text-amber-200/80 mb-3 leading-relaxed">
           {language === 'sv' 
@@ -310,8 +310,8 @@ export const VEO3VideoGenerator = () => {
         </p>
         <p className="text-amber-200/70 leading-relaxed">
           {language === 'sv' 
-            ? 'Med VEO3 har du två val: antingen svarar du på de guidade frågorna som vi har lagt in för att göra det enklare för dig, eller så skriver du din egen prompt. När du känner dig mer bekväm kan du gå över till att skriva egna prompts och testa dig fram.' 
-            : 'With VEO3 you have two choices: either answer the guided questions we\'ve included to make it easier for you, or write your own prompt. When you feel more comfortable, you can move on to writing your own prompts and experiment.'}
+            ? 'Du har två val: antingen svarar du på de guidade frågorna som vi har lagt in för att göra det enklare för dig, eller så skriver du din egen prompt. När du känner dig mer bekväm kan du gå över till att skriva egna prompts och testa dig fram.' 
+            : 'You have two choices: either answer the guided questions we\'ve included to make it easier for you, or write your own prompt. When you feel more comfortable, you can move on to writing your own prompts and experiment.'}
         </p>
       </div>
 

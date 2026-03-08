@@ -28,6 +28,14 @@ const Home = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
+  // Free trial states
+  const [isTrialLoading, setIsTrialLoading] = useState(false);
+  const [trialUsed, setTrialUsed] = useState(() => !!localStorage.getItem('vintage_ai_trial_used'));
+  const [trialImageUrl, setTrialImageUrl] = useState<string | null>(null);
+  const [trialVideoRequestId, setTrialVideoRequestId] = useState<string | null>(null);
+  const [trialVideoUrl, setTrialVideoUrl] = useState<string | null>(null);
+  const [trialPrompt, setTrialPrompt] = useState('');
+
   // Auto-pause videos when scrolled out of view
   const videoRef1 = useRef<HTMLVideoElement>(null);
   const videoRef2 = useRef<HTMLVideoElement>(null);
@@ -104,12 +112,12 @@ const Home = () => {
   }, [language, refreshCredits, toast]);
 
   const PRICE_IDS = {
-    starter: "price_1SNsvKQt7FLZjS8hXtfTMW47",  // $6
-    classic: "price_1SNsvaQt7FLZjS8hoxcTNsfN",  // $20
-    premier: "price_1SNswDQt7FLZjS8huIapxFyx",  // $55
+    klassisk: "price_1T8bfLQt7FLZjS8hIlinBJRL",  // $5
+    standard: "price_1T8bfpQt7FLZjS8hTuCktjZn",  // $12
+    premium: "price_1T8bgHQt7FLZjS8huUX28eWF",   // $22
   };
 
-  const handlePurchase = async (packageType: 'starter' | 'classic' | 'premier') => {
+  const handlePurchase = async (packageType: 'klassisk' | 'standard' | 'premium') => {
     setLoading(packageType);
     console.log('Starting payment for package:', packageType);
     
@@ -284,6 +292,88 @@ const Home = () => {
         description: language === 'sv' ? "Kunde inte ladda ner videon" : "Could not download the video",
         variant: "destructive",
       });
+    }
+  };
+
+  // Generate a unique client ID for trial tracking
+  const getClientId = useCallback(() => {
+    let clientId = localStorage.getItem('vintage_ai_client_id');
+    if (!clientId) {
+      clientId = crypto.randomUUID();
+      localStorage.setItem('vintage_ai_client_id', clientId);
+    }
+    return clientId;
+  }, []);
+
+  const handleFreeTrial = async () => {
+    if (trialUsed) return;
+
+    // Simple prompt for trial - user doesn't need to configure anything
+    const defaultPrompt = "A beautiful vintage photograph from the 1960s, warm golden tones, nostalgic atmosphere, film grain effect";
+
+    setIsTrialLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('free-trial', {
+        body: {
+          prompt: defaultPrompt,
+          clientId: getClientId()
+        }
+      });
+
+      if (error) {
+        if (error.message?.includes('trial_used') || error.message?.includes('Trial already used')) {
+          setTrialUsed(true);
+          localStorage.setItem('vintage_ai_trial_used', 'true');
+          toast({
+            title: language === 'sv' ? "Prov redan använt" : "Trial already used",
+            description: language === 'sv' ? "Du har redan använt ditt gratis prov." : "You have already used your free trial.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
+
+      if (data?.imageUrl) {
+        setTrialImageUrl(data.imageUrl);
+      }
+
+      if (data?.videoRequestId) {
+        setTrialVideoRequestId(data.videoRequestId);
+        // Poll for trial video completion via edge function
+        const pollTrialVideo = setInterval(async () => {
+          try {
+            const { data: statusData } = await supabase.functions.invoke('poll-trial-video', {
+              body: { requestId: data.videoRequestId }
+            });
+            if (statusData?.videoUrl) {
+              setTrialVideoUrl(statusData.videoUrl);
+              clearInterval(pollTrialVideo);
+            }
+          } catch (e) {
+            console.error("Trial poll error:", e);
+          }
+        }, 5000);
+
+        setTimeout(() => clearInterval(pollTrialVideo), 300000);
+      }
+
+      setTrialUsed(true);
+      localStorage.setItem('vintage_ai_trial_used', 'true');
+
+      toast({
+        title: language === 'sv' ? "Gratis prov startat!" : "Free trial started!",
+        description: language === 'sv' ? "Din bild och video skapas nu." : "Your image and video are being created.",
+      });
+    } catch (error) {
+      console.error("Free trial error:", error);
+      toast({
+        title: language === 'sv' ? "Fel" : "Error",
+        description: error instanceof Error ? error.message : (language === 'sv' ? "Kunde inte starta provet" : "Could not start trial"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsTrialLoading(false);
     }
   };
 
@@ -843,6 +933,57 @@ const Home = () => {
       </div>
 
 
+      {/* Free Trial Section */}
+      <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-amber-950/30 to-gray-900">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-amber-100 mb-8">
+            {language === 'sv' ? 'Prova gratis nu!' : 'Try for free now!'}
+          </h2>
+          
+          <button
+            onClick={handleFreeTrial}
+            disabled={isTrialLoading || trialUsed}
+            className="w-full max-w-lg mx-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-gray-700 disabled:to-gray-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 disabled:cursor-not-allowed text-xl mb-6"
+          >
+            {isTrialLoading 
+              ? (language === 'sv' ? 'Skapar...' : 'Creating...') 
+              : trialUsed 
+                ? (language === 'sv' ? 'Prov redan använt' : 'Trial already used')
+                : (language === 'sv' ? 'Prova gratis – ingen inloggning behövs' : 'Try free – no login required')}
+          </button>
+
+          <p className="text-amber-200/80 text-sm leading-relaxed max-w-lg mx-auto">
+            {language === 'sv' 
+              ? 'Få 1 vintage-bild + 1 kort video (max 4 sekunder) helt gratis. Detta är en kort testvideo på max 4 sekunder. När du köper ett paket kan du välja längre videos upp till 10 sekunder!'
+              : 'Get 1 vintage image + 1 short video (max 4 seconds) completely free. This is a short test video of max 4 seconds. When you buy a package you can choose longer videos up to 10 seconds!'}
+          </p>
+
+          {trialImageUrl && (
+            <div className="mt-8 space-y-6">
+              <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis bild:' : 'Your free image:'}</h3>
+                <img src={trialImageUrl} alt="Trial result" className="w-full max-w-md mx-auto rounded" />
+              </div>
+              {trialVideoUrl ? (
+                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                  <h3 className="text-amber-100 font-bold mb-3">{language === 'sv' ? 'Din gratis video:' : 'Your free video:'}</h3>
+                  <video src={trialVideoUrl} controls className="w-full max-w-md mx-auto rounded" />
+                </div>
+              ) : trialVideoRequestId && (
+                <div className="bg-black/40 p-4 rounded-lg border border-amber-600/50">
+                  <p className="text-amber-200 animate-pulse">{language === 'sv' ? 'Video genereras...' : 'Video generating...'}</p>
+                </div>
+              )}
+              <p className="text-amber-300 text-sm">
+                {language === 'sv' 
+                  ? 'Gillar du? Skapa konto för att spara, dela eller skapa längre videos (upp till 10 sekunder) och fler!'
+                  : 'Like it? Create an account to save, share or create longer videos (up to 10 seconds) and more!'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Pricing Section */}
       <div className="relative py-24 px-4 bg-gradient-to-br from-gray-900 via-green-950 to-gray-900">
         <div className="max-w-7xl mx-auto">
@@ -856,34 +997,34 @@ const Home = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { 
-                name: t.starter, 
-                subtitle: t.starterDesc,
-                price: "$6", 
+                name: language === 'sv' ? 'Klassisk' : 'Classic', 
+                subtitle: language === 'sv' ? '$5 (ca 55 kr)' : '$5 (~55 SEK)',
+                price: "$5", 
                 videos: 3,
-                images: 5,
+                images: 8,
                 color: "bg-amber-900",
                 borderColor: "border-amber-600",
-                packageType: "starter" as const
+                packageType: "klassisk" as const
               },
               { 
-                name: t.pro, 
-                subtitle: t.proDesc,
-                price: "$20", 
-                videos: 10,
-                images: 15,
+                name: 'Standard', 
+                subtitle: language === 'sv' ? '$12 (ca 130 kr)' : '$12 (~130 SEK)',
+                price: "$12", 
+                videos: 8,
+                images: 20,
                 color: "bg-red-900",
                 borderColor: "border-red-700",
-                packageType: "classic" as const
+                packageType: "standard" as const
               },
               { 
-                name: t.trial, 
-                subtitle: t.trialDesc,
-                price: "$55", 
-                videos: 25,
+                name: 'Premium', 
+                subtitle: language === 'sv' ? '$22 (ca 240 kr)' : '$22 (~240 SEK)',
+                price: "$22", 
+                videos: 15,
                 images: 40,
                 color: "bg-slate-800",
                 borderColor: "border-slate-600",
-                packageType: "premier" as const
+                packageType: "premium" as const
               }
             ].map((pkg, i) => (
               <div key={i} className="relative group">
@@ -901,11 +1042,11 @@ const Home = () => {
                   <div className="space-y-3 mb-8 flex-grow">
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">{pkg.videos} {t.videos}</span>
+                     <span className="font-semibold">{pkg.images} {t.images}</span>
                     </div>
                     <div className="flex items-center gap-3 text-amber-200">
-                      <Camera className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">{pkg.images} {t.images}</span>
+                      <Video className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold">{pkg.videos} {t.videos} ({language === 'sv' ? 'upp till 10 sek' : 'up to 10 sec'})</span>
                     </div>
                   </div>
 
@@ -933,6 +1074,11 @@ const Home = () => {
               <div className="w-16 h-0.5 bg-gradient-to-l from-transparent to-amber-600"></div>
             </div>
           </div>
+          <p className="text-amber-200/60 text-xs mb-4 max-w-2xl mx-auto">
+            {language === 'sv' 
+              ? 'Priser inklusive moms. Paketen ger tillgång till hög kvalitet och ljud i videon. Pengarna går till att hålla tjänsten igång och utveckla fler filter. Tack för att du testar!'
+              : 'Prices include VAT. Packages include high quality and audio in videos. Revenue goes towards keeping the service running and developing more filters. Thank you for trying!'}
+          </p>
           <p className="text-amber-300/60">© 2024 Vintage AI • {t.footer}</p>
         </div>
       </div>

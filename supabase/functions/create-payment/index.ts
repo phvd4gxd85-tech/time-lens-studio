@@ -20,7 +20,6 @@ serve(async (req) => {
   try {
     const { priceId, packageType } = await req.json();
     
-    // Validate inputs
     if (!priceId || typeof priceId !== 'string') {
       throw new Error("Valid price ID is required");
     }
@@ -29,11 +28,10 @@ serve(async (req) => {
       throw new Error("Valid package type is required");
     }
 
-    // Validate allowed price IDs
     const ALLOWED_PRICES: Record<string, string> = {
-      'price_1SNsvKQt7FLZjS8hXtfTMW47': 'starter',   // $6
-      'price_1SNsvaQt7FLZjS8hoxcTNsfN': 'classic',   // $20
-      'price_1SNswDQt7FLZjS8huIapxFyx': 'premier'    // $55
+      'price_1T8bfLQt7FLZjS8hIlinBJRL': 'klassisk',   // $5
+      'price_1T8bfpQt7FLZjS8hTuCktjZn': 'standard',   // $12
+      'price_1T8bgHQt7FLZjS8huUX28eWF': 'premium'     // $22
     };
 
     if (!ALLOWED_PRICES[priceId]) {
@@ -46,7 +44,6 @@ serve(async (req) => {
 
     console.log("Creating payment session for price:", priceId, "package:", packageType);
 
-    // Get user if authenticated (optional for guest checkout)
     let userEmail = null;
     let customerId = null;
     
@@ -64,31 +61,21 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check for existing customer if we have an email
     if (userEmail) {
       const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
       if (customers.data.length > 0) {
         customerId = customers.data[0].id;
-        console.log("Found existing customer:", customerId);
       }
     }
 
     const sessionParams: any = {
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
-      metadata: {
-        package_type: packageType,
-      },
+      metadata: { package_type: packageType },
     };
 
-    // Only set one of customer or customer_email
     if (customerId) {
       sessionParams.customer = customerId;
     } else if (userEmail) {
@@ -96,8 +83,6 @@ serve(async (req) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
-
-    console.log("Payment session created:", session.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
