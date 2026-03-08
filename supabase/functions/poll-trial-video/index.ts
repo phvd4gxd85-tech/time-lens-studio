@@ -47,7 +47,7 @@ serve(async (req) => {
     }
 
     // Check xAI video status
-    const response = await fetch(`https://api.x.ai/v1/videos/${requestId}`, {
+    const response = await fetch(`https://api.x.ai/v1/videos/${encodeURIComponent(requestId)}`, {
       headers: {
         "Authorization": `Bearer ${XAI_API_KEY}`,
       },
