@@ -901,11 +901,11 @@ const Home = () => {
                   <div className="space-y-3 mb-8 flex-grow">
                     <div className="flex items-center gap-3 text-amber-200">
                       <Video className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">{pkg.videos} {t.videos}</span>
+                     <span className="font-semibold">{pkg.images} {t.images}</span>
                     </div>
                     <div className="flex items-center gap-3 text-amber-200">
-                      <Camera className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold">{pkg.images} {t.images}</span>
+                      <Video className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold">{pkg.videos} {t.videos} ({language === 'sv' ? 'upp till 10 sek' : 'up to 10 sec'})</span>
                     </div>
                   </div>
 
