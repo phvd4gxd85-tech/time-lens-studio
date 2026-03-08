@@ -174,7 +174,7 @@ const Home = () => {
       // Step 2: Call free-trial edge function (small payload, just URL + prompt)
       console.log('Calling free-trial with prompt:', trialPrompt.trim().substring(0, 50));
       const { data, error } = await supabase.functions.invoke('free-trial', {
-        body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageUrl }
+        body: { prompt: trialPrompt.trim(), clientId: getClientId(), imageBase64, imageMimeType }
       });
 
       console.log('Free trial response:', JSON.stringify(data), 'error:', error);
