@@ -204,7 +204,7 @@ const Home = () => {
 
       // Step 3: Poll for completion
       setTrialPolling(true);
-      const videoReqId = responseData.videoRequestId;
+      const videoReqId = data.videoRequestId;
       const clientId = getClientId();
       const interval = setInterval(async () => {
         try {
