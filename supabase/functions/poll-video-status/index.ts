@@ -32,8 +32,8 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    const KYE_API_KEY = Deno.env.get('KYE_API_KEY');
-    if (!KYE_API_KEY) throw new Error('KYE_API_KEY is not configured');
+    const XAI_API_KEY = Deno.env.get('XAI_API_KEY');
+    if (!XAI_API_KEY) throw new Error('XAI_API_KEY is not configured');
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -63,45 +63,37 @@ serve(async (req) => {
 
     for (const video of processingVideos) {
       try {
-        const kieResponse = await fetch(
-          `https://api.kie.ai/api/v1/runway/record-detail?taskId=${encodeURIComponent(video.generation_id)}`,
+        // Poll xAI Grok video status
+        const xaiResponse = await fetch(
+          `https://api.x.ai/v1/videos/${encodeURIComponent(video.generation_id)}`,
           {
             method: "GET",
             headers: {
-              "Authorization": `Bearer ${KYE_API_KEY}`,
-              "Content-Type": "application/json",
+              "Authorization": `Bearer ${XAI_API_KEY}`,
             },
           }
         );
 
-        if (!kieResponse.ok) {
-          console.error(`KIE API error for ${video.generation_id}:`, kieResponse.status);
+        if (!xaiResponse.ok) {
+          const errText = await xaiResponse.text();
+          console.error(`xAI API error for ${video.generation_id}:`, xaiResponse.status, errText);
           continue;
         }
 
-        const kieData = await kieResponse.json();
-        if (kieData.code !== 200) {
-          await supabaseClient
-            .from('video_generations')
-            .update({ status: 'failed', error_message: kieData.msg, updated_at: new Date().toISOString() })
-            .eq('id', video.id);
-          continue;
-        }
-
-        const state = kieData.data.state;
-        const kieVideoUrl = kieData.data.videoInfo?.videoUrl || null;
+        const xaiData = await xaiResponse.json();
+        const state = xaiData.status;
 
         let status = 'processing';
         let progress = video.progress || 0;
         let videoUrl = null;
 
-        if (state === 'success' && kieVideoUrl) {
+        if (state === 'done' && xaiData.video?.url) {
           status = 'completed';
           progress = 100;
-          videoUrl = kieVideoUrl;
+          videoUrl = xaiData.video.url;
         } else if (state === 'failed') {
           status = 'failed';
-        } else if (state === 'submitted') {
+        } else if (state === 'in_progress') {
           progress = 50;
         }
 
