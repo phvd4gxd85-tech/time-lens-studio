@@ -118,7 +118,7 @@ serve(async (req) => {
       }
 
       if (publicImageUrl) {
-        requestBody.image = publicImageUrl;
+        requestBody.image = { url: publicImageUrl, type: "url" };
         console.log("Using reference image:", publicImageUrl);
       }
     }
